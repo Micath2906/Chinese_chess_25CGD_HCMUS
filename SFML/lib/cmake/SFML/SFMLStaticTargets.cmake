@@ -84,6 +84,13 @@ set_target_properties(sfml-window PROPERTIES
 # Create imported target OpenGL
 add_library(OpenGL INTERFACE IMPORTED)
 
+# Create imported target OpenAL
+if(NOT TARGET OpenAL)
+  add_library(OpenAL INTERFACE IMPORTED)
+  add_library(OpenAL::OpenAL ALIAS OpenAL)
+endif()
+
+
 # Create imported target sfml-network
 add_library(sfml-network STATIC IMPORTED)
 

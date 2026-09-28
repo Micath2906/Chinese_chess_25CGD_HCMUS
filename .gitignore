@@ -1,7 +1,10 @@
 # Build directories
 build/
+build-*/
 cmake-build-*/
 out/
+GEMINI.md
+
 
 # IDE specific
 .vscode/
@@ -17,6 +20,8 @@ out/
 *.o
 *.obj
 *.dll
+!SFML/bin/*.dll
+
 *.so
 *.dylib
 
