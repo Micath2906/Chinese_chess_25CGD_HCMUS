@@ -45,6 +45,14 @@ file(GLOB_RECURSE SOURCES
 
 add_executable(CoTuong ${SOURCES})
 
+# Ensure CoTuong is the default startup project in Visual Studio instead of ALL_BUILD
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT CoTuong)
+
+# Ensure Visual Studio debugger runs with the target executable directory as working directory
+set_target_properties(CoTuong PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:CoTuong>"
+)
+
 # =========================
 # Link libraries
 # =========================
