@@ -9,6 +9,7 @@ GameManager::GameManager()
       trangThai(TrangThai::MENU_CHINH),
       cheDoChoi(CheDoChoi::HAI_NGUOI),
       quanDangChon(nullptr),
+      viTriConTro(9, 0),
       kichThuocO(68.0f),
       offsetX(65.0f),
       offsetY(60.0f),
@@ -40,31 +41,35 @@ void GameManager::khoiTao() {
 }
 
 void GameManager::khoiTaoCacMenu() {
-    float bw = 320.0f;
-    float bh = 55.0f;
+    float bw = 340.0f;
+    float bh = 48.0f;
     float cx = (window.getSize().x - bw) / 2.0f;
-    float startY = 240.0f;
-    float sp = 75.0f;
+    float startY = 220.0f;
+    float sp = 60.0f;
 
     // 1. Menu chinh
     menuChinh.setFont(font);
-    menuChinh.themButton(cx, startY, bw, bh, "CHOI 2 NGUOI", [this]() {
+    menuChinh.themButton(cx, startY, bw, bh, "DEMO: 2 XE & 2 VOI (DE BAI)", [this]() {
+        soundManager.play(SoundType::CLICK);
+        batDauTroChoiMoi(CheDoChoi::DEMO_2XE_2VOI);
+    });
+    menuChinh.themButton(cx, startY + sp, bw, bh, "CHOI 2 NGUOI (DAY DU)", [this]() {
         soundManager.play(SoundType::CLICK);
         batDauTroChoiMoi(CheDoChoi::HAI_NGUOI);
     });
-    menuChinh.themButton(cx, startY + sp, bw, bh, "CHOI VOI MAY (AI)", [this]() {
+    menuChinh.themButton(cx, startY + sp * 2, bw, bh, "CHOI VOI MAY (AI)", [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::CHON_PHE_AI;
     });
-    menuChinh.themButton(cx, startY + sp * 2, bw, bh, "CAI DAT", [this]() {
+    menuChinh.themButton(cx, startY + sp * 3, bw, bh, "CAI DAT", [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::SETTINGS;
     });
-    menuChinh.themButton(cx, startY + sp * 3, bw, bh, "HUONG DAN", [this]() {
+    menuChinh.themButton(cx, startY + sp * 4, bw, bh, "HUONG DAN", [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::HUONG_DAN;
     });
-    menuChinh.themButton(cx, startY + sp * 4, bw, bh, "THOAT", [this]() {
+    menuChinh.themButton(cx, startY + sp * 5, bw, bh, "THOAT (Q)", [this]() {
         soundManager.play(SoundType::CLICK);
         window.close();
     });
@@ -230,7 +235,15 @@ void GameManager::khoiTaoNutPopup() {
 
 void GameManager::batDauTroChoiMoi(CheDoChoi cheDo) {
     cheDoChoi = cheDo;
-    banCo.lamMoi();
+    if (cheDo == CheDoChoi::DEMO_2XE_2VOI) {
+        banCo.khoiTao2XeVa2Voi();
+        viTriConTro = sf::Vector2i(9, 0);
+        hienToast("Che do Demo: 2 Xe & 2 Voi. Dung W,A,S,D + Enter.");
+    } else {
+        banCo.lamMoi();
+        viTriConTro = sf::Vector2i(9, 4);
+    }
+
     quanDangChon = nullptr;
     cacNuocDiHopLe.clear();
     trangThai = TrangThai::DANG_CHOI;
@@ -314,7 +327,7 @@ void GameManager::xuLyLuotAI(float dt) {
                     soundManager.play(banCo.getNguoiThang() == mauNguoiChoi ? SoundType::VICTORY : SoundType::DEFEAT);
                 } else if (banCo.kiemTraChieu(mauNguoiChoi)) {
                     soundManager.play(SoundType::CHECK);
-                    hienToast("MAY CHIẾU TƯỚNG!");
+                    hienToast("MAY CHIEU TUONG!");
                 } else if (anQuan) {
                     soundManager.play(SoundType::CAPTURE);
                 } else {
@@ -336,6 +349,15 @@ void GameManager::xuLySuKien() {
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
             xuLyClickChuot(mousePos);
+        }
+        
+        if (event.type == sf::Event::MouseMoved && trangThai == TrangThai::DANG_CHOI) {
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            sf::Vector2i toaDo = chuyenDoiToaDoManHinhThanhBanCo(mousePos);
+            if (toaDo.x >= 0 && toaDo.x < BanCo::getSOHANG() &&
+                toaDo.y >= 0 && toaDo.y < BanCo::getSOCOT()) {
+                viTriConTro = toaDo;
+            }
         }
         
         if (event.type == sf::Event::KeyPressed) {
@@ -364,20 +386,102 @@ void GameManager::xuLySuKien() {
 }
 
 void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
+    // 1. Phim Q de thoat chuong trinh theo dung yeu cau de bai
+    if (key == sf::Keyboard::Q) {
+        window.close();
+        return;
+    }
+
+    // 2. Phim Esc de bo chon hoac ve Menu
     if (key == sf::Keyboard::Escape) {
         if (trangThai == TrangThai::DANG_CHOI) {
-            quayLaiMenu();
-        } else if (trangThai == TrangThai::SETTINGS || trangThai == TrangThai::HUONG_DAN || trangThai == TrangThai::CHON_PHE_AI) {
+            if (quanDangChon != nullptr) {
+                // Bo chon quan
+                quanDangChon = nullptr;
+                cacNuocDiHopLe.clear();
+                soundManager.play(SoundType::CLICK);
+                hienToast("Da bo chon quan (Esc)");
+            } else {
+                // Neu chua chon quan: quay ve Menu
+                quayLaiMenu();
+            }
+        } else if (trangThai != TrangThai::MENU_CHINH) {
             trangThai = TrangThai::MENU_CHINH;
         }
+        return;
     }
     
+    // 3. Phim Ctrl+Z: Hoan tac, Ctrl+Y: Di tiep
     if (ctrl && key == sf::Keyboard::Z && trangThai == TrangThai::DANG_CHOI) {
         thucHienHoanTac();
+        return;
     }
     
     if (ctrl && key == sf::Keyboard::Y && trangThai == TrangThai::DANG_CHOI) {
         thucHienDiTiep();
+        return;
+    }
+
+    // 4. Dieu khien con tro bang W, A, S, D va Enter trong van choi
+    if (trangThai == TrangThai::DANG_CHOI && !banCo.getKetThuc()) {
+        bool movedCursor = false;
+        
+        // W hoac Mui ten len: di len (giam hang)
+        if (key == sf::Keyboard::W || key == sf::Keyboard::Up) {
+            if (viTriConTro.x > 0) {
+                viTriConTro.x--;
+                movedCursor = true;
+            }
+        }
+        // S hoac Mui ten xuong: di xuong (tang hang)
+        else if (key == sf::Keyboard::S || key == sf::Keyboard::Down) {
+            if (viTriConTro.x < BanCo::getSOHANG() - 1) {
+                viTriConTro.x++;
+                movedCursor = true;
+            }
+        }
+        // A hoac Mui ten trai: sang trai (giam cot)
+        else if (key == sf::Keyboard::A || key == sf::Keyboard::Left) {
+            if (viTriConTro.y > 0) {
+                viTriConTro.y--;
+                movedCursor = true;
+            }
+        }
+        // D hoac Mui ten phai: sang phai (tang cot)
+        else if (key == sf::Keyboard::D || key == sf::Keyboard::Right) {
+            if (viTriConTro.y < BanCo::getSOCOT() - 1) {
+                viTriConTro.y++;
+                movedCursor = true;
+            }
+        }
+        // Enter hoac Space: Chon quan hoac di chuyen
+        else if (key == sf::Keyboard::Enter || key == sf::Keyboard::Space) {
+            int h = viTriConTro.x;
+            int c = viTriConTro.y;
+            
+            if (quanDangChon == nullptr) {
+                chonQuan(h, c);
+            } else {
+                if (quanDangChon->getHang() == h && quanDangChon->getCot() == c) {
+                    // Enter vao chinh quan dang chon -> bo chon
+                    quanDangChon = nullptr;
+                    cacNuocDiHopLe.clear();
+                    soundManager.play(SoundType::CLICK);
+                } else {
+                    auto quanKhac = banCo.timQuan(h, c);
+                    if (quanKhac && quanKhac->getMau() == banCo.getLuotChoi()) {
+                        chonQuan(h, c);
+                    } else {
+                        diChuyenQuan(h, c);
+                    }
+                }
+            }
+            return;
+        }
+
+        if (movedCursor) {
+            soundManager.play(SoundType::CLICK);
+        }
     }
 }
 
@@ -428,6 +532,7 @@ void GameManager::xuLyClickChuot(const sf::Vector2i& viTri) {
                 
                 int h = toaDo.x;
                 int c = toaDo.y;
+                viTriConTro = toaDo;
                 
                 if (quanDangChon == nullptr) {
                     chonQuan(h, c);
@@ -474,13 +579,14 @@ void GameManager::diChuyenQuan(int hang, int cot) {
     if (thanhCong) {
         quanDangChon = nullptr;
         cacNuocDiHopLe.clear();
+        viTriConTro = sf::Vector2i(hang, cot);
         
         if (banCo.getKetThuc()) {
             lyDoKetThuc = "Chieu bi doi thu!";
             soundManager.play(SoundType::VICTORY);
         } else if (banCo.kiemTraChieu(banCo.getLuotChoi())) {
             soundManager.play(SoundType::CHECK);
-            hienToast("CHIẾU TƯỚNG!");
+            hienToast("CHIEU TUONG!");
         } else if (anQuan) {
             soundManager.play(SoundType::CAPTURE);
         } else {
@@ -517,7 +623,6 @@ void GameManager::thucHienHoanTac() {
     }
     
     if (cheDoChoi == CheDoChoi::VOI_MAY) {
-        // Trong che do may: hoan tac 2 nuoc (nuoc may di va nuoc minh di)
         banCo.hoanTac();
         banCo.hoanTac();
     } else {
@@ -527,7 +632,7 @@ void GameManager::thucHienHoanTac() {
     quanDangChon = nullptr;
     cacNuocDiHopLe.clear();
     aiDangSuyNghi = false;
-    hienToast("Da hoan tac nuoc di.");
+    hienToast("Da hoan tac nuoc di (Ctrl+Z).");
 }
 
 void GameManager::thucHienDiTiep() {
@@ -546,7 +651,7 @@ void GameManager::thucHienDiTiep() {
     
     quanDangChon = nullptr;
     cacNuocDiHopLe.clear();
-    hienToast("Da di tiep.");
+    hienToast("Da di tiep (Ctrl+Y).");
 }
 
 void GameManager::thucHienDauHang() {
@@ -559,9 +664,6 @@ void GameManager::thucHienDauHang() {
 void GameManager::thucHienXinHoa() {
     soundManager.play(SoundType::CLICK);
     if (cheDoChoi == CheDoChoi::VOI_MAY) {
-        // May danh gia the co
-        int diem = ChessAI::timNuocDi(banCo, doKhoAI, mauAI).hangBatDau; // trigger AI evaluation
-        // Cho hoa neu the co can bang
         banCo.xinHoa();
         lyDoKetThuc = "Hai ben dong y hoa co!";
         hienToast("May da dong y hoa co!");
@@ -606,13 +708,11 @@ void GameManager::hienToast(const std::string& msg) {
 }
 
 sf::Vector2i GameManager::chuyenDoiToaDoManHinhThanhBanCo(const sf::Vector2i& viTriChuot) {
-    // Tim intersection gan nhat
     float colF = (viTriChuot.x - offsetX) / kichThuocO;
     float rowF = (viTriChuot.y - offsetY) / kichThuocO;
     int c = static_cast<int>(std::round(colF));
     int h = static_cast<int>(std::round(rowF));
     
-    // Kiem tra khoang cach click den diem giao cat (ban kinh click hop le 32px)
     float px = offsetX + c * kichThuocO;
     float py = offsetY + h * kichThuocO;
     float dx = viTriChuot.x - px;
@@ -650,6 +750,7 @@ void GameManager::ve() {
         case TrangThai::DANG_CHOI:
             veBanCoTruyenThong();
             veHighlights();
+            veConTroBanPhim();
             veCacQuanCo();
             veThanhBenPhai();
             if (banCo.getKetThuc()) {
@@ -705,21 +806,18 @@ void GameManager::veBanCoTruyenThong() {
     for (int c = 0; c < 9; ++c) {
         float x = offsetX + c * kichThuocO;
         if (c == 0 || c == 8) {
-            // Bien ngoai noi lien tu hang 0 den 9
             sf::Vertex line[] = {
                 sf::Vertex(sf::Vector2f(x, offsetY), lineColor),
                 sf::Vertex(sf::Vector2f(x, offsetY + boardH), lineColor)
             };
             window.draw(line, 2, sf::Lines);
         } else {
-            // Nua tren (hang 0 den 4)
             sf::Vertex lineTren[] = {
                 sf::Vertex(sf::Vector2f(x, offsetY), lineColor),
                 sf::Vertex(sf::Vector2f(x, offsetY + 4.0f * kichThuocO), lineColor)
             };
             window.draw(lineTren, 2, sf::Lines);
             
-            // Nua duoi (hang 5 den 9)
             sf::Vertex lineDuoi[] = {
                 sf::Vertex(sf::Vector2f(x, offsetY + 5.0f * kichThuocO), lineColor),
                 sf::Vertex(sf::Vector2f(x, offsetY + boardH), lineColor)
@@ -745,8 +843,7 @@ void GameManager::veBanCoTruyenThong() {
     textSong2.setPosition(offsetX + 5.2f * kichThuocO, offsetY + 4.25f * kichThuocO);
     window.draw(textSong2);
 
-    // 6. Cung Cuu Cung (2 duong cheo X moi ben)
-    // Cung Den: (0,3) -> (2,5) va (0,5) -> (2,3)
+    // 6. Cung Cuu Cung
     sf::Vertex cheoDen1[] = {
         sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, 3), lineColor),
         sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(2, 5), lineColor)
@@ -758,7 +855,6 @@ void GameManager::veBanCoTruyenThong() {
     window.draw(cheoDen1, 2, sf::Lines);
     window.draw(cheoDen2, 2, sf::Lines);
 
-    // Cung Do: (7,3) -> (9,5) va (7,5) -> (9,3)
     sf::Vertex cheoDo1[] = {
         sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(7, 3), lineColor),
         sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(9, 5), lineColor)
@@ -772,7 +868,7 @@ void GameManager::veBanCoTruyenThong() {
 }
 
 void GameManager::veHighlights() {
-    // 1. Highlight nuoc di vua roi (from & to)
+    // 1. Highlight nuoc di vua roi
     NuocDi ndCuoi = banCo.getNuocDiCuoi();
     if (ndCuoi.hangBatDau >= 0) {
         sf::Vector2f pBD = chuyenDoiToaDoBanCoThanhManHinh(ndCuoi.hangBatDau, ndCuoi.cotBatDau);
@@ -807,14 +903,13 @@ void GameManager::veHighlights() {
         window.draw(hl);
     }
 
-    // 3. Highlight cac nuoc di hop le (Legal move dots)
+    // 3. Highlight cac nuoc di hop le
     if (hienGoiY && quanDangChon) {
         for (const auto& viTri : cacNuocDiHopLe) {
             sf::Vector2f pos = chuyenDoiToaDoBanCoThanhManHinh(viTri.x, viTri.y);
             auto quanDich = banCo.timQuan(viTri.x, viTri.y);
             
             if (quanDich) {
-                // O co quan dich: vong tron do bao quanh quan
                 sf::CircleShape dot(kichThuocO * 0.42f);
                 dot.setOrigin(kichThuocO * 0.42f, kichThuocO * 0.42f);
                 dot.setPosition(pos);
@@ -823,7 +918,6 @@ void GameManager::veHighlights() {
                 dot.setOutlineColor(sf::Color(230, 40, 40, 220));
                 window.draw(dot);
             } else {
-                // O trong: cham tron xanh nho o tam
                 sf::CircleShape dot(7.0f);
                 dot.setOrigin(7.0f, 7.0f);
                 dot.setPosition(pos);
@@ -850,6 +944,31 @@ void GameManager::veHighlights() {
             }
         }
     }
+}
+
+void GameManager::veConTroBanPhim() {
+    sf::Vector2f pos = chuyenDoiToaDoBanCoThanhManHinh(viTriConTro.x, viTriConTro.y);
+    float r = kichThuocO * 0.46f;
+    float len = 12.0f;
+    sf::Color cColor(255, 215, 0, 240); // Mau vang kim noi bat
+
+    // 4 goc ngam khung con tro W, A, S, D
+    sf::Vertex tl1[] = { sf::Vertex(sf::Vector2f(pos.x - r, pos.y - r), cColor), sf::Vertex(sf::Vector2f(pos.x - r + len, pos.y - r), cColor) };
+    sf::Vertex tl2[] = { sf::Vertex(sf::Vector2f(pos.x - r, pos.y - r), cColor), sf::Vertex(sf::Vector2f(pos.x - r, pos.y - r + len), cColor) };
+
+    sf::Vertex tr1[] = { sf::Vertex(sf::Vector2f(pos.x + r, pos.y - r), cColor), sf::Vertex(sf::Vector2f(pos.x + r - len, pos.y - r), cColor) };
+    sf::Vertex tr2[] = { sf::Vertex(sf::Vector2f(pos.x + r, pos.y - r), cColor), sf::Vertex(sf::Vector2f(pos.x + r, pos.y - r + len), cColor) };
+
+    sf::Vertex bl1[] = { sf::Vertex(sf::Vector2f(pos.x - r, pos.y + r), cColor), sf::Vertex(sf::Vector2f(pos.x - r + len, pos.y + r), cColor) };
+    sf::Vertex bl2[] = { sf::Vertex(sf::Vector2f(pos.x - r, pos.y + r), cColor), sf::Vertex(sf::Vector2f(pos.x - r, pos.y + r - len), cColor) };
+
+    sf::Vertex br1[] = { sf::Vertex(sf::Vector2f(pos.x + r, pos.y + r), cColor), sf::Vertex(sf::Vector2f(pos.x + r - len, pos.y + r), cColor) };
+    sf::Vertex br2[] = { sf::Vertex(sf::Vector2f(pos.x + r, pos.y + r), cColor), sf::Vertex(sf::Vector2f(pos.x + r, pos.y + r - len), cColor) };
+
+    window.draw(tl1, 2, sf::Lines); window.draw(tl2, 2, sf::Lines);
+    window.draw(tr1, 2, sf::Lines); window.draw(tr2, 2, sf::Lines);
+    window.draw(bl1, 2, sf::Lines); window.draw(bl2, 2, sf::Lines);
+    window.draw(br1, 2, sf::Lines); window.draw(br2, 2, sf::Lines);
 }
 
 void GameManager::veCacQuanCo() {
@@ -883,21 +1002,20 @@ void GameManager::veCacQuanCo() {
         }
         window.draw(vanhTrong);
 
-        // 3. Chu ten quan co tieng Viet ro rang
+        // 3. Chu ten quan co
         sf::Text text;
         text.setFont(font);
         
         std::string ten = quan->layTen();
         if (ten == "Tuong") text.setString("TUONG");
         else if (ten == "Si") text.setString("SI");
-        else if (ten == "Voi") text.setString("TUONG");
+        else if (ten == "Voi") text.setString("VOI");
         else if (ten == "Xe") text.setString("XE");
         else if (ten == "Phao") text.setString("PHAO");
         else if (ten == "Ma") text.setString("MA");
         else if (ten == "Tot") text.setString("TOT");
         else text.setString(quan->layKyHieu());
 
-        // Chinh font size de vua vanh tron
         if (text.getString().getSize() > 4) {
             text.setCharacterSize(13);
         } else if (text.getString().getSize() > 2) {
@@ -938,7 +1056,7 @@ void GameManager::veThanhBenPhai() {
     // 1. Luot choi & Thong tin
     sf::Text luotText;
     luotText.setFont(font);
-    luotText.setCharacterSize(26);
+    luotText.setCharacterSize(24);
     luotText.setStyle(sf::Text::Bold);
 
     if (banCo.getLuotChoi() == Mau::DO) {
@@ -948,17 +1066,34 @@ void GameManager::veThanhBenPhai() {
         luotText.setString("LUOT DI: QUAN DEN");
         luotText.setFillColor(sf::Color(220, 220, 220));
     }
-    luotText.setPosition(px + 20.0f, py + 18.0f);
+    luotText.setPosition(px + 20.0f, py + 14.0f);
     window.draw(luotText);
+
+    // Che do choi hien tai
+    sf::Text modeText;
+    modeText.setFont(font);
+    modeText.setCharacterSize(14);
+    if (cheDoChoi == CheDoChoi::DEMO_2XE_2VOI) {
+        modeText.setString("[Che do: Demo 2 Xe & 2 Voi theo de bai]");
+        modeText.setFillColor(sf::Color(255, 215, 0));
+    } else if (cheDoChoi == CheDoChoi::VOI_MAY) {
+        modeText.setString("[Che do: Dau voi May AI]");
+        modeText.setFillColor(sf::Color(140, 200, 255));
+    } else {
+        modeText.setString("[Che do: 2 Nguoi choi]");
+        modeText.setFillColor(sf::Color(170, 220, 170));
+    }
+    modeText.setPosition(px + 20.0f, py + 42.0f);
+    window.draw(modeText);
 
     // Trang thai may dang suy nghi
     if (cheDoChoi == CheDoChoi::VOI_MAY && banCo.getLuotChoi() == mauAI && !banCo.getKetThuc()) {
         sf::Text aiThinking;
         aiThinking.setFont(font);
-        aiThinking.setCharacterSize(17);
+        aiThinking.setCharacterSize(16);
         aiThinking.setString("(May dang suy nghi nuoc di...)");
         aiThinking.setFillColor(sf::Color(255, 215, 0));
-        aiThinking.setPosition(px + 20.0f, py + 52.0f);
+        aiThinking.setPosition(px + 20.0f, py + 62.0f);
         window.draw(aiThinking);
     }
 
@@ -966,15 +1101,15 @@ void GameManager::veThanhBenPhai() {
     if (banCo.kiemTraChieu(banCo.getLuotChoi()) && !banCo.getKetThuc()) {
         sf::Text checkAlert;
         checkAlert.setFont(font);
-        checkAlert.setCharacterSize(20);
+        checkAlert.setCharacterSize(18);
         checkAlert.setStyle(sf::Text::Bold);
         checkAlert.setString("[!] DANG BI CHIEU TUONG! [!]");
         checkAlert.setFillColor(sf::Color(255, 60, 60));
-        checkAlert.setPosition(px + 20.0f, py + 80.0f);
+        checkAlert.setPosition(px + 20.0f, py + 82.0f);
         window.draw(checkAlert);
     }
 
-    // 2. Dong ho thi dau (Chess Clocks)
+    // 2. Dong ho thi dau
     auto formatTime = [](float sec) {
         if (sec <= 0.0f) return std::string("--:--");
         int s = static_cast<int>(sec);
@@ -986,11 +1121,10 @@ void GameManager::veThanhBenPhai() {
         return oss.str();
     };
 
-    float clockY = py + 115.0f;
+    float clockY = py + 108.0f;
     float cw = 215.0f;
-    float ch = 60.0f;
+    float ch = 52.0f;
 
-    // Clock Do
     sf::RectangleShape boxDo(sf::Vector2f(cw, ch));
     boxDo.setPosition(px + 20.0f, clockY);
     boxDo.setFillColor(sf::Color(45, 30, 30));
@@ -1000,13 +1134,12 @@ void GameManager::veThanhBenPhai() {
 
     sf::Text tDo;
     tDo.setFont(font);
-    tDo.setCharacterSize(22);
+    tDo.setCharacterSize(20);
     tDo.setString("DO: " + formatTime(thoiGianConDo));
     tDo.setFillColor(sf::Color(240, 100, 100));
-    tDo.setPosition(px + 35.0f, clockY + 16.0f);
+    tDo.setPosition(px + 35.0f, clockY + 14.0f);
     window.draw(tDo);
 
-    // Clock Den
     sf::RectangleShape boxDen(sf::Vector2f(cw, ch));
     boxDen.setPosition(px + 250.0f, clockY);
     boxDen.setFillColor(sf::Color(30, 35, 45));
@@ -1016,25 +1149,45 @@ void GameManager::veThanhBenPhai() {
 
     sf::Text tDen;
     tDen.setFont(font);
-    tDen.setCharacterSize(22);
+    tDen.setCharacterSize(20);
     tDen.setString("DEN: " + formatTime(thoiGianConDen));
     tDen.setFillColor(sf::Color(180, 210, 240));
-    tDen.setPosition(px + 265.0f, clockY + 16.0f);
+    tDen.setPosition(px + 265.0f, clockY + 14.0f);
     window.draw(tDen);
 
-    // 3. Bang lich su nuoc di
-    float histY = clockY + 75.0f;
+    // 3. Bang huong dan phim bam & con tro
+    float keyGuideY = clockY + 62.0f;
+    sf::RectangleShape keyGuideBox(sf::Vector2f(pw - 40.0f, 62.0f));
+    keyGuideBox.setPosition(px + 20.0f, keyGuideY);
+    keyGuideBox.setFillColor(sf::Color(20, 26, 38));
+    keyGuideBox.setOutlineThickness(1.0f);
+    keyGuideBox.setOutlineColor(sf::Color(60, 90, 130));
+    window.draw(keyGuideBox);
+
+    sf::Text keyGuideText;
+    keyGuideText.setFont(font);
+    keyGuideText.setCharacterSize(14);
+    keyGuideText.setString(
+        "PHIM: [W, A, S, D] Di chuyen con tro  |  [Enter / Space] Chon/Di\n"
+        "      [Esc] Bo chon / Menu  |  [Q] Thoat  |  Chuot: Click truc tiep"
+    );
+    keyGuideText.setFillColor(sf::Color(255, 230, 140));
+    keyGuideText.setPosition(px + 28.0f, keyGuideY + 10.0f);
+    window.draw(keyGuideText);
+
+    // 4. Bang lich su nuoc di
+    float histY = keyGuideY + 70.0f;
     sf::Text histTitle;
     histTitle.setFont(font);
-    histTitle.setCharacterSize(18);
+    histTitle.setCharacterSize(17);
     histTitle.setStyle(sf::Text::Bold);
-    histTitle.setString("LICH SU NUOC DI GAN NHAT:");
+    histTitle.setString("LICH SU NUOC DI:");
     histTitle.setFillColor(sf::Color(200, 210, 225));
     histTitle.setPosition(px + 20.0f, histY);
     window.draw(histTitle);
 
-    sf::RectangleShape histBox(sf::Vector2f(pw - 40.0f, 130.0f));
-    histBox.setPosition(px + 20.0f, histY + 28.0f);
+    sf::RectangleShape histBox(sf::Vector2f(pw - 40.0f, 105.0f));
+    histBox.setPosition(px + 20.0f, histY + 24.0f);
     histBox.setFillColor(sf::Color(25, 28, 38));
     histBox.setOutlineThickness(1.0f);
     histBox.setOutlineColor(sf::Color(55, 65, 85));
@@ -1042,44 +1195,42 @@ void GameManager::veThanhBenPhai() {
 
     const auto& lichSu = banCo.getLichSuNuocDi();
     size_t count = lichSu.size();
-    size_t start = (count > 5) ? (count - 5) : 0;
-    float textY = histY + 34.0f;
+    size_t start = (count > 4) ? (count - 4) : 0;
+    float textY = histY + 30.0f;
 
     if (lichSu.empty()) {
         sf::Text emptyT;
         emptyT.setFont(font);
-        emptyT.setCharacterSize(15);
+        emptyT.setCharacterSize(14);
         emptyT.setString("(Chua co nuoc di nao)");
         emptyT.setFillColor(sf::Color(120, 130, 145));
-        emptyT.setPosition(px + 35.0f, textY + 40.0f);
+        emptyT.setPosition(px + 35.0f, textY + 30.0f);
         window.draw(emptyT);
     } else {
         for (size_t i = start; i < count; ++i) {
             sf::Text ndText;
             ndText.setFont(font);
-            ndText.setCharacterSize(15);
+            ndText.setCharacterSize(14);
             std::string line = std::to_string(i + 1) + ". " + banCo.layMoTaNuocDi(lichSu[i]);
             ndText.setString(line);
             ndText.setFillColor((lichSu[i].mauQuan == Mau::DO) ? sf::Color(240, 120, 120) : sf::Color(170, 200, 230));
             ndText.setPosition(px + 30.0f, textY);
             window.draw(ndText);
-            textY += 23.0f;
+            textY += 21.0f;
         }
     }
 
-    // 4. Ve cac nut dieu khien
+    // 5. Ve cac nut dieu khien
     for (auto& btn : inGameButtons) {
         btn->draw(window);
     }
 }
 
 void GameManager::vePopupKetThuc() {
-    // Lop phu mo
     sf::RectangleShape overlay(sf::Vector2f(window.getSize().x, window.getSize().y));
     overlay.setFillColor(sf::Color(0, 0, 0, 170));
     window.draw(overlay);
 
-    // Hop thoai popup
     float dw = 520.0f;
     float dh = 300.0f;
     float dx = (window.getSize().x - dw) / 2.0f;
@@ -1092,7 +1243,6 @@ void GameManager::vePopupKetThuc() {
     dialog.setOutlineColor(sf::Color(240, 190, 70));
     window.draw(dialog);
 
-    // Tieu de
     sf::Text tTitle;
     tTitle.setFont(font);
     tTitle.setCharacterSize(34);
@@ -1104,7 +1254,6 @@ void GameManager::vePopupKetThuc() {
     tTitle.setPosition(window.getSize().x / 2.0f, dy + 50.0f);
     window.draw(tTitle);
 
-    // Ket qua
     sf::Text tResult;
     tResult.setFont(font);
     tResult.setCharacterSize(26);
@@ -1126,7 +1275,6 @@ void GameManager::vePopupKetThuc() {
     tResult.setPosition(window.getSize().x / 2.0f, dy + 110.0f);
     window.draw(tResult);
 
-    // Ly do ket thuc
     if (!lyDoKetThuc.empty()) {
         sf::Text tReason;
         tReason.setFont(font);
@@ -1139,7 +1287,6 @@ void GameManager::vePopupKetThuc() {
         window.draw(tReason);
     }
 
-    // 2 nut Choi lai va Ve Menu
     for (auto& btn : popupButtons) {
         btn->draw(window);
     }
@@ -1177,13 +1324,13 @@ void GameManager::veMenuChinh() {
     sf::Text title;
     title.setFont(font);
     title.setString("CO TUONG");
-    title.setCharacterSize(68);
+    title.setCharacterSize(64);
     title.setFillColor(sf::Color(240, 190, 70));
     title.setStyle(sf::Text::Bold);
     
     sf::FloatRect tb = title.getLocalBounds();
     title.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    title.setPosition(window.getSize().x / 2.0f, 100.0f);
+    title.setPosition(window.getSize().x / 2.0f, 90.0f);
     window.draw(title);
 
     sf::Text sub;
@@ -1193,7 +1340,7 @@ void GameManager::veMenuChinh() {
     sub.setFillColor(sf::Color(170, 185, 205));
     tb = sub.getLocalBounds();
     sub.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    sub.setPosition(window.getSize().x / 2.0f, 160.0f);
+    sub.setPosition(window.getSize().x / 2.0f, 150.0f);
     window.draw(sub);
     
     menuChinh.draw(window);
@@ -1237,24 +1384,25 @@ void GameManager::veMenuHuongDan() {
 
     std::string text = 
         "- BAN CO & MUC TIEU:\n"
-        "  Ban co 10 hang x 9 cot. Hai ben Do va Den thi dau voi muc tieu chieu bi Tuong doi phuong.\n"
+        "  Ban co 10 hang x 9 cot. Hai ben thi dau de chieu bi Tuong doi phuong.\n"
         "  O giua co Song (So Ha - Han Gioi). Cung Cuu Cung rong 3x3 o moi ben co 2 duong cheo X.\n\n"
-        "- QUY TAC DI CHUYEN TUNG QUAN:\n"
-        "  1. TUONG: Di ngang hoac doc 1 o trong cung. Hai Tuong khong duoc lo mat chong nhau.\n"
-        "  2. SI: Di cheo 1 o trong cung 3x3, bao ve Tuong.\n"
-        "  3. TUONG (VOI): Di cheo dung 2 o, khong duoc qua song, khong duoc bi chan mat voi.\n"
-        "  4. XE: Di ngang hoac doc tuy y khong gioi han o, khong duoc nhay qua quan.\n"
-        "  5. PHAO: Di ngang/doc nhu Xe. Khi an quan bat buoc phai nhay qua dung 1 quan lam ngoi.\n"
-        "  6. MA: Di hinh chu Nhat (2-1 hoac 1-2). Khong duoc bi chan chan Ma.\n"
-        "  7. TOT: Chua qua song chi duoc di thang 1 o. Sau khi qua song duoc di thang hoac ngang 1 o.\n\n"
-        "- TIEN ICH & PHIM TAT:\n"
-        "  Ctrl + Z: Hoan tac nuoc di  |  Ctrl + Y: Di tiep nuoc da hoan tac  |  ESC: Quay lai Menu\n"
-        "  Luu & Tai game: Cho phep luu the co hien tai vao file savegame.txt va load tiep bat cu luc nao!";
+        "- PHIM DIEU KHIEN (THEO DE BAI):\n"
+        "  1. W, A, S, D (hoac Mui ten): Di chuyen con tro chon tren ban co.\n"
+        "  2. Enter (hoac Space): Chon quan hoac chon vi tri muon di chuyen toi.\n"
+        "  3. Esc: Bo chon quan dang chon (neu chua chon quan se quay ve Menu).\n"
+        "  4. Q: Thoat chuong trinh ngay lap tuc.\n"
+        "  5. Ctrl + Z: Hoan tac nuoc di  |  Ctrl + Y: Di tiep.\n"
+        "  (Ngoai ra van ho tro Click Chuot truc tiep tren ban co).\n\n"
+        "- QUY TAC DI CHUYEN 2 QUAN TRONG TAM (XE & VOI):\n"
+        "  * XE: Di chuyen ngang hoac doc tuy y khong gioi han so o, khong duoc nhay qua quan khac.\n"
+        "  * VOI: Di cheo dung 2 o, KHONG duoc qua song, KHONG duoc bi chan mat Voi.\n\n"
+        "- CAC QUAN CON LAI: Tuong (1 o ngang/doc trong cung), Si (1 o cheo trong cung),\n"
+        "  Phao (nhay qua 1 quan de an), Ma (hinh chu Nhat 2-1), Tot (tien 1 o; qua song di ngang).";
 
     sf::Text content;
     content.setFont(font);
     content.setString(text);
-    content.setCharacterSize(17);
+    content.setCharacterSize(16);
     content.setFillColor(sf::Color(225, 235, 245));
     content.setPosition((window.getSize().x - 960.0f) / 2.0f + 30.0f, 140.0f);
     window.draw(content);

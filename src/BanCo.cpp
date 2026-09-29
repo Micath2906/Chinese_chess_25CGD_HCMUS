@@ -60,12 +60,31 @@ void BanCo::khoiTaoBanCo() {
     }
 }
 
+void BanCo::khoiTao2XeVa2Voi() {
+    cacQuan.clear();
+    lichSuNuocDi.clear();
+    lichSuRedo.clear();
+
+    // 2 Quan Xe va 2 Quan Voi dat tren ban co (theo dung yeu cau de bai)
+    // 1 Xe Do (hang 9, cot 0) va 1 Voi Do (hang 9, cot 2)
+    // 1 Xe Den (hang 0, cot 8) va 1 Voi Den (hang 0, cot 6)
+    cacQuan.push_back(std::make_shared<Xe>(9, 0, Mau::DO));
+    cacQuan.push_back(std::make_shared<Voi>(9, 2, Mau::DO));
+    cacQuan.push_back(std::make_shared<Xe>(0, 8, Mau::DEN));
+    cacQuan.push_back(std::make_shared<Voi>(0, 6, Mau::DEN));
+
+    luotChoi = Mau::DO;
+    ketThuc = false;
+    nguoiThang = Mau::DO;
+}
+
 void BanCo::lamMoi() {
     khoiTaoBanCo();
     luotChoi = Mau::DO;
     ketThuc = false;
     nguoiThang = Mau::DO;
 }
+
 
 std::shared_ptr<QuanCo> BanCo::timQuan(int hang, int cot) const {
     for (const auto& quan : cacQuan) {

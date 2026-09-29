@@ -42,6 +42,7 @@ public:
     
     // Khoi tao
     void khoiTaoBanCo();
+    void khoiTao2XeVa2Voi();
     void lamMoi();
     
     // Truy van trang thai

@@ -14,6 +14,7 @@ enum class TrangThai {
 };
 
 enum class CheDoChoi {
+    DEMO_2XE_2VOI,
     HAI_NGUOI,
     VOI_MAY
 };
@@ -41,6 +42,9 @@ private:
     // Game selection state
     std::shared_ptr<QuanCo> quanDangChon;
     std::vector<sf::Vector2i> cacNuocDiHopLe;
+    
+    // Keyboard cursor (W, A, S, D / Arrows)
+    sf::Vector2i viTriConTro; // (hang, cot)
     
     // Board UI parameters
     float kichThuocO;
@@ -115,6 +119,7 @@ private:
     void veBanCoTruyenThong();
     void veCacQuanCo();
     void veHighlights();
+    void veConTroBanPhim();
     void veThanhBenPhai();
     void vePopupKetThuc();
     void veToast();
