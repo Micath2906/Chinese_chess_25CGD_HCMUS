@@ -93,26 +93,40 @@ cmake --build .
 
 ## Các tính năng
 
-### Đã hoàn thành
-- ✅ Tất cả quân cờ với luật di chuyển đầy đủ
-- ✅ Menu chính với các chế độ chơi
-- ✅ Chế độ 2 người chơi
-- ✅ Kiểm tra chiếu tướng
-- ✅ Kiểm tra chiếu tướng đối mặt
-- ✅ Highlight quân đang chọn
-- ✅ Hiển thị nước di hợp lệ
-- ✅ Hoàn tác nước đi (Ctrl+Z)
-- ✅ Menu cài đặt
-- ✅ Giao diện đẹp với SFML
+### Đã hoàn thành ✅
+- ✅ **Chuẩn hóa 100% luật di chuyển Cờ Tướng**:
+  - Tướng: đi ngang/dọc 1 ô trong cung, kiểm tra chống mặt Tướng
+  - Sĩ: đi chéo 1 ô trong cung
+  - Voi: đi chéo 2 ô, không qua sông, cản mắt voi
+  - Xe: đi ngang/dọc tự do
+  - Pháo: đi như Xe, ăn quân nhảy qua 1 quân làm ngòi
+  - Mã: đi chữ Nhật, cản chân mã
+  - Tốt: đi thẳng trước khi qua sông; qua sông đi ngang hoặc tiến
+- ✅ **Kiểm tra nước đi hợp lệ & Chiếu bí**:
+  - Mô phỏng nước đi đảm bảo Tướng phe mình không bị chiếu
+  - Tự động phát hiện Chiếu tướng, Chiếu bí (Checkmate) và Bí nước (Stalemate)
+- ✅ **Âm thanh sống động (Thuần C++ & SFML Audio)**:
+  - Sinh sóng âm thời gian thực: Tiếng gõ gỗ, tiếng ăn quân, chuông chiếu tướng, chiến thắng, thất bại
+  - Điều chỉnh âm lượng và bật/tắt trong Cài đặt
+- ✅ **Chế độ chơi đa dạng**:
+  - 2 người chơi (PvP đối kháng)
+  - Chơi với máy (AI - Minimax + Alpha-Beta Pruning + Bảng điểm vị trí) với 3 mức độ Dễ, Vừa, Khó
+  - Chọn phe cầm Đỏ (đi trước) hoặc Đen (đi sau) khi đấu với máy
+- ✅ **Đồng hồ thi đấu (Chess Clock)**:
+  - Đếm ngược thời gian cho mỗi bên (Vô hạn, 5 phút, 10 phút, 15 phút)
+  - Xử thua ngay khi hết giờ
+- ✅ **Tiện ích trong ván cờ (In-game Controls)**:
+  - Hoàn tác nước đi (Undo) & Đi tiếp (Redo)
+  - Làm mới ván cờ (New Game)
+  - Xin hòa cờ (Offer Draw) & Đầu hàng (Resign)
+  - Lưu ván cờ (Save game) & Tải ván cờ (Load game)
+  - Lịch sử nước đi (Move History)
+  - Highlight nước đi vừa đi (Last Move) và Tướng bị chiếu
+- ✅ **Giao diện truyền thống sắc nét**:
+  - Bàn cờ gỗ giao điểm 10x9, sông Sở Hà - Hán Giới, cung Cửu Cung
+  - Quân cờ đĩa gỗ 2 lớp với ký hiệu tiếng Việt rõ ràng
+- ✅ **Màn hình Cài đặt & Hướng dẫn chi tiết**
 
-### Có thể mở rộng
-- ⬜ Chế độ chơi với máy (AI)
-- ⬜ Lưu/Load game
-- ⬜ Đồng hồ thi đấu
-- ⬜ Lịch sử nước đi
-- ⬜ Âm thanh hiệu ứng
-- ⬜ Animation di chuyển
-- ⬜ Chế độ chơi online
 
 ## Cách chơi
 

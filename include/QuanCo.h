@@ -7,8 +7,10 @@ class BanCo;
 
 enum class Mau {
     DO,
-    DEN
+    DEN,
+    HOA
 };
+
 
 class QuanCo {
 protected:

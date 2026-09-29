@@ -28,10 +28,11 @@ bool Si::kiemTraNuocDi(const BanCo& banCo, int hangMoi, int cotMoi) const {
     int dh = abs(hangMoi - hang);
     int dc = abs(cotMoi - cot);
     
-    // Si di thang hoac ngang 1 o
-    if (!((dh == 1 && dc == 0) || (dh == 0 && dc == 1))) {
+    // Si di cheo 1 o
+    if (dh != 1 || dc != 1) {
         return false;
     }
+
     
     // Kiem tra quan tai dich
     auto quanTaiDich = banCo.timQuan(hangMoi, cotMoi);

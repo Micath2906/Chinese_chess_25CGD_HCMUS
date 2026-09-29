@@ -1,114 +1,61 @@
-# TODO - Danh sách tính năng cần bổ sung
+# TODO - Danh sách tính năng và tiến độ dự án
 
 ## Đã hoàn thành ✅
 
-- [x] Cấu trúc OOP cơ bản với QuanCo abstract class
-- [x] Tất cả 7 loại quân cờ (Xe, Mã, Voi, Phao, Tướng, Sĩ, Tốt)
-- [x] Luật di chuyển đầy đủ cho từng quân
-- [x] Bàn cờ 10x9 với quản lý trạng thái
-- [x] Menu chính với SFML
-- [x] Giao diện đồ họa cơ bản
-- [x] Highlight quân được chọn
-- [x] Hiển thị nước đi hợp lệ
-- [x] Kiểm tra chiếu tướng
-- [x] Chế độ 2 người chơi
-- [x] Hoàn tác nước đi (Undo)
+- [x] **Cấu trúc OOP chuẩn mực**:
+  - Áp dụng triệt để Encapsulation, Inheritance, Abstraction, Polymorphism
+  - Lớp trừu tượng `QuanCo` kế thừa cho 7 loại quân cờ: `Xe`, `Ma`, `Voi`, `Phao`, `Tuong`, `Si`, `Tot`
+  - Quản lý bộ nhớ an toàn với Modern C++ `std::shared_ptr`, `std::unique_ptr`
+- [x] **Luật di chuyển chuẩn xác 100% Cờ Tướng**:
+  - Tướng: Di chuyển 1 ô ngang hoặc dọc trong cung 3x3
+  - Sĩ: Di chuyển 1 ô chéo trong cung 3x3
+  - Voi (Tượng): Di chuyển chéo 2 ô, không qua sông, chặn mắt voi
+  - Xe: Di chuyển tự do theo hàng/cột, không nhảy qua quân
+  - Pháo: Di chuyển như Xe, ăn quân phải nhảy qua đúng 1 quân làm ngòi
+  - Mã: Di chuyển chữ Nhật (2-1), chặn chân mã
+  - Tốt: Đi thẳng trước khi qua sông; sau khi qua sông đi ngang hoặc tiến
+  - Luật Chống Tướng (Hai tướng không được đối mặt trực tiếp trên cùng cột)
+- [x] **Kiểm tra hợp lệ nâng cao (Legal Move Simulation)**:
+  - Nước đi chỉ hợp lệ khi không để Tướng phe mình bị chiếu
+  - Gợi ý nước đi (Legal move dots) chuẩn xác 100%
+  - Tự động phát hiện Chiếu tướng, Chiếu bí (Checkmate) và Bí nước (Stalemate)
+- [x] **Hệ thống Âm thanh đa dạng (100% C++ & SFML Audio)**:
+  - Sinh âm thanh thời gian thực (Procedural Audio Synthesis) qua `sf::SoundBuffer`
+  - Âm thanh nước đi (wood tap), ăn quân (heavy capture), chiếu tướng (warning chime), chiến thắng (fanfare), thất bại
+  - Điều chỉnh âm lượng (25%, 50%, 75%, 100%) và Bật/Tắt âm thanh trong Settings
+- [x] **Chế độ chơi đa dạng (Game Modes)**:
+  - Chế độ 2 người chơi (PvP đối kháng cục bộ)
+  - Chế độ Chơi với máy (AI - PvE):
+    - Thuật toán Minimax kết hợp Alpha-Beta Pruning
+    - Đánh giá giá trị quân và bảng điểm vị trí chiến thuật (Piece-Square Tables)
+    - 3 mức độ khó: Dễ (Easy), Vừa (Medium), Khó (Hard)
+    - Tùy chọn chọn phe: Cầm quân Đỏ (đi trước) hoặc Cầm quân Đen (đi sau)
+- [x] **Đồng hồ thi đấu (Chess Clock)**:
+  - Đếm ngược thời gian thi đấu cho cả Đỏ và Đen
+  - Các mốc thời gian: Vô hạn, 5 phút (Cờ chớp), 10 phút (Cờ nhanh), 15 phút (Cờ tiêu chuẩn)
+  - Xử thua ngay khi hết giờ (Time Out)
+- [x] **Tiện ích trong ván cờ (In-game Utilities)**:
+  - Hoàn tác (Undo - lùi 1 nước trong PvP, lùi 2 nước trong đấu AI)
+  - Đi tiếp (Redo - phục hồi nước đi vừa hoàn tác)
+  - Ván mới (New game)
+  - Xin hòa (Offer draw - máy tự động đánh giá thế cờ để đồng ý/từ chối)
+  - Đầu hàng (Resign)
+  - Lưu ván cờ (Save game ra file `savegame.txt`)
+  - Tải ván cờ (Load game để tiếp tục chơi)
+  - Bảng lịch sử nước đi trực quan (Move History)
+  - Highlight nước đi vừa đi (Last Move) và viền đỏ cảnh báo khi Tướng bị chiếu
+- [x] **Giao diện Cờ Tướng truyền thống (Authentic Board Visuals)**:
+  - Bàn cờ gỗ giao điểm 10x9 chuẩn mực với viền đôi
+  - Sông Sở Hà - Hán Giới ngăn cách hai bên
+  - Cung Cửu Cung có 2 đường chéo X
+  - Quân cờ đĩa gỗ 2 lớp sắc nét với chữ tiếng Việt rõ ràng
+- [x] **Màn hình Cài đặt & Hướng dẫn (Settings & Tutorial UI)**:
+  - Menu Cài đặt: Âm thanh, Âm lượng, Thời gian, Độ khó AI, Gợi ý nước đi
+  - Menu Hướng dẫn: Chi tiết luật chơi, cách đi của từng quân, phím tắt
 
-## Đang phát triển 🚧
+## Ý tưởng phát triển tương lai 💡
 
-### Ưu tiên cao
-
-- [ ] **Load font fallback**: Xử lý khi không tìm thấy font
-- [ ] **Test đầy đủ các luật**: Kiểm tra tất cả edge cases
-- [ ] **Chiếu hết/Bí**: Phát hiện kết thúc ván cờ đầy đủ
-- [ ] **Âm thanh**: 
-  - Di chuyển quân
-  - Ăn quân
-  - Chiếu tướng
-  - Thắng/thua
-
-### Ưu tiên trung bình
-
-- [ ] **Lưu/Load game**:
-  - Lưu ván cờ ra file
-  - Load ván cờ đã lưu
-  - Format: JSON hoặc FEN notation
-  
-- [ ] **Lịch sử nước đi**:
-  - Hiển thị danh sách nước đi
-  - Phát lại ván cờ
-  - Export sang file
-
-- [ ] **Đồng hồ thi đấu**:
-  - Đếm ngược thời gian
-  - Tự động chuyển lượt
-  - Cài đặt thời gian
-
-- [ ] **Animation**:
-  - Smooth movement của quân cờ
-  - Hiệu ứng khi ăn quân
-  - Particle effects
-
-### Ưu tiên thấp
-
-- [ ] **AI (Chơi với máy)**:
-  - Minimax algorithm
-  - Alpha-beta pruning
-  - Độ khó: Dễ, Trung bình, Khó
-  
-- [ ] **Chế độ chơi đặc biệt**:
-  - Cờ chấp (handicap)
-  - Cờ nhanh (blitz)
-  - Cờ chớp (bullet)
-
-- [ ] **Online multiplayer**:
-  - Kết nối qua mạng
-  - Matchmaking
-  - Chat
-
-- [ ] **Thống kê**:
-  - Win/loss ratio
-  - Leaderboard
-  - Replay gallery
-
-## Cải thiện kỹ thuật 🔧
-
-### Code quality
-
-- [ ] **Unit tests**: Viết test cho logic game
-- [ ] **Documentation**: Bổ sung Doxygen comments
-- [ ] **Refactoring**: Tối ưu code, giảm coupling
-- [ ] **Design patterns**: Áp dụng Observer, Strategy, Factory
-
-### Performance
-
-- [ ] **Optimize rendering**: Chỉ vẽ khi cần thiết
-- [ ] **Move validation caching**: Cache các nước đi hợp lệ
-- [ ] **Memory profiling**: Kiểm tra memory leaks
-
-### UX/UI
-
-- [ ] **Responsive design**: Thay đổi kích thước window
-- [ ] **Themes**: Light/Dark mode, custom colors
-- [ ] **Settings persistence**: Lưu cài đặt người dùng
-- [ ] **Localization**: Đa ngôn ngữ (EN/VI)
-- [ ] **Tutorial**: Hướng dẫn chơi cho người mới
-
-## Bug cần fix 🐛
-
-- [ ] Kiểm tra tất cả edge cases của từng quân
-- [ ] Xử lý khi font không load được
-- [ ] Validate nước đi trong trường hợp chiếu tướng
-- [ ] Fix memory management với smart pointers
-
-## Ideas 💡
-
-- [ ] Replay famous games
-- [ ] Puzzle mode
-- [ ] Training mode với hints
-- [ ] 3D board rendering
-- [ ] VR support (tương lai xa)
-
----
-
-**Ghi chú**: Đánh dấu [x] khi hoàn thành một task
+- [ ] Kết nối mạng LAN / Online Multiplayer
+- [ ] Chế độ giải cờ thế (Puzzle mode)
+- [ ] Animation di chuyển quân mượt mà (Smooth interpolation)
+- [ ] Theme giao diện thay đổi theo mùa

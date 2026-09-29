@@ -28,10 +28,11 @@ bool Tuong::kiemTraNuocDi(const BanCo& banCo, int hangMoi, int cotMoi) const {
     int dh = abs(hangMoi - hang);
     int dc = abs(cotMoi - cot);
     
-    // Tuong di cheo 1 o
-    if (dh != 1 || dc != 1) {
+    // Tuong di thang hoac ngang 1 o
+    if (!((dh == 1 && dc == 0) || (dh == 0 && dc == 1))) {
         return false;
     }
+
     
     // Kiem tra quan tai dich
     auto quanTaiDich = banCo.timQuan(hangMoi, cotMoi);
