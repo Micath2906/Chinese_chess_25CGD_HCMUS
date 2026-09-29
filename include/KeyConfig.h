@@ -2,10 +2,22 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <string>
 
+enum class KeyAction {
+    UP = 0,
+    DOWN = 1,
+    LEFT = 2,
+    RIGHT = 3,
+    SELECT = 4,
+    DESELECT = 5,
+    QUIT = 6,
+    COUNT = 7
+};
+
 enum class KeyPreset {
     WASD,
     ARROWS,
-    IJKL
+    IJKL,
+    CUSTOM
 };
 
 struct KeyConfig {
@@ -59,16 +71,38 @@ struct KeyConfig {
         }
     }
 
-    void cyclePreset() {
-        if (currentPreset == KeyPreset::WASD) setPreset(KeyPreset::ARROWS);
-        else if (currentPreset == KeyPreset::ARROWS) setPreset(KeyPreset::IJKL);
-        else setPreset(KeyPreset::WASD);
+    void setActionKey(KeyAction action, sf::Keyboard::Key key) {
+        currentPreset = KeyPreset::CUSTOM;
+        switch (action) {
+            case KeyAction::UP: keyUp = key; break;
+            case KeyAction::DOWN: keyDown = key; break;
+            case KeyAction::LEFT: keyLeft = key; break;
+            case KeyAction::RIGHT: keyRight = key; break;
+            case KeyAction::SELECT: keySelect = key; break;
+            case KeyAction::DESELECT: keyDeselect = key; break;
+            case KeyAction::QUIT: keyQuit = key; break;
+            default: break;
+        }
+    }
+
+    sf::Keyboard::Key getActionKey(KeyAction action) const {
+        switch (action) {
+            case KeyAction::UP: return keyUp;
+            case KeyAction::DOWN: return keyDown;
+            case KeyAction::LEFT: return keyLeft;
+            case KeyAction::RIGHT: return keyRight;
+            case KeyAction::SELECT: return keySelect;
+            case KeyAction::DESELECT: return keyDeselect;
+            case KeyAction::QUIT: return keyQuit;
+            default: return sf::Keyboard::Unknown;
+        }
     }
 
     std::string getPresetName() const {
         if (currentPreset == KeyPreset::WASD) return "W, A, S, D (Default)";
-        if (currentPreset == KeyPreset::ARROWS) return "Arrow Keys (Mui ten)";
-        return "I, J, K, L";
+        if (currentPreset == KeyPreset::ARROWS) return "Arrow Keys";
+        if (currentPreset == KeyPreset::IJKL) return "I, J, K, L";
+        return "Custom";
     }
 
     bool isUpKey(sf::Keyboard::Key key) const {
@@ -94,11 +128,17 @@ struct KeyConfig {
     }
 
     static std::string getKeyName(sf::Keyboard::Key key) {
+        if (key >= sf::Keyboard::A && key <= sf::Keyboard::Z) {
+            return std::string(1, 'A' + (key - sf::Keyboard::A));
+        }
+        if (key >= sf::Keyboard::Num0 && key <= sf::Keyboard::Num9) {
+            return std::string(1, '0' + (key - sf::Keyboard::Num0));
+        }
+        if (key >= sf::Keyboard::Numpad0 && key <= sf::Keyboard::Numpad9) {
+            return "Num " + std::string(1, '0' + (key - sf::Keyboard::Numpad0));
+        }
+
         switch (key) {
-            case sf::Keyboard::W: return "W";
-            case sf::Keyboard::A: return "A";
-            case sf::Keyboard::S: return "S";
-            case sf::Keyboard::D: return "D";
             case sf::Keyboard::Up: return "Up";
             case sf::Keyboard::Down: return "Down";
             case sf::Keyboard::Left: return "Left";
@@ -106,13 +146,20 @@ struct KeyConfig {
             case sf::Keyboard::Return: return "Enter";
             case sf::Keyboard::Space: return "Space";
             case sf::Keyboard::Escape: return "Esc";
-            case sf::Keyboard::Q: return "Q";
-            case sf::Keyboard::Z: return "Z";
-            case sf::Keyboard::Y: return "Y";
-            case sf::Keyboard::I: return "I";
-            case sf::Keyboard::J: return "J";
-            case sf::Keyboard::K: return "K";
-            case sf::Keyboard::L: return "L";
+            case sf::Keyboard::BackSpace: return "Backspace";
+            case sf::Keyboard::Tab: return "Tab";
+            case sf::Keyboard::LShift: return "LShift";
+            case sf::Keyboard::RShift: return "RShift";
+            case sf::Keyboard::LControl: return "LCtrl";
+            case sf::Keyboard::RControl: return "RCtrl";
+            case sf::Keyboard::LAlt: return "LAlt";
+            case sf::Keyboard::RAlt: return "RAlt";
+            case sf::Keyboard::Home: return "Home";
+            case sf::Keyboard::End: return "End";
+            case sf::Keyboard::PageUp: return "PgUp";
+            case sf::Keyboard::PageDown: return "PgDn";
+            case sf::Keyboard::Insert: return "Insert";
+            case sf::Keyboard::Delete: return "Delete";
             default: return "Key";
         }
     }

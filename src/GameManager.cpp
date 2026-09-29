@@ -24,6 +24,7 @@ GameManager::GameManager()
     : window(sf::VideoMode(1200, 800), "Co Tuong - Chinese Chess (HCMUS OOP)", sf::Style::Close | sf::Style::Titlebar),
       trangThai(TrangThai::MENU_CHINH),
       cheDoChoi(CheDoChoi::HAI_NGUOI),
+      rebindingAction(KeyAction::COUNT),
       p1CharIndex(0),
       p2CharIndex(1),
       pvpFirstPlayer(1),
@@ -33,8 +34,8 @@ GameManager::GameManager()
       aiFirstChoice(0),
       aiPlayerSide(Mau::DO),
       aiRollBanner(""),
-      tenNguoiChoiDo("Nguoi choi 1"),
-      tenNguoiChoiDen("Nguoi choi 2"),
+      tenNguoiChoiDo("Player 1"),
+      tenNguoiChoiDen("Player 2"),
       nhanVatDo(0),
       nhanVatDen(1),
       selectedSlot(0),
@@ -43,7 +44,7 @@ GameManager::GameManager()
       kichThuocO(68.0f),
       offsetX(65.0f),
       offsetY(60.0f),
-      thoiGianVanDau(600.0f),
+      thoiGianVanDau(600.0f), // 10 minutes default
       hienGoiY(true),
       thoiGianConDo(600.0f),
       thoiGianConDen(600.0f),
@@ -64,13 +65,13 @@ void GameManager::khoiTao() {
     soundManager.khoiTao();
     
     // Create text inputs
-    inputP1Name = std::make_unique<TextInput>(150.0f, 230.0f, 320.0f, 44.0f, font, "Player 1", 14);
+    inputP1Name = std::make_unique<TextInput>(150.0f, 215.0f, 320.0f, 42.0f, font, "Player 1", 14);
     inputP1Name->setValue("Player 1");
 
-    inputP2Name = std::make_unique<TextInput>(730.0f, 230.0f, 320.0f, 44.0f, font, "Player 2", 14);
+    inputP2Name = std::make_unique<TextInput>(730.0f, 215.0f, 320.0f, 42.0f, font, "Player 2", 14);
     inputP2Name->setValue("Player 2");
 
-    inputAiPlayerName = std::make_unique<TextInput>(150.0f, 230.0f, 320.0f, 44.0f, font, "Player", 14);
+    inputAiPlayerName = std::make_unique<TextInput>(150.0f, 215.0f, 320.0f, 42.0f, font, "Player", 14);
     inputAiPlayerName->setValue("Player");
 
     slotInfos.resize(3);
@@ -82,17 +83,17 @@ void GameManager::khoiTao() {
 }
 
 void GameManager::khoiTaoTatCaMenu() {
-    float bw = 380.0f;
+    float bw = 340.0f;
     float bh = 48.0f;
     float cx = (window.getSize().x - bw) / 2.0f;
-    float sp = 60.0f;
+    float sp = 62.0f;
 
     // ==========================================
-    // 1. Menu Chinh (Main Menu)
+    // 1. Main Menu (No numbering!)
     // ==========================================
     menuChinh.setFont(font);
     menuChinh.xoaTatCaButton();
-    float startY = 220.0f;
+    float startY = 230.0f;
 
     // Play
     menuChinh.themButton(cx, startY, bw, bh, Loc::get(LocKey::MENU_PLAY), [this]() {
@@ -105,7 +106,7 @@ void GameManager::khoiTaoTatCaMenu() {
         capNhatThongTinSlots();
         trangThai = TrangThai::LOAD_MENU;
     });
-    // Setting
+    // Settings
     menuChinh.themButton(cx, startY + sp * 2, bw, bh, Loc::get(LocKey::MENU_SETTINGS), [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::SETTINGS_MENU;
@@ -126,7 +127,7 @@ void GameManager::khoiTaoTatCaMenu() {
     // ==========================================
     menuPlaySub.setFont(font);
     menuPlaySub.xoaTatCaButton();
-    float psubY = 230.0f;
+    float psubY = 235.0f;
 
     // Player vs Player
     menuPlaySub.themButton(cx, psubY, bw, bh, Loc::get(LocKey::PLAY_PVP), [this]() {
@@ -140,7 +141,7 @@ void GameManager::khoiTaoTatCaMenu() {
         aiRollBanner = "";
         trangThai = TrangThai::PVAI_SETUP;
     });
-    // Demo Mode (2 Xe & 2 Voi)
+    // Demo Mode (2 Chariots & 2 Elephants)
     menuPlaySub.themButton(cx, psubY + sp * 2, bw, bh, Loc::get(LocKey::PLAY_DEMO), [this]() {
         soundManager.play(SoundType::CLICK);
         tenNguoiChoiDo = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do (Xe & Voi)" : "Red (Chariot & Elephant)";
@@ -156,48 +157,64 @@ void GameManager::khoiTaoTatCaMenu() {
     });
 
     // ==========================================
-    // 3. PvP Setup Menu
+    // 3. PvP Setup Menu (With Match Timer)
     // ==========================================
     menuPvpSetup.setFont(font);
     menuPvpSetup.xoaTatCaButton();
     
     // P1 Char selector buttons
-    menuPvpSetup.themButton(150.0f, 320.0f, 45.0f, 44.0f, "<", [this]() {
+    menuPvpSetup.themButton(150.0f, 305.0f, 45.0f, 42.0f, "<", [this]() {
         soundManager.play(SoundType::CLICK);
         p1CharIndex = (p1CharIndex + Loc::getCharCount() - 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
-    menuPvpSetup.themButton(205.0f, 320.0f, 210.0f, 44.0f, Loc::getCharName(p1CharIndex), [this]() {
+    menuPvpSetup.themButton(205.0f, 305.0f, 210.0f, 42.0f, Loc::getCharName(p1CharIndex), [this]() {
         soundManager.play(SoundType::CLICK);
         p1CharIndex = (p1CharIndex + 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
-    menuPvpSetup.themButton(425.0f, 320.0f, 45.0f, 44.0f, ">", [this]() {
+    menuPvpSetup.themButton(425.0f, 305.0f, 45.0f, 42.0f, ">", [this]() {
         soundManager.play(SoundType::CLICK);
         p1CharIndex = (p1CharIndex + 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
 
     // P2 Char selector buttons
-    menuPvpSetup.themButton(730.0f, 320.0f, 45.0f, 44.0f, "<", [this]() {
+    menuPvpSetup.themButton(730.0f, 305.0f, 45.0f, 42.0f, "<", [this]() {
         soundManager.play(SoundType::CLICK);
         p2CharIndex = (p2CharIndex + Loc::getCharCount() - 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
-    menuPvpSetup.themButton(785.0f, 320.0f, 210.0f, 44.0f, Loc::getCharName(p2CharIndex), [this]() {
+    menuPvpSetup.themButton(785.0f, 305.0f, 210.0f, 42.0f, Loc::getCharName(p2CharIndex), [this]() {
         soundManager.play(SoundType::CLICK);
         p2CharIndex = (p2CharIndex + 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
-    menuPvpSetup.themButton(1005.0f, 320.0f, 45.0f, 44.0f, ">", [this]() {
+    menuPvpSetup.themButton(1005.0f, 305.0f, 45.0f, 42.0f, ">", [this]() {
         soundManager.play(SoundType::CLICK);
         p2CharIndex = (p2CharIndex + 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
 
+    // Match Timer selector directly in Setup
+    auto getTimerStr = [this]() {
+        if (thoiGianVanDau <= 0.0f) return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_UNLIMITED);
+        if (thoiGianVanDau == 300.0f) return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_5M);
+        if (thoiGianVanDau == 600.0f) return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_10M);
+        return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_15M);
+    };
+
+    menuPvpSetup.themButton(360.0f, 410.0f, 480.0f, 46.0f, getTimerStr(), [this, getTimerStr]() {
+        soundManager.play(SoundType::CLICK);
+        if (thoiGianVanDau == 300.0f) thoiGianVanDau = 600.0f;
+        else if (thoiGianVanDau == 600.0f) thoiGianVanDau = 900.0f;
+        else if (thoiGianVanDau == 900.0f) thoiGianVanDau = 0.0f;
+        else thoiGianVanDau = 300.0f;
+        if (auto b = menuPvpSetup.layButton(6)) b->setLabel(getTimerStr());
+    });
+
     // Center Random Roll Button
-    menuPvpSetup.themButton((1200.0f - 460.0f) / 2.0f, 450.0f, 460.0f, 52.0f, 
-        Loc::get(LocKey::TOSS_COIN), [this]() {
+    menuPvpSetup.themButton(360.0f, 468.0f, 480.0f, 48.0f, Loc::get(LocKey::TOSS_COIN), [this]() {
         soundManager.play(SoundType::CAPTURE);
         pvpFirstPlayer = (rand() % 2 == 0) ? 1 : 2;
         std::string winner = (pvpFirstPlayer == 1) ? inputP1Name->getValue() : inputP2Name->getValue();
@@ -221,23 +238,23 @@ void GameManager::khoiTaoTatCaMenu() {
     });
 
     // ==========================================
-    // 4. PvAI Setup Menu
+    // 4. PvAI Setup Menu (With Match Timer)
     // ==========================================
     menuPvaiSetup.setFont(font);
     menuPvaiSetup.xoaTatCaButton();
 
     // Player Char buttons
-    menuPvaiSetup.themButton(150.0f, 320.0f, 45.0f, 44.0f, "<", [this]() {
+    menuPvaiSetup.themButton(150.0f, 305.0f, 45.0f, 42.0f, "<", [this]() {
         soundManager.play(SoundType::CLICK);
         aiPlayerCharIndex = (aiPlayerCharIndex + Loc::getCharCount() - 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
-    menuPvaiSetup.themButton(205.0f, 320.0f, 210.0f, 44.0f, Loc::getCharName(aiPlayerCharIndex), [this]() {
+    menuPvaiSetup.themButton(205.0f, 305.0f, 210.0f, 42.0f, Loc::getCharName(aiPlayerCharIndex), [this]() {
         soundManager.play(SoundType::CLICK);
         aiPlayerCharIndex = (aiPlayerCharIndex + 1) % Loc::getCharCount();
         capNhatNhanNut();
     });
-    menuPvaiSetup.themButton(425.0f, 320.0f, 45.0f, 44.0f, ">", [this]() {
+    menuPvaiSetup.themButton(425.0f, 305.0f, 45.0f, 42.0f, ">", [this]() {
         soundManager.play(SoundType::CLICK);
         aiPlayerCharIndex = (aiPlayerCharIndex + 1) % Loc::getCharCount();
         capNhatNhanNut();
@@ -251,12 +268,22 @@ void GameManager::khoiTaoTatCaMenu() {
         return Loc::get(LocKey::AI_DIFFICULTY) + Loc::get(k);
     };
 
-    menuPvaiSetup.themButton(730.0f, 230.0f, 320.0f, 44.0f, getDiffLabel(), [this, getDiffLabel]() {
+    menuPvaiSetup.themButton(730.0f, 215.0f, 320.0f, 42.0f, getDiffLabel(), [this, getDiffLabel]() {
         soundManager.play(SoundType::CLICK);
         if (aiDifficulty == DoKho::DE) aiDifficulty = DoKho::TRUNG_BINH;
         else if (aiDifficulty == DoKho::TRUNG_BINH) aiDifficulty = DoKho::KHO;
         else aiDifficulty = DoKho::DE;
         if (auto b = menuPvaiSetup.layButton(3)) b->setLabel(getDiffLabel());
+    });
+
+    // Match Timer selector directly in PvAI Setup
+    menuPvaiSetup.themButton(360.0f, 395.0f, 480.0f, 44.0f, getTimerStr(), [this, getTimerStr]() {
+        soundManager.play(SoundType::CLICK);
+        if (thoiGianVanDau == 300.0f) thoiGianVanDau = 600.0f;
+        else if (thoiGianVanDau == 600.0f) thoiGianVanDau = 900.0f;
+        else if (thoiGianVanDau == 900.0f) thoiGianVanDau = 0.0f;
+        else thoiGianVanDau = 300.0f;
+        if (auto b = menuPvaiSetup.layButton(4)) b->setLabel(getTimerStr());
     });
 
     // Who goes first toggle
@@ -268,16 +295,14 @@ void GameManager::khoiTaoTatCaMenu() {
         return Loc::get(LocKey::WHO_GOES_FIRST) + modeStr;
     };
 
-    menuPvaiSetup.themButton((1200.0f - 460.0f) / 2.0f, 420.0f, 460.0f, 48.0f, 
-        getFirstChoiceLabel(), [this, getFirstChoiceLabel]() {
+    menuPvaiSetup.themButton(360.0f, 450.0f, 480.0f, 44.0f, getFirstChoiceLabel(), [this, getFirstChoiceLabel]() {
         soundManager.play(SoundType::CLICK);
         aiFirstChoice = (aiFirstChoice + 1) % 3;
-        if (auto b = menuPvaiSetup.layButton(4)) b->setLabel(getFirstChoiceLabel());
+        if (auto b = menuPvaiSetup.layButton(5)) b->setLabel(getFirstChoiceLabel());
     });
 
     // Random roll button
-    menuPvaiSetup.themButton((1200.0f - 460.0f) / 2.0f, 480.0f, 460.0f, 48.0f,
-        Loc::get(LocKey::TOSS_COIN), [this]() {
+    menuPvaiSetup.themButton(360.0f, 505.0f, 480.0f, 46.0f, Loc::get(LocKey::TOSS_COIN), [this]() {
         soundManager.play(SoundType::CAPTURE);
         bool playerRed = (rand() % 2 == 0);
         aiPlayerSide = playerRed ? Mau::DO : Mau::DEN;
@@ -318,12 +343,12 @@ void GameManager::khoiTaoTatCaMenu() {
     });
 
     // ==========================================
-    // 6. Settings Menu
+    // 6. Settings Menu (Clean without Match Timer)
     // ==========================================
     menuSettings.setFont(font);
     menuSettings.xoaTatCaButton();
-    float setY = 160.0f;
-    float setSp = 64.0f;
+    float setY = 190.0f;
+    float setSp = 65.0f;
 
     // Sound FX
     menuSettings.themButton(cx, setY, bw, bh, 
@@ -344,9 +369,10 @@ void GameManager::khoiTaoTatCaMenu() {
         soundManager.play(SoundType::CLICK);
     });
 
-    // Keybindings menu
+    // Custom Key Bindings
     menuSettings.themButton(cx, setY + setSp * 2, bw, bh, Loc::get(LocKey::KEY_BINDINGS_MENU), [this]() {
         soundManager.play(SoundType::CLICK);
+        rebindingAction = KeyAction::COUNT;
         trangThai = TrangThai::KEYBINDING_MENU;
     });
 
@@ -357,24 +383,8 @@ void GameManager::khoiTaoTatCaMenu() {
         soundManager.play(SoundType::CLICK);
     });
 
-    // Match Timer
-    auto getTimerStr = [this]() {
-        if (thoiGianVanDau <= 0.0f) return Loc::get(LocKey::MATCH_TIMER) + Loc::get(LocKey::UNLIMITED);
-        int m = static_cast<int>(thoiGianVanDau / 60.0f);
-        return Loc::get(LocKey::MATCH_TIMER) + std::to_string(m) + Loc::get(LocKey::MINUTES);
-    };
-
-    menuSettings.themButton(cx, setY + setSp * 4, bw, bh, getTimerStr(), [this, getTimerStr]() {
-        if (thoiGianVanDau <= 0.0f) thoiGianVanDau = 300.0f; // 5m
-        else if (thoiGianVanDau == 300.0f) thoiGianVanDau = 600.0f; // 10m
-        else if (thoiGianVanDau == 600.0f) thoiGianVanDau = 900.0f; // 15m
-        else thoiGianVanDau = 0.0f; // unlimited
-        capNhatNhanNut();
-        soundManager.play(SoundType::CLICK);
-    });
-
     // Move hints
-    menuSettings.themButton(cx, setY + setSp * 5, bw, bh,
+    menuSettings.themButton(cx, setY + setSp * 4, bw, bh,
         Loc::get(LocKey::HINT_MOVES) + (hienGoiY ? Loc::get(LocKey::ON) : Loc::get(LocKey::OFF)), [this]() {
         hienGoiY = !hienGoiY;
         capNhatNhanNut();
@@ -382,23 +392,90 @@ void GameManager::khoiTaoTatCaMenu() {
     });
 
     // Back
-    menuSettings.themButton(cx, setY + setSp * 6 + 10.0f, bw, bh, Loc::get(LocKey::BACK), [this]() {
+    menuSettings.themButton(cx, setY + setSp * 5 + 15.0f, bw, bh, Loc::get(LocKey::BACK), [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::MENU_CHINH;
     });
 
     // ==========================================
-    // 7. Keybinding Menu
+    // 7. Interactive Keybinding Menu
     // ==========================================
     menuKeybinding.setFont(font);
     menuKeybinding.xoaTatCaButton();
+    float kbX = 390.0f;
+    float kbW = 420.0f;
+    float kbH = 40.0f;
+    float kbY = 160.0f;
+    float kbSp = 46.0f;
 
-    menuKeybinding.themButton(cx, 480.0f, bw, bh, Loc::get(LocKey::SWITCH_PRESET), [this]() {
-        keyConfig.cyclePreset();
+    // Up
+    menuKeybinding.themButton(kbX, kbY, kbW, kbH, "", [this]() {
+        rebindingAction = KeyAction::UP;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    // Down
+    menuKeybinding.themButton(kbX, kbY + kbSp, kbW, kbH, "", [this]() {
+        rebindingAction = KeyAction::DOWN;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    // Left
+    menuKeybinding.themButton(kbX, kbY + kbSp * 2, kbW, kbH, "", [this]() {
+        rebindingAction = KeyAction::LEFT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    // Right
+    menuKeybinding.themButton(kbX, kbY + kbSp * 3, kbW, kbH, "", [this]() {
+        rebindingAction = KeyAction::RIGHT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    // Select
+    menuKeybinding.themButton(kbX, kbY + kbSp * 4, kbW, kbH, "", [this]() {
+        rebindingAction = KeyAction::SELECT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    // Deselect
+    menuKeybinding.themButton(kbX, kbY + kbSp * 5, kbW, kbH, "", [this]() {
+        rebindingAction = KeyAction::DESELECT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    // Quit
+    menuKeybinding.themButton(kbX, kbY + kbSp * 6, kbW, kbH, "", [this]() {
+        rebindingAction = KeyAction::QUIT;
+        capNhatNhanNut();
         soundManager.play(SoundType::CLICK);
     });
 
-    menuKeybinding.themButton(cx, 560.0f, bw, bh, Loc::get(LocKey::BACK), [this]() {
+    // Presets & Reset
+    float preY = kbY + kbSp * 7 + 25.0f;
+    float preW = 210.0f;
+    menuKeybinding.themButton(240.0f, preY, preW, 46.0f, Loc::get(LocKey::PRESET_WASD_BTN), [this]() {
+        keyConfig.setPreset(KeyPreset::WASD);
+        rebindingAction = KeyAction::COUNT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    menuKeybinding.themButton(495.0f, preY, preW, 46.0f, Loc::get(LocKey::PRESET_ARROWS_BTN), [this]() {
+        keyConfig.setPreset(KeyPreset::ARROWS);
+        rebindingAction = KeyAction::COUNT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+    menuKeybinding.themButton(750.0f, preY, preW, 46.0f, Loc::get(LocKey::KEY_RESET_DEFAULT), [this]() {
+        keyConfig.setPreset(KeyPreset::WASD);
+        rebindingAction = KeyAction::COUNT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    });
+
+    // Back to Settings
+    menuKeybinding.themButton((window.getSize().x - 220.0f) / 2.0f, preY + 68.0f, 220.0f, 48.0f, Loc::get(LocKey::BACK), [this]() {
+        rebindingAction = KeyAction::COUNT;
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::SETTINGS_MENU;
     });
@@ -408,10 +485,12 @@ void GameManager::khoiTaoTatCaMenu() {
     // ==========================================
     menuIntro.setFont(font);
     menuIntro.xoaTatCaButton();
-    menuIntro.themButton((window.getSize().x - 240.0f) / 2.0f, 715.0f, 240.0f, 50.0f, Loc::get(LocKey::BACK), [this]() {
+    menuIntro.themButton((window.getSize().x - 220.0f) / 2.0f, 715.0f, 220.0f, 48.0f, Loc::get(LocKey::BACK), [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::MENU_CHINH;
     });
+
+    capNhatNhanNut();
 }
 
 void GameManager::capNhatNhanNut() {
@@ -428,12 +507,21 @@ void GameManager::capNhatNhanNut() {
     if (auto b = menuPlaySub.layButton(2)) b->setLabel(Loc::get(LocKey::PLAY_DEMO));
     if (auto b = menuPlaySub.layButton(3)) b->setLabel(Loc::get(LocKey::BACK));
 
+    // Helper for timer
+    auto getTimerStr = [this]() {
+        if (thoiGianVanDau <= 0.0f) return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_UNLIMITED);
+        if (thoiGianVanDau == 300.0f) return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_5M);
+        if (thoiGianVanDau == 600.0f) return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_10M);
+        return Loc::get(LocKey::MATCH_TIMER_LABEL) + Loc::get(LocKey::TIME_15M);
+    };
+
     // 3. PvP Setup
     if (auto b = menuPvpSetup.layButton(1)) b->setLabel(Loc::getCharName(p1CharIndex));
     if (auto b = menuPvpSetup.layButton(4)) b->setLabel(Loc::getCharName(p2CharIndex));
-    if (auto b = menuPvpSetup.layButton(6)) b->setLabel(Loc::get(LocKey::TOSS_COIN));
-    if (auto b = menuPvpSetup.layButton(7)) b->setLabel(Loc::get(LocKey::START_GAME));
-    if (auto b = menuPvpSetup.layButton(8)) b->setLabel(Loc::get(LocKey::BACK));
+    if (auto b = menuPvpSetup.layButton(6)) b->setLabel(getTimerStr());
+    if (auto b = menuPvpSetup.layButton(7)) b->setLabel(Loc::get(LocKey::TOSS_COIN));
+    if (auto b = menuPvpSetup.layButton(8)) b->setLabel(Loc::get(LocKey::START_GAME));
+    if (auto b = menuPvpSetup.layButton(9)) b->setLabel(Loc::get(LocKey::BACK));
 
     // 4. PvAI Setup
     if (auto b = menuPvaiSetup.layButton(1)) b->setLabel(Loc::getCharName(aiPlayerCharIndex));
@@ -443,16 +531,17 @@ void GameManager::capNhatNhanNut() {
         else if (aiDifficulty == DoKho::KHO) k = LocKey::DIFF_HARD;
         b->setLabel(Loc::get(LocKey::AI_DIFFICULTY) + Loc::get(k));
     }
-    if (auto b = menuPvaiSetup.layButton(4)) {
+    if (auto b = menuPvaiSetup.layButton(4)) b->setLabel(getTimerStr());
+    if (auto b = menuPvaiSetup.layButton(5)) {
         std::string modeStr;
         if (aiFirstChoice == 0) modeStr = Loc::get(LocKey::PLAYER_FIRST);
         else if (aiFirstChoice == 1) modeStr = Loc::get(LocKey::AI_FIRST);
         else modeStr = Loc::get(LocKey::RANDOM_FIRST);
         b->setLabel(Loc::get(LocKey::WHO_GOES_FIRST) + modeStr);
     }
-    if (auto b = menuPvaiSetup.layButton(5)) b->setLabel(Loc::get(LocKey::TOSS_COIN));
-    if (auto b = menuPvaiSetup.layButton(6)) b->setLabel(Loc::get(LocKey::START_GAME));
-    if (auto b = menuPvaiSetup.layButton(7)) b->setLabel(Loc::get(LocKey::BACK));
+    if (auto b = menuPvaiSetup.layButton(6)) b->setLabel(Loc::get(LocKey::TOSS_COIN));
+    if (auto b = menuPvaiSetup.layButton(7)) b->setLabel(Loc::get(LocKey::START_GAME));
+    if (auto b = menuPvaiSetup.layButton(8)) b->setLabel(Loc::get(LocKey::BACK));
 
     // 5. Load Menu
     if (auto b = menuLoad.layButton(0)) b->setLabel(Loc::get(LocKey::LOAD_BUTTON));
@@ -473,23 +562,32 @@ void GameManager::capNhatNhanNut() {
         b->setLabel(Loc::get(LocKey::LANGUAGE_LABEL));
     }
     if (auto b = menuSettings.layButton(4)) {
-        if (thoiGianVanDau <= 0.0f) {
-            b->setLabel(Loc::get(LocKey::MATCH_TIMER) + Loc::get(LocKey::UNLIMITED));
-        } else {
-            int m = static_cast<int>(thoiGianVanDau / 60.0f);
-            b->setLabel(Loc::get(LocKey::MATCH_TIMER) + std::to_string(m) + Loc::get(LocKey::MINUTES));
-        }
-    }
-    if (auto b = menuSettings.layButton(5)) {
         b->setLabel(Loc::get(LocKey::HINT_MOVES) + (hienGoiY ? Loc::get(LocKey::ON) : Loc::get(LocKey::OFF)));
     }
-    if (auto b = menuSettings.layButton(6)) {
+    if (auto b = menuSettings.layButton(5)) {
         b->setLabel(Loc::get(LocKey::BACK));
     }
 
-    // 7. Keybindings
-    if (auto b = menuKeybinding.layButton(0)) b->setLabel(Loc::get(LocKey::SWITCH_PRESET));
-    if (auto b = menuKeybinding.layButton(1)) b->setLabel(Loc::get(LocKey::BACK));
+    // 7. Keybindings interactive labels
+    auto formatKeyBtn = [this](KeyAction action, LocKey nameKey) {
+        if (rebindingAction == action) {
+            return Loc::get(LocKey::KEY_PRESS_PROMPT);
+        }
+        return Loc::get(nameKey) + ":   [ " + KeyConfig::getKeyName(keyConfig.getActionKey(action)) + " ]";
+    };
+
+    if (auto b = menuKeybinding.layButton(0)) b->setLabel(formatKeyBtn(KeyAction::UP, LocKey::KEY_ACTION_UP));
+    if (auto b = menuKeybinding.layButton(1)) b->setLabel(formatKeyBtn(KeyAction::DOWN, LocKey::KEY_ACTION_DOWN));
+    if (auto b = menuKeybinding.layButton(2)) b->setLabel(formatKeyBtn(KeyAction::LEFT, LocKey::KEY_ACTION_LEFT));
+    if (auto b = menuKeybinding.layButton(3)) b->setLabel(formatKeyBtn(KeyAction::RIGHT, LocKey::KEY_ACTION_RIGHT));
+    if (auto b = menuKeybinding.layButton(4)) b->setLabel(formatKeyBtn(KeyAction::SELECT, LocKey::KEY_ACTION_SELECT));
+    if (auto b = menuKeybinding.layButton(5)) b->setLabel(formatKeyBtn(KeyAction::DESELECT, LocKey::KEY_ACTION_DESELECT));
+    if (auto b = menuKeybinding.layButton(6)) b->setLabel(formatKeyBtn(KeyAction::QUIT, LocKey::KEY_ACTION_QUIT));
+
+    if (auto b = menuKeybinding.layButton(7)) b->setLabel(Loc::get(LocKey::PRESET_WASD_BTN));
+    if (auto b = menuKeybinding.layButton(8)) b->setLabel(Loc::get(LocKey::PRESET_ARROWS_BTN));
+    if (auto b = menuKeybinding.layButton(9)) b->setLabel(Loc::get(LocKey::KEY_RESET_DEFAULT));
+    if (auto b = menuKeybinding.layButton(10)) b->setLabel(Loc::get(LocKey::BACK));
 
     // 8. Intro
     if (auto b = menuIntro.layButton(0)) b->setLabel(Loc::get(LocKey::BACK));
@@ -594,9 +692,8 @@ void GameManager::batDauPvai() {
     else chosenSide = (rand() % 2 == 0) ? Mau::DO : Mau::DEN;
 
     aiPlayerSide = chosenSide;
-    Mau sideAI = (chosenSide == Mau::DO) ? Mau::DEN : Mau::DO;
     
-    std::string aiName = "AI Bot (" + Loc::get((aiDifficulty == DoKho::DE) ? LocKey::DIFF_EASY : ((aiDifficulty == DoKho::TRUNG_BINH) ? LocKey::DIFF_MED : LocKey::DIFF_HARD)) + ")";
+    std::string aiName = "AI (" + Loc::get((aiDifficulty == DoKho::DE) ? LocKey::DIFF_EASY : ((aiDifficulty == DoKho::TRUNG_BINH) ? LocKey::DIFF_MED : LocKey::DIFF_HARD)) + ")";
 
     if (chosenSide == Mau::DO) {
         tenNguoiChoiDo = n;
@@ -697,7 +794,7 @@ void GameManager::luuVaoSlot(int slotIndex) {
 
     std::string path = layDuongDanSlot(slotIndex);
     if (banCo.luuFile(path)) {
-        banCo.luuFile("savegame.txt"); // Backward compatibility
+        banCo.luuFile("savegame.txt");
 
         std::string metaPath = path + ".meta";
         std::ofstream mf(metaPath);
@@ -726,7 +823,6 @@ bool GameManager::docTuSlot(int slotIndex) {
     }
 
     if (banCo.docFile(path)) {
-        // Read metadata if present
         std::string metaPath = layDuongDanSlot(slotIndex) + ".meta";
         if (fs::exists(metaPath)) {
             std::ifstream mf(metaPath);
@@ -868,7 +964,6 @@ void GameManager::xuLyClickChuot(const sf::Vector2i& viTri) {
         menuPvaiSetup.handleClick(viTri);
     }
     else if (trangThai == TrangThai::LOAD_MENU) {
-        // Check slot cards click
         for (int i = 0; i < 3; ++i) {
             float sy = 160.0f + i * 145.0f;
             sf::FloatRect slotBounds(150.0f, sy, 900.0f, 125.0f);
@@ -917,6 +1012,18 @@ void GameManager::xuLyClickChuot(const sf::Vector2i& viTri) {
 }
 
 void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
+    // 1. If currently in interactive key rebinding mode
+    if (trangThai == TrangThai::KEYBINDING_MENU && rebindingAction != KeyAction::COUNT) {
+        if (key != sf::Keyboard::Escape) {
+            keyConfig.setActionKey(rebindingAction, key);
+            soundManager.play(SoundType::CLICK);
+        }
+        rebindingAction = KeyAction::COUNT;
+        capNhatNhanNut();
+        return;
+    }
+
+    // 2. Global Quick Quit (only if not rebinding)
     if (keyConfig.isQuitKey(key)) {
         soundManager.play(SoundType::CLICK);
         window.close();
@@ -927,6 +1034,7 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         return;
     }
 
+    // 3. Deselect or Return back
     if (keyConfig.isDeselectKey(key)) {
         soundManager.play(SoundType::CLICK);
         if (trangThai == TrangThai::PLAY_SUBMENU || trangThai == TrangThai::LOAD_MENU || 
@@ -939,6 +1047,7 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
             return;
         }
         if (trangThai == TrangThai::KEYBINDING_MENU) {
+            rebindingAction = KeyAction::COUNT;
             trangThai = TrangThai::SETTINGS_MENU;
             return;
         }
@@ -953,6 +1062,7 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         }
     }
 
+    // 4. In game navigation and shortcuts
     if (trangThai == TrangThai::DANG_CHOI) {
         if (banCo.getKetThuc()) return;
 
@@ -1231,7 +1341,8 @@ sf::Vector2f GameManager::chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot) {
 // Rendering Pipeline
 // ==========================================
 void GameManager::ve() {
-    window.clear(sf::Color(16, 20, 28));
+    // Elegant deep slate background
+    window.clear(sf::Color(14, 18, 26));
 
     if (trangThai == TrangThai::MENU_CHINH) {
         veMenuChinh();
@@ -1474,7 +1585,7 @@ void GameManager::veThanhBenPhai() {
 
     sf::RectangleShape panel(sf::Vector2f(pw, ph));
     panel.setPosition(px, py);
-    panel.setFillColor(sf::Color(26, 32, 44));
+    panel.setFillColor(sf::Color(22, 28, 40));
     panel.setOutlineThickness(2.0f);
     panel.setOutlineColor(sf::Color(55, 68, 92));
     window.draw(panel);
@@ -1527,7 +1638,7 @@ void GameManager::veThanhBenPhai() {
     // Black Player Profile Box
     sf::RectangleShape blackBox(sf::Vector2f(boxW, boxH));
     blackBox.setPosition(px + 250.0f, py + 15.0f);
-    blackBox.setFillColor(sf::Color(22, 30, 42));
+    blackBox.setFillColor(sf::Color(20, 28, 42));
     blackBox.setOutlineThickness((banCo.getLuotChoi() == Mau::DEN) ? 2.5f : 1.0f);
     blackBox.setOutlineColor((banCo.getLuotChoi() == Mau::DEN) ? sf::Color(100, 180, 255) : sf::Color(50, 70, 95));
     window.draw(blackBox);
@@ -1563,7 +1674,7 @@ void GameManager::veThanhBenPhai() {
     sf::RectangleShape turnBox(sf::Vector2f(pw - 30.0f, 44.0f));
     turnBox.setPosition(px + 15.0f, statusY);
     bool checkAlert = banCo.kiemTraChieuTuong();
-    turnBox.setFillColor(checkAlert ? sf::Color(120, 20, 20) : sf::Color(32, 40, 56));
+    turnBox.setFillColor(checkAlert ? sf::Color(130, 20, 20) : sf::Color(28, 36, 52));
     turnBox.setOutlineThickness(1.5f);
     turnBox.setOutlineColor(checkAlert ? sf::Color(255, 70, 70) : sf::Color(70, 90, 125));
     window.draw(turnBox);
@@ -1590,7 +1701,7 @@ void GameManager::veThanhBenPhai() {
     float keyY = statusY + 54.0f;
     sf::RectangleShape keyBox(sf::Vector2f(pw - 30.0f, 52.0f));
     keyBox.setPosition(px + 15.0f, keyY);
-    keyBox.setFillColor(sf::Color(20, 26, 38));
+    keyBox.setFillColor(sf::Color(18, 24, 34));
     keyBox.setOutlineThickness(1.0f);
     keyBox.setOutlineColor(sf::Color(55, 75, 105));
     window.draw(keyBox);
@@ -1598,11 +1709,14 @@ void GameManager::veThanhBenPhai() {
     sf::Text keyText;
     keyText.setFont(font);
     keyText.setCharacterSize(13);
-    std::string keyInfo = (Loc::getLanguage() == Language::TIENG_VIET)
-        ? ("[W,A,S,D] Di con tro  |  [Enter] Chon/Di  |  [Esc] Bo chon  |  [Q] Thoat\n"
-           "Preset: " + keyConfig.getPresetName() + "  |  Chuot: Click truc tiep")
-        : ("[W,A,S,D] Move  |  [Enter] Select/Move  |  [Esc] Deselect  |  [Q] Quit\n"
-           "Preset: " + keyConfig.getPresetName() + "  |  Mouse: Direct click");
+    std::string keyInfo = 
+        "[ " + KeyConfig::getKeyName(keyConfig.keyUp) + "," + 
+        KeyConfig::getKeyName(keyConfig.keyLeft) + "," + 
+        KeyConfig::getKeyName(keyConfig.keyDown) + "," + 
+        KeyConfig::getKeyName(keyConfig.keyRight) + " ] Move  |  [ " + 
+        KeyConfig::getKeyName(keyConfig.keySelect) + " ] Select  |  [ " + 
+        KeyConfig::getKeyName(keyConfig.keyDeselect) + " ] Cancel\n" +
+        "Preset: " + keyConfig.getPresetName() + "  |  Mouse click supported";
     keyText.setString(keyInfo);
     keyText.setFillColor(sf::Color(240, 220, 150));
     keyText.setPosition(px + 22.0f, keyY + 8.0f);
@@ -1621,7 +1735,7 @@ void GameManager::veThanhBenPhai() {
 
     sf::RectangleShape histBox(sf::Vector2f(pw - 30.0f, 100.0f));
     histBox.setPosition(px + 15.0f, histY + 24.0f);
-    histBox.setFillColor(sf::Color(20, 24, 34));
+    histBox.setFillColor(sf::Color(18, 22, 32));
     histBox.setOutlineThickness(1.0f);
     histBox.setOutlineColor(sf::Color(50, 60, 80));
     window.draw(histBox);
@@ -1671,7 +1785,7 @@ void GameManager::vePopupKetThuc() {
 
     sf::RectangleShape dialog(sf::Vector2f(dw, dh));
     dialog.setPosition(dx, dy);
-    dialog.setFillColor(sf::Color(32, 38, 50));
+    dialog.setFillColor(sf::Color(28, 34, 48));
     dialog.setOutlineThickness(3.0f);
     dialog.setOutlineColor(sf::Color(240, 190, 70));
     window.draw(dialog);
@@ -1693,10 +1807,10 @@ void GameManager::vePopupKetThuc() {
     tResult.setStyle(sf::Text::Bold);
 
     if (banCo.getNguoiThang() == Mau::DO) {
-        tResult.setString(tenNguoiChoiDo + " (DO) CHIEN THANG!");
+        tResult.setString(tenNguoiChoiDo + " (RED) WINS!");
         tResult.setFillColor(sf::Color(240, 80, 80));
     } else if (banCo.getNguoiThang() == Mau::DEN) {
-        tResult.setString(tenNguoiChoiDen + " (DEN) CHIEN THANG!");
+        tResult.setString(tenNguoiChoiDen + " (BLACK) WINS!");
         tResult.setFillColor(sf::Color(100, 180, 255));
     } else {
         tResult.setString(Loc::get(LocKey::DRAW_MATCH));
@@ -1742,7 +1856,7 @@ void GameManager::veToast() {
 
     sf::RectangleShape bg(sf::Vector2f(tw, th));
     bg.setPosition(tx, ty);
-    bg.setFillColor(sf::Color(20, 25, 35, 230));
+    bg.setFillColor(sf::Color(16, 22, 32, 235));
     bg.setOutlineThickness(1.5f);
     bg.setOutlineColor(sf::Color(80, 160, 240));
 
@@ -1769,14 +1883,20 @@ void GameManager::veMenuChinh() {
     title.setPosition(window.getSize().x / 2.0f, 90.0f);
     window.draw(title);
 
+    // Decorative golden bar
+    sf::RectangleShape goldLine(sf::Vector2f(380.0f, 3.0f));
+    goldLine.setPosition((window.getSize().x - 380.0f) / 2.0f, 130.0f);
+    goldLine.setFillColor(sf::Color(240, 190, 70));
+    window.draw(goldLine);
+
     sf::Text sub;
     sub.setFont(font);
     sub.setString(Loc::get(LocKey::APP_SUBTITLE));
-    sub.setCharacterSize(20);
-    sub.setFillColor(sf::Color(170, 185, 205));
+    sub.setCharacterSize(18);
+    sub.setFillColor(sf::Color(165, 185, 210));
     tb = sub.getLocalBounds();
     sub.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    sub.setPosition(window.getSize().x / 2.0f, 150.0f);
+    sub.setPosition(window.getSize().x / 2.0f, 155.0f);
     window.draw(sub);
     
     menuChinh.draw(window);
@@ -1795,6 +1915,11 @@ void GameManager::vePlaySubmenu() {
     title.setPosition(window.getSize().x / 2.0f, 110.0f);
     window.draw(title);
 
+    sf::RectangleShape goldLine(sf::Vector2f(320.0f, 3.0f));
+    goldLine.setPosition((window.getSize().x - 320.0f) / 2.0f, 150.0f);
+    goldLine.setFillColor(sf::Color(240, 190, 70));
+    window.draw(goldLine);
+
     menuPlaySub.draw(window);
 }
 
@@ -1808,13 +1933,13 @@ void GameManager::vePvpSetup() {
     
     sf::FloatRect tb = title.getLocalBounds();
     title.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    title.setPosition(window.getSize().x / 2.0f, 65.0f);
+    title.setPosition(window.getSize().x / 2.0f, 60.0f);
     window.draw(title);
 
-    // Left Column: Player 1
+    // Left Column: Player 1 Card
     sf::RectangleShape p1Card(sf::Vector2f(440.0f, 250.0f));
-    p1Card.setPosition(100.0f, 130.0f);
-    p1Card.setFillColor(sf::Color(28, 34, 48));
+    p1Card.setPosition(100.0f, 120.0f);
+    p1Card.setFillColor(sf::Color(24, 30, 44));
     p1Card.setOutlineThickness(2.0f);
     p1Card.setOutlineColor(sf::Color(70, 90, 125));
     window.draw(p1Card);
@@ -1825,7 +1950,7 @@ void GameManager::vePvpSetup() {
     p1Label.setStyle(sf::Text::Bold);
     p1Label.setString(Loc::get(LocKey::P1_LABEL));
     p1Label.setFillColor(sf::Color(255, 140, 140));
-    p1Label.setPosition(150.0f, 150.0f);
+    p1Label.setPosition(150.0f, 138.0f);
     window.draw(p1Label);
 
     sf::Text p1NamePrompt;
@@ -1833,7 +1958,7 @@ void GameManager::vePvpSetup() {
     p1NamePrompt.setCharacterSize(16);
     p1NamePrompt.setString(Loc::get(LocKey::ENTER_NAME_P1));
     p1NamePrompt.setFillColor(sf::Color(180, 195, 215));
-    p1NamePrompt.setPosition(150.0f, 195.0f);
+    p1NamePrompt.setPosition(150.0f, 180.0f);
     window.draw(p1NamePrompt);
 
     inputP1Name->draw(window);
@@ -1843,13 +1968,13 @@ void GameManager::vePvpSetup() {
     p1CharPrompt.setCharacterSize(16);
     p1CharPrompt.setString(Loc::get(LocKey::CHOOSE_CHAR));
     p1CharPrompt.setFillColor(sf::Color(180, 195, 215));
-    p1CharPrompt.setPosition(150.0f, 290.0f);
+    p1CharPrompt.setPosition(150.0f, 275.0f);
     window.draw(p1CharPrompt);
 
-    // Right Column: Player 2
+    // Right Column: Player 2 Card
     sf::RectangleShape p2Card(sf::Vector2f(440.0f, 250.0f));
-    p2Card.setPosition(660.0f, 130.0f);
-    p2Card.setFillColor(sf::Color(28, 34, 48));
+    p2Card.setPosition(660.0f, 120.0f);
+    p2Card.setFillColor(sf::Color(24, 30, 44));
     p2Card.setOutlineThickness(2.0f);
     p2Card.setOutlineColor(sf::Color(70, 90, 125));
     window.draw(p2Card);
@@ -1860,7 +1985,7 @@ void GameManager::vePvpSetup() {
     p2Label.setStyle(sf::Text::Bold);
     p2Label.setString(Loc::get(LocKey::P2_LABEL));
     p2Label.setFillColor(sf::Color(140, 200, 255));
-    p2Label.setPosition(730.0f, 150.0f);
+    p2Label.setPosition(730.0f, 138.0f);
     window.draw(p2Label);
 
     sf::Text p2NamePrompt;
@@ -1868,7 +1993,7 @@ void GameManager::vePvpSetup() {
     p2NamePrompt.setCharacterSize(16);
     p2NamePrompt.setString(Loc::get(LocKey::ENTER_NAME_P2));
     p2NamePrompt.setFillColor(sf::Color(180, 195, 215));
-    p2NamePrompt.setPosition(730.0f, 195.0f);
+    p2NamePrompt.setPosition(730.0f, 180.0f);
     window.draw(p2NamePrompt);
 
     inputP2Name->draw(window);
@@ -1878,13 +2003,13 @@ void GameManager::vePvpSetup() {
     p2CharPrompt.setCharacterSize(16);
     p2CharPrompt.setString(Loc::get(LocKey::CHOOSE_CHAR));
     p2CharPrompt.setFillColor(sf::Color(180, 195, 215));
-    p2CharPrompt.setPosition(730.0f, 290.0f);
+    p2CharPrompt.setPosition(730.0f, 275.0f);
     window.draw(p2CharPrompt);
 
-    // Center Random Section
-    sf::RectangleShape rollCard(sf::Vector2f(600.0f, 170.0f));
-    rollCard.setPosition(300.0f, 420.0f);
-    rollCard.setFillColor(sf::Color(24, 30, 42));
+    // Center Match Controls Card (Timer + Random Roll)
+    sf::RectangleShape rollCard(sf::Vector2f(600.0f, 220.0f));
+    rollCard.setPosition(300.0f, 395.0f);
+    rollCard.setFillColor(sf::Color(22, 28, 40));
     rollCard.setOutlineThickness(1.5f);
     rollCard.setOutlineColor(sf::Color(65, 80, 110));
     window.draw(rollCard);
@@ -1899,7 +2024,7 @@ void GameManager::vePvpSetup() {
     } else {
         std::string def = (Loc::getLanguage() == Language::TIENG_VIET)
             ? "(Nhan nut tren de tung dong xu ngau nhien chon nguoi cam quan DO di truoc)"
-            : "(Click button above to roll random who plays RED and goes first)";
+            : "(Click roll button to randomly select who plays RED and moves first)";
         bannerText.setString(def);
         bannerText.setFillColor(sf::Color(160, 175, 195));
     }
@@ -1921,13 +2046,13 @@ void GameManager::vePvaiSetup() {
     
     sf::FloatRect tb = title.getLocalBounds();
     title.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    title.setPosition(window.getSize().x / 2.0f, 65.0f);
+    title.setPosition(window.getSize().x / 2.0f, 60.0f);
     window.draw(title);
 
     // Left Column: Player
-    sf::RectangleShape pCard(sf::Vector2f(440.0f, 250.0f));
-    pCard.setPosition(100.0f, 130.0f);
-    pCard.setFillColor(sf::Color(28, 34, 48));
+    sf::RectangleShape pCard(sf::Vector2f(440.0f, 240.0f));
+    pCard.setPosition(100.0f, 120.0f);
+    pCard.setFillColor(sf::Color(24, 30, 44));
     pCard.setOutlineThickness(2.0f);
     pCard.setOutlineColor(sf::Color(70, 90, 125));
     window.draw(pCard);
@@ -1938,7 +2063,7 @@ void GameManager::vePvaiSetup() {
     pLabel.setStyle(sf::Text::Bold);
     pLabel.setString(Loc::get(LocKey::PLAYER_LABEL));
     pLabel.setFillColor(sf::Color(255, 215, 120));
-    pLabel.setPosition(150.0f, 150.0f);
+    pLabel.setPosition(150.0f, 138.0f);
     window.draw(pLabel);
 
     sf::Text pNamePrompt;
@@ -1946,7 +2071,7 @@ void GameManager::vePvaiSetup() {
     pNamePrompt.setCharacterSize(16);
     pNamePrompt.setString(Loc::get(LocKey::ENTER_NAME_PLAYER));
     pNamePrompt.setFillColor(sf::Color(180, 195, 215));
-    pNamePrompt.setPosition(150.0f, 195.0f);
+    pNamePrompt.setPosition(150.0f, 180.0f);
     window.draw(pNamePrompt);
 
     inputAiPlayerName->draw(window);
@@ -1956,13 +2081,13 @@ void GameManager::vePvaiSetup() {
     pCharPrompt.setCharacterSize(16);
     pCharPrompt.setString(Loc::get(LocKey::CHOOSE_CHAR));
     pCharPrompt.setFillColor(sf::Color(180, 195, 215));
-    pCharPrompt.setPosition(150.0f, 290.0f);
+    pCharPrompt.setPosition(150.0f, 275.0f);
     window.draw(pCharPrompt);
 
     // Right Column: AI Engine
-    sf::RectangleShape aiCard(sf::Vector2f(440.0f, 250.0f));
-    aiCard.setPosition(660.0f, 130.0f);
-    aiCard.setFillColor(sf::Color(28, 34, 48));
+    sf::RectangleShape aiCard(sf::Vector2f(440.0f, 240.0f));
+    aiCard.setPosition(660.0f, 120.0f);
+    aiCard.setFillColor(sf::Color(24, 30, 44));
     aiCard.setOutlineThickness(2.0f);
     aiCard.setOutlineColor(sf::Color(70, 90, 125));
     window.draw(aiCard);
@@ -1973,55 +2098,55 @@ void GameManager::vePvaiSetup() {
     aiLabel.setStyle(sf::Text::Bold);
     aiLabel.setString(Loc::get(LocKey::AI_LABEL));
     aiLabel.setFillColor(sf::Color(140, 200, 255));
-    aiLabel.setPosition(730.0f, 150.0f);
+    aiLabel.setPosition(730.0f, 138.0f);
     window.draw(aiLabel);
 
     sf::Text aiDiffPrompt;
     aiDiffPrompt.setFont(font);
     aiDiffPrompt.setCharacterSize(16);
-    aiDiffPrompt.setString((Loc::getLanguage() == Language::TIENG_VIET) ? "Chon cap do thu thach:" : "Select difficulty level:");
+    aiDiffPrompt.setString((Loc::getLanguage() == Language::TIENG_VIET) ? "Chon cap do thu thach:" : "Select challenge level:");
     aiDiffPrompt.setFillColor(sf::Color(180, 195, 215));
-    aiDiffPrompt.setPosition(730.0f, 195.0f);
+    aiDiffPrompt.setPosition(730.0f, 180.0f);
     window.draw(aiDiffPrompt);
 
     sf::Text aiDesc;
     aiDesc.setFont(font);
     aiDesc.setCharacterSize(14);
     std::string aiDescStr = (aiDifficulty == DoKho::DE) 
-        ? ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do De: Nuoc di ngau nhien va co ban." : "Easy mode: Simple and casual play.")
+        ? ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do De: Nuoc di co ban, thich hop luyen tap." : "Easy mode: Basic play, great for training.")
         : ((aiDifficulty == DoKho::TRUNG_BINH) 
-            ? ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do Vua: Minimax 2 lop + Danh gia vi tri." : "Medium mode: Minimax 2-ply + Position tables.")
+            ? ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do Vua: Minimax 2 lop + Danh gia the tran." : "Medium mode: Minimax 2-ply + Position evaluation.")
             : ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do Kho: Alpha-Beta 4 lop + Sap xep nuoc di." : "Hard mode: Alpha-Beta 4-ply + Move ordering."));
     aiDesc.setString(aiDescStr);
     aiDesc.setFillColor(sf::Color(160, 180, 205));
-    aiDesc.setPosition(730.0f, 300.0f);
+    aiDesc.setPosition(730.0f, 280.0f);
     window.draw(aiDesc);
 
-    // Center Random Section
-    sf::RectangleShape rollCard(sf::Vector2f(600.0f, 180.0f));
-    rollCard.setPosition(300.0f, 410.0f);
-    rollCard.setFillColor(sf::Color(24, 30, 42));
+    // Center Match Controls Card (Timer + Who goes first + Random Roll)
+    sf::RectangleShape rollCard(sf::Vector2f(600.0f, 240.0f));
+    rollCard.setPosition(300.0f, 380.0f);
+    rollCard.setFillColor(sf::Color(22, 28, 40));
     rollCard.setOutlineThickness(1.5f);
     rollCard.setOutlineColor(sf::Color(65, 80, 110));
     window.draw(rollCard);
 
     sf::Text bannerText;
     bannerText.setFont(font);
-    bannerText.setCharacterSize(17);
+    bannerText.setCharacterSize(16);
     bannerText.setStyle(sf::Text::Bold);
     if (!aiRollBanner.empty()) {
         bannerText.setString(aiRollBanner);
         bannerText.setFillColor(sf::Color(255, 220, 100));
     } else {
         std::string def = (Loc::getLanguage() == Language::TIENG_VIET)
-            ? "(Tuy chon ai di truoc hoac tung dong xu ngau nhien)"
-            : "(Select who goes first or roll random coin toss)";
+            ? "(Chon ai di truoc hoac nhan nut tung dong xu ngau nhien)"
+            : "(Select first move or click to roll random coin toss)";
         bannerText.setString(def);
         bannerText.setFillColor(sf::Color(160, 175, 195));
     }
     tb = bannerText.getLocalBounds();
     bannerText.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    bannerText.setPosition(window.getSize().x / 2.0f, 555.0f);
+    bannerText.setPosition(window.getSize().x / 2.0f, 575.0f);
     window.draw(bannerText);
 
     menuPvaiSetup.draw(window);
@@ -2046,9 +2171,9 @@ void GameManager::veLoadMenu() {
         card.setPosition(150.0f, sy);
         
         bool isSel = (selectedSlot == i);
-        card.setFillColor(isSel ? sf::Color(35, 46, 68) : sf::Color(24, 30, 42));
+        card.setFillColor(isSel ? sf::Color(32, 42, 62) : sf::Color(22, 28, 40));
         card.setOutlineThickness(isSel ? 3.0f : 1.5f);
-        card.setOutlineColor(isSel ? sf::Color(240, 190, 70) : sf::Color(60, 75, 100));
+        card.setOutlineColor(isSel ? sf::Color(240, 190, 70) : sf::Color(55, 70, 95));
         window.draw(card);
 
         sf::Text slotHeader;
@@ -2065,7 +2190,7 @@ void GameManager::veLoadMenu() {
             sf::Text det1;
             det1.setFont(font);
             det1.setCharacterSize(16);
-            std::string d1 = "Che do: " + info.tenCheDo + "  |  Thoi gian: " + info.thoiGian;
+            std::string d1 = "Mode: " + info.tenCheDo + "  |  Date: " + info.thoiGian;
             det1.setString(d1);
             det1.setFillColor(sf::Color(220, 230, 245));
             det1.setPosition(180.0f, sy + 54.0f);
@@ -2074,9 +2199,9 @@ void GameManager::veLoadMenu() {
             sf::Text det2;
             det2.setFont(font);
             det2.setCharacterSize(16);
-            std::string d2 = "Do: " + info.tenDo + "  vs  Den: " + info.tenDen + 
-                             "  |  So nuoc di: " + std::to_string(info.soNuoc) +
-                             "  |  Luot: " + ((info.luot == Mau::DO) ? "DO" : "DEN");
+            std::string d2 = "Red: " + info.tenDo + "  vs  Black: " + info.tenDen + 
+                             "  |  Moves: " + std::to_string(info.soNuoc) +
+                             "  |  Turn: " + ((info.luot == Mau::DO) ? "RED" : "BLACK");
             det2.setString(d2);
             det2.setFillColor(sf::Color(160, 185, 215));
             det2.setPosition(180.0f, sy + 82.0f);
@@ -2108,6 +2233,11 @@ void GameManager::veSettingsMenu() {
     title.setPosition(window.getSize().x / 2.0f, 90.0f);
     window.draw(title);
 
+    sf::RectangleShape goldLine(sf::Vector2f(280.0f, 3.0f));
+    goldLine.setPosition((window.getSize().x - 280.0f) / 2.0f, 135.0f);
+    goldLine.setFillColor(sf::Color(240, 190, 70));
+    window.draw(goldLine);
+
     menuSettings.draw(window);
 }
 
@@ -2121,46 +2251,40 @@ void GameManager::veKeybindingMenu() {
     
     sf::FloatRect tb = title.getLocalBounds();
     title.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    title.setPosition(window.getSize().x / 2.0f, 75.0f);
+    title.setPosition(window.getSize().x / 2.0f, 65.0f);
     window.draw(title);
 
-    sf::RectangleShape box(sf::Vector2f(860.0f, 320.0f));
-    box.setPosition((window.getSize().x - 860.0f) / 2.0f, 135.0f);
-    box.setFillColor(sf::Color(26, 32, 46));
-    box.setOutlineThickness(2.0f);
-    box.setOutlineColor(sf::Color(65, 85, 120));
+    sf::Text sub;
+    sub.setFont(font);
+    sub.setString(Loc::get(LocKey::KEYBINDING_SUBTITLE));
+    sub.setCharacterSize(17);
+    sub.setFillColor(sf::Color(170, 190, 215));
+    tb = sub.getLocalBounds();
+    sub.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+    sub.setPosition(window.getSize().x / 2.0f, 115.0f);
+    window.draw(sub);
+
+    // Box container around key actions
+    sf::RectangleShape box(sf::Vector2f(560.0f, 370.0f));
+    box.setPosition((window.getSize().x - 560.0f) / 2.0f, 145.0f);
+    box.setFillColor(sf::Color(22, 28, 40));
+    box.setOutlineThickness(1.5f);
+    box.setOutlineColor(sf::Color(60, 80, 115));
     window.draw(box);
 
-    sf::Text presText;
-    presText.setFont(font);
-    presText.setCharacterSize(22);
-    presText.setStyle(sf::Text::Bold);
-    presText.setString(Loc::get(LocKey::CURRENT_PRESET) + keyConfig.getPresetName());
-    presText.setFillColor(sf::Color(255, 215, 100));
-    presText.setPosition(200.0f, 160.0f);
-    window.draw(presText);
-
-    std::string keyDetails = 
-        "- DI CHUYEN CON TRO TREN BAN CO (10 HANG x 9 COT):\n"
-        "  Len: " + KeyConfig::getKeyName(keyConfig.keyUp) + 
-        "  |  Xuong: " + KeyConfig::getKeyName(keyConfig.keyDown) +
-        "  |  Trai: " + KeyConfig::getKeyName(keyConfig.keyLeft) +
-        "  |  Phai: " + KeyConfig::getKeyName(keyConfig.keyRight) + "\n\n"
-        "- CHON QUAN CO / DI CHUYEN DEN O DICH:\n"
-        "  Phim: " + KeyConfig::getKeyName(keyConfig.keySelect) + "\n\n"
-        "- BO CHON QUAN DANG CHON (HOAC QUAY LAI MENU):\n"
-        "  Phim: " + KeyConfig::getKeyName(keyConfig.keyDeselect) + "\n\n"
-        "- THOAT UNG DUNG NGAY LAP TUC: " + KeyConfig::getKeyName(keyConfig.keyQuit) + "\n\n"
-        "- HOAN TAC NUOC DI (UNDO): Z (hoac Ctrl+Z)  |  DI TIEP (REDO): Y (hoac Ctrl+Y)\n"
-        "(Chuot van ho tro click chon truc tiep tren ban co song song voi ban phim)";
-
-    sf::Text desc;
-    desc.setFont(font);
-    desc.setCharacterSize(16);
-    desc.setString(keyDetails);
-    desc.setFillColor(sf::Color(220, 230, 245));
-    desc.setPosition(200.0f, 210.0f);
-    window.draw(desc);
+    if (rebindingAction != KeyAction::COUNT) {
+        sf::Text prompt;
+        prompt.setFont(font);
+        prompt.setCharacterSize(16);
+        prompt.setString((Loc::getLanguage() == Language::TIENG_VIET)
+            ? ">>> Dang cho ban nhan phim moi (Nhan Esc de huy) <<<"
+            : ">>> Listening for new keypress (Press Esc to cancel) <<<");
+        prompt.setFillColor(sf::Color(255, 220, 80));
+        tb = prompt.getLocalBounds();
+        prompt.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+        prompt.setPosition(window.getSize().x / 2.0f, 532.0f);
+        window.draw(prompt);
+    }
 
     menuKeybinding.draw(window);
 }
@@ -2180,7 +2304,7 @@ void GameManager::veIntroMenu() {
 
     sf::RectangleShape box(sf::Vector2f(960.0f, 545.0f));
     box.setPosition((window.getSize().x - 960.0f) / 2.0f, 120.0f);
-    box.setFillColor(sf::Color(28, 34, 48));
+    box.setFillColor(sf::Color(24, 30, 44));
     box.setOutlineThickness(2.0f);
     box.setOutlineColor(sf::Color(65, 80, 115));
     window.draw(box);

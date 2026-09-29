@@ -1,6 +1,7 @@
 #include "Localization.h"
 
-Language Loc::currentLang = Language::TIENG_VIET;
+// Default language is English as requested
+Language Loc::currentLang = Language::ENGLISH;
 
 std::string Loc::get(LocKey key) {
     bool vi = (currentLang == Language::TIENG_VIET);
@@ -12,166 +13,182 @@ std::string Loc::get(LocKey key) {
         case LocKey::APP_SUBTITLE:
             return vi ? "DO AN MON OOP - HCMUS" : "OOP PROJECT - HCMUS";
 
-        // Main Menu
+        // Main Menu (No numbering!)
         case LocKey::MENU_PLAY:
-            return vi ? "1. CHOI CO (PLAY)" : "1. PLAY";
+            return vi ? "CHOI CO" : "PLAY";
         case LocKey::MENU_LOAD:
-            return vi ? "2. TAI VAN CO (LOAD)" : "2. LOAD";
+            return vi ? "TAI VAN CO" : "LOAD";
         case LocKey::MENU_SETTINGS:
-            return vi ? "3. CAI DAT (SETTING)" : "3. SETTINGS";
+            return vi ? "CAI DAT" : "SETTINGS";
         case LocKey::MENU_INTRO:
-            return vi ? "4. GIOI THIEU (INTRODUCTION)" : "4. INTRODUCTION";
+            return vi ? "GIOI THIEU" : "INTRODUCTION";
         case LocKey::MENU_EXIT:
-            return vi ? "5. THOAT (EXIT)" : "5. EXIT";
+            return vi ? "THOAT" : "EXIT";
 
-        // Play Submenu
+        // Play Submenu (No numbering!)
         case LocKey::PLAY_SUB_TITLE:
             return vi ? "CHON CHE DO CHOI" : "SELECT GAME MODE";
         case LocKey::PLAY_PVP:
-            return vi ? "HAI NGUOI CHOI (Player vs Player)" : "PLAYER VS PLAYER";
+            return vi ? "Hai nguoi choi (PvP)" : "Player vs Player";
         case LocKey::PLAY_PVAI:
-            return vi ? "DAU VOI MAY (Player vs AI)" : "PLAYER VS AI";
+            return vi ? "Dau voi may (PvAI)" : "Player vs AI";
         case LocKey::PLAY_DEMO:
-            return vi ? "CHE DO DEMO (2 Xe & 2 Voi)" : "DEMO MODE (2 Chariots & 2 Elephants)";
+            return vi ? "Che do Demo (2 Xe & 2 Voi)" : "Demo Mode (2 Chariots & 2 Elephants)";
         case LocKey::BACK:
-            return vi ? "QUAY LAI (BACK)" : "BACK";
+            return vi ? "Quay lai" : "Back";
 
-        // PvP Setup
+        // Match Setup
         case LocKey::SETUP_PVP_TITLE:
             return vi ? "THIET LAP: HAI NGUOI CHOI" : "SETUP: PLAYER VS PLAYER";
+        case LocKey::SETUP_PVAI_TITLE:
+            return vi ? "THIET LAP: DAU VOI MAY" : "SETUP: PLAYER VS AI";
         case LocKey::P1_LABEL:
             return vi ? "NGUOI CHOI 1" : "PLAYER 1";
         case LocKey::P2_LABEL:
             return vi ? "NGUOI CHOI 2" : "PLAYER 2";
-        case LocKey::ENTER_NAME_P1:
-            return vi ? "Nhap ten nguoi choi 1..." : "Enter Player 1 name...";
-        case LocKey::ENTER_NAME_P2:
-            return vi ? "Nhap ten nguoi choi 2..." : "Enter Player 2 name...";
-        case LocKey::CHOOSE_CHAR:
-            return vi ? "Nhan vat: " : "Character: ";
-        case LocKey::TOSS_COIN:
-            return vi ? "TUNG DONG XU (RANDOM AI DI TRUOC)" : "ROLL RANDOM WHO GOES FIRST";
-        case LocKey::FIRST_MOVE_INFO:
-            return vi ? "PHE DI TRUOC: QUAN DO" : "FIRST MOVE: RED PIECES";
-        case LocKey::START_GAME:
-            return vi ? "BAT DAU VAN DAU (START)" : "START GAME";
-
-        // PvAI Setup
-        case LocKey::SETUP_PVAI_TITLE:
-            return vi ? "THIET LAP: DAU VOI MAY" : "SETUP: PLAYER VS AI";
         case LocKey::PLAYER_LABEL:
             return vi ? "NGUOI CHOI" : "PLAYER";
         case LocKey::AI_LABEL:
             return vi ? "MAY AI" : "AI ENGINE";
+        case LocKey::ENTER_NAME_P1:
+            return vi ? "Ten nguoi choi 1:" : "Player 1 name:";
+        case LocKey::ENTER_NAME_P2:
+            return vi ? "Ten nguoi choi 2:" : "Player 2 name:";
         case LocKey::ENTER_NAME_PLAYER:
-            return vi ? "Nhap ten nguoi choi..." : "Enter player name...";
+            return vi ? "Ten nguoi choi:" : "Player name:";
+        case LocKey::CHOOSE_CHAR:
+            return vi ? "Nhan vat: " : "Character: ";
+        case LocKey::MATCH_TIMER_LABEL:
+            return vi ? "Thoi gian moi ben: " : "Match Time: ";
+        case LocKey::TIME_5M:
+            return vi ? "5 Phut" : "5 Mins";
+        case LocKey::TIME_10M:
+            return vi ? "10 Phut" : "10 Mins";
+        case LocKey::TIME_15M:
+            return vi ? "15 Phut" : "15 Mins";
+        case LocKey::TIME_UNLIMITED:
+            return vi ? "Vo han" : "Unlimited";
+        case LocKey::TOSS_COIN:
+            return vi ? "Tung dong xu chon ai di truoc" : "Roll Random First Move";
+        case LocKey::FIRST_MOVE_INFO:
+            return vi ? "Phe di truoc: Quan Do" : "First move: Red side";
+        case LocKey::START_GAME:
+            return vi ? "BAT DAU VAN DAU" : "START GAME";
+
+        // AI options
         case LocKey::AI_DIFFICULTY:
-            return vi ? "DO KHO MAY (AI): " : "AI DIFFICULTY: ";
+            return vi ? "Do kho may: " : "AI Difficulty: ";
         case LocKey::DIFF_EASY:
-            return vi ? "De (Easy)" : "Easy";
+            return vi ? "De" : "Easy";
         case LocKey::DIFF_MED:
-            return vi ? "Trung Binh (Medium)" : "Medium";
+            return vi ? "Vua" : "Medium";
         case LocKey::DIFF_HARD:
-            return vi ? "Kho (Hard)" : "Hard";
+            return vi ? "Kho" : "Hard";
         case LocKey::WHO_GOES_FIRST:
-            return vi ? "AI DI TRUOC: " : "WHO GOES FIRST: ";
+            return vi ? "Ai di truoc: " : "First Move: ";
         case LocKey::PLAYER_FIRST:
-            return vi ? "Ban di truoc (Quan Do)" : "You first (Red pieces)";
+            return vi ? "Ban di truoc (Quan Do)" : "You first (Red)";
         case LocKey::AI_FIRST:
-            return vi ? "May di truoc (Quan Do)" : "AI first (Red pieces)";
+            return vi ? "May di truoc (Quan Do)" : "AI first (Red)";
         case LocKey::RANDOM_FIRST:
-            return vi ? "Ngau nhien (Random)" : "Random";
+            return vi ? "Ngau nhien" : "Random";
 
         // Load Menu
         case LocKey::LOAD_TITLE:
             return vi ? "CAC VAN DAU DA LUU" : "SAVED GAMES";
         case LocKey::SAVED_GAMES:
-            return vi ? "DANH SACH FILE LUU" : "SAVED GAMES LIST";
+            return vi ? "Danh sach file luu" : "Saved Games List";
         case LocKey::SLOT_LABEL:
-            return vi ? "O LUU SO " : "SAVE SLOT ";
+            return vi ? "O luu " : "Save Slot ";
         case LocKey::EMPTY_SLOT:
             return vi ? "(O luu trong - Chua co du lieu)" : "(Empty save slot)";
         case LocKey::LOAD_BUTTON:
-            return vi ? "TAI VAN DAU NAY" : "LOAD THIS GAME";
+            return vi ? "Tai van dau" : "Load Game";
         case LocKey::DELETE_BUTTON:
-            return vi ? "XOA BAN LUU" : "DELETE SAVE";
+            return vi ? "Xoa ban luu" : "Delete Save";
 
         // Settings Menu
         case LocKey::SETTINGS_TITLE:
             return vi ? "CAI DAT TRO CHOI" : "GAME SETTINGS";
         case LocKey::SOUND_FX:
-            return vi ? "AM THANH: " : "SOUND EFFECTS: ";
+            return vi ? "Am thanh: " : "Sound Effects: ";
         case LocKey::SOUND_VOLUME:
-            return vi ? "AM LUONG: " : "VOLUME: ";
+            return vi ? "Am luong: " : "Volume: ";
         case LocKey::KEY_BINDINGS_MENU:
-            return vi ? "CAI DAT PHIM DIEU KHIEN" : "SETTING KEY BINDINGS";
+            return vi ? "Cai dat phim dieu khien" : "Custom Key Bindings";
         case LocKey::LANGUAGE_LABEL:
-            return vi ? "NGON NGU: TIENG VIET" : "LANGUAGE: ENGLISH";
-        case LocKey::MATCH_TIMER:
-            return vi ? "THOI GIAN VAN: " : "MATCH TIME: ";
+            return vi ? "Ngon ngu: Tieng Viet" : "Language: English";
         case LocKey::HINT_MOVES:
-            return vi ? "GOI Y NUOC DI: " : "MOVE HINTS: ";
+            return vi ? "Goi y nuoc di: " : "Move Hints: ";
         case LocKey::ON:
-            return vi ? "BAT" : "ON";
+            return vi ? "Bat" : "ON";
         case LocKey::OFF:
-            return vi ? "TAT" : "OFF";
-        case LocKey::UNLIMITED:
-            return vi ? "VO HAN" : "UNLIMITED";
-        case LocKey::MINUTES:
-            return vi ? " PHUT" : " MINS";
+            return vi ? "Tat" : "OFF";
 
         // Keybindings Menu
         case LocKey::KEYBINDING_TITLE:
-            return vi ? "CAI DAT PHIM DIEU KHIEN" : "KEY BINDINGS CONFIGURATION";
-        case LocKey::CURRENT_PRESET:
-            return vi ? "BO PHIM HIEN TAI: " : "CURRENT KEY PRESET: ";
-        case LocKey::PRESET_WASD_DESC:
-            return vi ? "[W, A, S, D] Di chuyen  |  [Enter / Space] Chon/Di  |  [Esc] Bo chon  |  [Q] Thoat"
-                      : "[W, A, S, D] Move cursor  |  [Enter / Space] Select/Move  |  [Esc] Deselect  |  [Q] Quit";
-        case LocKey::PRESET_ARROWS_DESC:
-            return vi ? "[Mui ten] Di chuyen  |  [Space / Enter] Chon/Di  |  [Esc] Bo chon  |  [Q] Thoat"
-                      : "[Arrow keys] Move cursor  |  [Space / Enter] Select/Move  |  [Esc] Deselect  |  [Q] Quit";
-        case LocKey::PRESET_IJKL_DESC:
-            return vi ? "[I, J, K, L] Di chuyen  |  [Enter / Space] Chon/Di  |  [Esc] Bo chon  |  [Q] Thoat"
-                      : "[I, J, K, L] Move cursor  |  [Enter / Space] Select/Move  |  [Esc] Deselect  |  [Q] Quit";
-        case LocKey::SWITCH_PRESET:
-            return vi ? "DOI BO PHIM (PRESET)" : "SWITCH KEY PRESET";
+            return vi ? "CAI DAT PHIM DIEU KHIEN" : "CUSTOM KEY BINDINGS";
+        case LocKey::KEYBINDING_SUBTITLE:
+            return vi ? "Click vao hanh dong ben duoi de tuy y doi phim theo y muon:"
+                      : "Click on any action below to customize its key binding:";
+        case LocKey::KEY_ACTION_UP:
+            return vi ? "Di chuyen Len" : "Move Up";
+        case LocKey::KEY_ACTION_DOWN:
+            return vi ? "Di chuyen Xuong" : "Move Down";
+        case LocKey::KEY_ACTION_LEFT:
+            return vi ? "Di chuyen Trai" : "Move Left";
+        case LocKey::KEY_ACTION_RIGHT:
+            return vi ? "Di chuyen Phai" : "Move Right";
+        case LocKey::KEY_ACTION_SELECT:
+            return vi ? "Chon / Ha co" : "Select / Move";
+        case LocKey::KEY_ACTION_DESELECT:
+            return vi ? "Huy chon / Menu" : "Deselect / Cancel";
+        case LocKey::KEY_ACTION_QUIT:
+            return vi ? "Thoat nhanh" : "Quick Quit";
+        case LocKey::KEY_PRESS_PROMPT:
+            return vi ? "[ Nhan phim bat ky... ]" : "[ Press any key... ]";
+        case LocKey::KEY_RESET_DEFAULT:
+            return vi ? "Dat lai mac dinh" : "Reset Defaults";
+        case LocKey::PRESET_WASD_BTN:
+            return "WASD Preset";
+        case LocKey::PRESET_ARROWS_BTN:
+            return vi ? "Bo phim Mui ten" : "Arrow Keys Preset";
 
         // Introduction Menu
         case LocKey::INTRO_TITLE:
-            return vi ? "GIOI THIEU & LUAT CHOI CO TUONG" : "INTRODUCTION & CHINESE CHESS RULES";
+            return vi ? "GIOI THIEU & LUAT CHOI CO TUONG" : "INTRODUCTION & RULES";
 
         // In Game UI
         case LocKey::TURN_RED:
-            return vi ? "LUOT DI: QUAN DO" : "TURN: RED (FIRST)";
+            return vi ? "Luot di: Quan Do" : "Turn: Red";
         case LocKey::TURN_BLACK:
-            return vi ? "LUOT DI: QUAN DEN" : "TURN: BLACK";
+            return vi ? "Luot di: Quan Den" : "Turn: Black";
         case LocKey::CHECK_ALERT:
             return vi ? "!!! CHIEU TUONG !!!" : "!!! CHECK !!!";
         case LocKey::MOVE_HISTORY:
-            return vi ? "LICH SU NUOC DI:" : "MOVE HISTORY:";
+            return vi ? "Lich su nuoc di:" : "Move History:";
         case LocKey::NO_MOVES_YET:
             return vi ? "(Chua co nuoc di nao)" : "(No moves yet)";
         case LocKey::TIME_RED:
-            return vi ? "DO: " : "RED: ";
+            return vi ? "Do: " : "Red: ";
         case LocKey::TIME_BLACK:
-            return vi ? "DEN: " : "BLACK: ";
+            return vi ? "Den: " : "Black: ";
         case LocKey::UNDO:
-            return vi ? "HOAN TAC (Undo)" : "UNDO";
+            return vi ? "Hoan tac" : "Undo";
         case LocKey::REDO:
-            return vi ? "DI TIEP (Redo)" : "REDO";
+            return vi ? "Di tiep" : "Redo";
         case LocKey::NEW_GAME:
-            return vi ? "VAN MOI" : "NEW GAME";
+            return vi ? "Van moi" : "New Game";
         case LocKey::DRAW_OFFER:
-            return vi ? "XIN HOA" : "OFFER DRAW";
+            return vi ? "Xin hoa" : "Offer Draw";
         case LocKey::SURRENDER:
-            return vi ? "DAU HANG" : "RESIGN";
+            return vi ? "Dau hang" : "Resign";
         case LocKey::SAVE_GAME:
-            return vi ? "LUU GAME" : "SAVE GAME";
+            return vi ? "Luu game" : "Save Game";
         case LocKey::LOAD_GAME:
-            return vi ? "TAI GAME" : "LOAD GAME";
+            return vi ? "Tai game" : "Load Game";
         case LocKey::BACK_MENU:
-            return vi ? "VE MENU" : "MAIN MENU";
+            return vi ? "Ve Menu" : "Main Menu";
 
         // End Game Popup
         case LocKey::GAME_OVER:
@@ -183,7 +200,7 @@ std::string Loc::get(LocKey key) {
         case LocKey::DRAW_MATCH:
             return vi ? "HAI BEN HOA CO!" : "GAME DRAW!";
         case LocKey::PLAY_AGAIN:
-            return vi ? "CHOI LAI" : "PLAY AGAIN";
+            return vi ? "Choi lai" : "Play Again";
     }
 
     return "";

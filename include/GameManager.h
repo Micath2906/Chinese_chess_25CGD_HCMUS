@@ -50,6 +50,7 @@ private:
     BanCo banCo;
     SoundManager soundManager;
     KeyConfig keyConfig;
+    KeyAction rebindingAction;
     
     // Menus
     Menu menuChinh;
