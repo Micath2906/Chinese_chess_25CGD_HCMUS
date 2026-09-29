@@ -51,6 +51,15 @@ void Button::setLabel(const std::string& label) {
                      shape.getPosition().y + shape.getSize().y / 2.0f);
 }
 
+void Button::setCharacterSize(unsigned int size) {
+    text.setCharacterSize(size);
+    sf::FloatRect textBounds = text.getLocalBounds();
+    text.setOrigin(textBounds.left + textBounds.width / 2.0f,
+                   textBounds.top + textBounds.height / 2.0f);
+    text.setPosition(shape.getPosition().x + shape.getSize().x / 2.0f,
+                     shape.getPosition().y + shape.getSize().y / 2.0f);
+}
+
 void Button::setColors(sf::Color normal, sf::Color hover, sf::Color pressed) {
     colorNormal = normal;
     colorHover = hover;

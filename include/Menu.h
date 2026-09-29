@@ -24,6 +24,8 @@ public:
     
     void setPosition(float x, float y);
     void setLabel(const std::string& label);
+    std::string getLabel() const { return text.getString(); }
+    void setCharacterSize(unsigned int size);
     void setColors(sf::Color normal, sf::Color hover, sf::Color pressed);
     void setEnabled(bool en) { enabled = en; }
     bool isEnabled() const { return enabled; }
