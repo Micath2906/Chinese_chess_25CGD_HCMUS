@@ -45,9 +45,10 @@ enum class BoardTheme {
 };
 
 enum class PieceStyle {
-    VIETNAMESE,   // "Xe", "Mã", "Voi", "Sĩ", "Tướng", "Pháo", "Tốt"
-    SHORT_CODE,   // "X", "M", "V", "S", "TG", "P", "T"
-    INTERNATIONAL // "R", "H", "E", "A", "K", "C", "P"
+    REALISTIC_WOOD, // Traditional wooden sprite tokens with calligraphy
+    VIETNAMESE,     // "Xe", "Mã", "Voi", "Sĩ", "Tướng", "Pháo", "Tốt"
+    SHORT_CODE,     // "X", "M", "V", "S", "TG", "P", "T"
+    INTERNATIONAL   // "R", "H", "E", "A", "K", "C", "P"
 };
 
 struct SaveSlotInfo {
@@ -213,6 +214,13 @@ private:
     void xoaSlot(int slotIndex);
     std::string layDuongDanSlot(int slotIndex) const;
     
+    // Textures & Graphic Assets
+    std::map<std::string, sf::Texture> textureQuanDo;
+    std::map<std::string, sf::Texture> textureQuanDen;
+    bool daTaiTextures;
+    void taiTextures();
+    const sf::Texture* layTextureQuan(const std::string& tenQuan, Mau mau) const;
+
     // Toast
     void hienToast(const std::string& msg);
     

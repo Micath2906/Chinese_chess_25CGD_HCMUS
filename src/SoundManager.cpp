@@ -13,7 +13,31 @@ SoundManager::SoundManager()
 }
 
 void SoundManager::khoiTao() {
-    sinhAmThanh();
+    sinhAmThanh(); // Generate synthesized sounds first as 100% reliable fallback
+
+    // Attempt to load high-fidelity recorded sound assets if available
+    sf::SoundBuffer tempBuf;
+    if (tempBuf.loadFromFile("resources/sounds/move.wav")) {
+        bufferMove = tempBuf;
+        soundMove.setBuffer(bufferMove);
+    }
+    if (tempBuf.loadFromFile("resources/sounds/capture.wav")) {
+        bufferCapture = tempBuf;
+        soundCapture.setBuffer(bufferCapture);
+    }
+    if (tempBuf.loadFromFile("resources/sounds/check.wav")) {
+        bufferCheck = tempBuf;
+        soundCheck.setBuffer(bufferCheck);
+    }
+    if (tempBuf.loadFromFile("resources/sounds/win.wav")) {
+        bufferVictory = tempBuf;
+        soundVictory.setBuffer(bufferVictory);
+    }
+    if (tempBuf.loadFromFile("resources/sounds/select.wav")) {
+        bufferClick = tempBuf;
+        soundClick.setBuffer(bufferClick);
+    }
+
     capNhatAmLuong();
     if (amThanhBat && bgmBat) {
         playBgm();

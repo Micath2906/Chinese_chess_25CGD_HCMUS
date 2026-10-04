@@ -27,7 +27,8 @@ GameManager::GameManager()
       rebindingAction(KeyAction::COUNT),
       activeSettingsTab(SettingsTab::AUDIO),
       boardTheme(BoardTheme::CLASSIC_WOOD),
-      pieceStyle(PieceStyle::VIETNAMESE),
+      pieceStyle(PieceStyle::REALISTIC_WOOD),
+      daTaiTextures(false),
       hienGoiY(true),
       hienNuocDiCuoi(true),
       hienToaDo(true),
@@ -70,6 +71,7 @@ void GameManager::khoiTao() {
         std::cerr << "Khong the load font tai resources/fonts/arial.ttf" << std::endl;
     }
     
+    taiTextures();
     soundManager.khoiTao();
     docCaiDat(); // Load persistent settings from config.cfg
     
@@ -458,7 +460,7 @@ void GameManager::khoiTaoDashboardSettings() {
 
     // Piece Style
     settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, startItemY + gapY, colW, itemH, "", font, [this]() {
-        int s = (static_cast<int>(pieceStyle) + 1) % 3;
+        int s = (static_cast<int>(pieceStyle) + 1) % 4;
         pieceStyle = static_cast<PieceStyle>(s);
         soundManager.play(SoundType::CLICK);
         capNhatNhanNut();
@@ -658,7 +660,8 @@ void GameManager::capNhatNhanNut() {
         settingsGraphicsButtons[0]->setLabel(Loc::get(LocKey::SETTING_BOARD_THEME) + themeName);
 
         std::string styleName;
-        if (pieceStyle == PieceStyle::VIETNAMESE) styleName = Loc::get(LocKey::PIECE_VIETNAMESE);
+        if (pieceStyle == PieceStyle::REALISTIC_WOOD) styleName = Loc::get(LocKey::PIECE_REALISTIC);
+        else if (pieceStyle == PieceStyle::VIETNAMESE) styleName = Loc::get(LocKey::PIECE_VIETNAMESE);
         else if (pieceStyle == PieceStyle::SHORT_CODE) styleName = Loc::get(LocKey::PIECE_SHORT);
         else styleName = Loc::get(LocKey::PIECE_INTL);
         settingsGraphicsButtons[1]->setLabel(Loc::get(LocKey::SETTING_PIECE_STYLE) + styleName);
@@ -843,7 +846,7 @@ void GameManager::khoiPhucCaiDatMacDinh() {
     soundManager.setBgmVolume(50.0f);
 
     boardTheme = BoardTheme::CLASSIC_WOOD;
-    pieceStyle = PieceStyle::VIETNAMESE;
+    pieceStyle = PieceStyle::REALISTIC_WOOD;
     hienGoiY = true;
     hienNuocDiCuoi = true;
     hienToaDo = true;
@@ -1564,8 +1567,53 @@ sf::Vector2f GameManager::chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot) {
     return sf::Vector2f(offsetX + cot * kichThuocO, offsetY + hang * kichThuocO);
 }
 
+void GameManager::taiTextures() {
+    daTaiTextures = false;
+
+    // Load Red piece textures
+    textureQuanDo["Tuong"].loadFromFile("resources/textures/pieces/r_jiang.png");
+    textureQuanDo["Si"].loadFromFile("resources/textures/pieces/r_shi.png");
+    textureQuanDo["Voi"].loadFromFile("resources/textures/pieces/r_xiang.png");
+    textureQuanDo["Ma"].loadFromFile("resources/textures/pieces/r_ma.png");
+    textureQuanDo["Xe"].loadFromFile("resources/textures/pieces/r_che.png");
+    textureQuanDo["Phao"].loadFromFile("resources/textures/pieces/r_pao.png");
+    textureQuanDo["Tot"].loadFromFile("resources/textures/pieces/r_bing.png");
+
+    // Load Black piece textures
+    textureQuanDen["Tuong"].loadFromFile("resources/textures/pieces/b_jiang.png");
+    textureQuanDen["Si"].loadFromFile("resources/textures/pieces/b_shi.png");
+    textureQuanDen["Voi"].loadFromFile("resources/textures/pieces/b_xiang.png");
+    textureQuanDen["Ma"].loadFromFile("resources/textures/pieces/b_ma.png");
+    textureQuanDen["Xe"].loadFromFile("resources/textures/pieces/b_che.png");
+    textureQuanDen["Phao"].loadFromFile("resources/textures/pieces/b_pao.png");
+    textureQuanDen["Tot"].loadFromFile("resources/textures/pieces/b_bing.png");
+
+    for (auto& p : textureQuanDo) p.second.setSmooth(true);
+    for (auto& p : textureQuanDen) p.second.setSmooth(true);
+
+    if (textureQuanDo["Tuong"].getSize().x > 0 && textureQuanDen["Tuong"].getSize().x > 0) {
+        daTaiTextures = true;
+    }
+}
+
+const sf::Texture* GameManager::layTextureQuan(const std::string& tenQuan, Mau mau) const {
+    if (!daTaiTextures) return nullptr;
+    if (mau == Mau::DO) {
+        auto it = textureQuanDo.find(tenQuan);
+        if (it != textureQuanDo.end() && it->second.getSize().x > 0) {
+            return &(it->second);
+        }
+    } else if (mau == Mau::DEN) {
+        auto it = textureQuanDen.find(tenQuan);
+        if (it != textureQuanDen.end() && it->second.getSize().x > 0) {
+            return &(it->second);
+        }
+    }
+    return nullptr;
+}
+
 std::string GameManager::layKyHieuQuanTheoStyle(const std::string& tenGoc, Mau mau) const {
-    if (pieceStyle == PieceStyle::VIETNAMESE) {
+    if (pieceStyle == PieceStyle::REALISTIC_WOOD || pieceStyle == PieceStyle::VIETNAMESE) {
         return tenGoc; // "Xe", "Ma", "Voi", "Si", "Tuong", "Phao", "Tot"
     }
 
@@ -1836,49 +1884,74 @@ void GameManager::veHighlights() {
 
 void GameManager::veCacQuanCo() {
     float r = 26.0f;
+    float targetDiameter = r * 2.0f;
+
     for (const auto& q : banCo.getCacQuan()) {
         if (!q || q->getDaBiAn()) continue;
         sf::Vector2f pos = chuyenDoiToaDoBanCoThanhManHinh(q->getHang(), q->getCot());
 
-        // Outer rim
-        sf::CircleShape outer(r + 3.0f);
-        outer.setOrigin(r + 3.0f, r + 3.0f);
-        outer.setPosition(pos);
-        outer.setFillColor((q->getMau() == Mau::DO) ? sf::Color(140, 30, 20) : sf::Color(30, 40, 50));
-        window.draw(outer);
+        const sf::Texture* tex = nullptr;
+        if (pieceStyle == PieceStyle::REALISTIC_WOOD) {
+            tex = layTextureQuan(q->layTen(), q->getMau());
+        }
 
-        // Piece body
-        sf::CircleShape piece(r);
-        piece.setOrigin(r, r);
-        piece.setPosition(pos);
-        piece.setFillColor(sf::Color(250, 238, 215));
-        piece.setOutlineThickness(2.0f);
-        piece.setOutlineColor((q->getMau() == Mau::DO) ? sf::Color(180, 40, 30) : sf::Color(40, 50, 65));
-        window.draw(piece);
+        if (tex != nullptr) {
+            // Drop shadow for 3D realism
+            sf::CircleShape shadow(r - 1.0f);
+            shadow.setOrigin(r - 1.0f, r - 1.0f);
+            shadow.setPosition(pos.x + 2.0f, pos.y + 2.5f);
+            shadow.setFillColor(sf::Color(0, 0, 0, 110));
+            window.draw(shadow);
 
-        // Inner circle
-        sf::CircleShape inner(r - 4.0f);
-        inner.setOrigin(r - 4.0f, r - 4.0f);
-        inner.setPosition(pos);
-        inner.setFillColor(sf::Color::Transparent);
-        inner.setOutlineThickness(1.2f);
-        inner.setOutlineColor((q->getMau() == Mau::DO) ? sf::Color(200, 50, 40, 180) : sf::Color(60, 75, 95, 180));
-        window.draw(inner);
+            // Sprite rendering
+            sf::Sprite sprite(*tex);
+            sf::Vector2u texSize = tex->getSize();
+            sprite.setOrigin(texSize.x / 2.0f, texSize.y / 2.0f);
+            float scale = targetDiameter / static_cast<float>(texSize.x);
+            sprite.setScale(scale, scale);
+            sprite.setPosition(pos);
+            window.draw(sprite);
+        } else {
+            // Outer rim
+            sf::CircleShape outer(r + 3.0f);
+            outer.setOrigin(r + 3.0f, r + 3.0f);
+            outer.setPosition(pos);
+            outer.setFillColor((q->getMau() == Mau::DO) ? sf::Color(140, 30, 20) : sf::Color(30, 40, 50));
+            window.draw(outer);
 
-        // Label according to PieceStyle
-        std::string label = layKyHieuQuanTheoStyle(q->layTen(), q->getMau());
+            // Piece body
+            sf::CircleShape piece(r);
+            piece.setOrigin(r, r);
+            piece.setPosition(pos);
+            piece.setFillColor(sf::Color(250, 238, 215));
+            piece.setOutlineThickness(2.0f);
+            piece.setOutlineColor((q->getMau() == Mau::DO) ? sf::Color(180, 40, 30) : sf::Color(40, 50, 65));
+            window.draw(piece);
 
-        sf::Text t;
-        t.setFont(font);
-        t.setString(label);
-        t.setCharacterSize((label.size() > 2) ? 17 : 20);
-        t.setStyle(sf::Text::Bold);
-        t.setFillColor((q->getMau() == Mau::DO) ? sf::Color(190, 25, 20) : sf::Color(20, 25, 35));
+            // Inner circle
+            sf::CircleShape inner(r - 4.0f);
+            inner.setOrigin(r - 4.0f, r - 4.0f);
+            inner.setPosition(pos);
+            inner.setFillColor(sf::Color::Transparent);
+            inner.setOutlineThickness(1.2f);
+            inner.setOutlineColor((q->getMau() == Mau::DO) ? sf::Color(200, 50, 40, 180) : sf::Color(60, 75, 95, 180));
+            window.draw(inner);
 
-        sf::FloatRect tb = t.getLocalBounds();
-        t.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-        t.setPosition(pos);
-        window.draw(t);
+            // Label according to PieceStyle
+            std::string label = layKyHieuQuanTheoStyle(q->layTen(), q->getMau());
+
+            sf::Text t;
+            t.setFont(font);
+            t.setString(label);
+            t.setCharacterSize((label.size() > 2) ? 17 : 20);
+            t.setStyle(sf::Text::Bold);
+            t.setFillColor((q->getMau() == Mau::DO) ? sf::Color(190, 25, 20) : sf::Color(20, 25, 35));
+
+            sf::FloatRect tb = t.getLocalBounds();
+            t.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+            t.setPosition(pos);
+            window.draw(t);
+        }
     }
 }
 
@@ -2711,31 +2784,53 @@ void GameManager::veSettingsMenu() {
         // Render preview pieces (Red Xe & Black Ma)
         auto drawPreviewPiece = [this](float x, float y, const std::string& name, Mau m) {
             float r = 24.0f;
-            sf::CircleShape outer(r + 2.0f);
-            outer.setOrigin(r + 2.0f, r + 2.0f);
-            outer.setPosition(x, y);
-            outer.setFillColor((m == Mau::DO) ? sf::Color(140, 30, 20) : sf::Color(30, 40, 50));
-            window.draw(outer);
+            float targetDiameter = r * 2.0f;
+            const sf::Texture* tex = nullptr;
+            if (pieceStyle == PieceStyle::REALISTIC_WOOD) {
+                tex = layTextureQuan(name, m);
+            }
 
-            sf::CircleShape body(r);
-            body.setOrigin(r, r);
-            body.setPosition(x, y);
-            body.setFillColor(sf::Color(250, 238, 215));
-            body.setOutlineThickness(2.0f);
-            body.setOutlineColor((m == Mau::DO) ? sf::Color(180, 40, 30) : sf::Color(40, 50, 65));
-            window.draw(body);
+            if (tex != nullptr) {
+                sf::CircleShape shadow(r - 1.0f);
+                shadow.setOrigin(r - 1.0f, r - 1.0f);
+                shadow.setPosition(x + 2.0f, y + 2.5f);
+                shadow.setFillColor(sf::Color(0, 0, 0, 100));
+                window.draw(shadow);
 
-            std::string label = layKyHieuQuanTheoStyle(name, m);
-            sf::Text t;
-            t.setFont(font);
-            t.setString(label);
-            t.setCharacterSize((label.size() > 2) ? 15 : 18);
-            t.setStyle(sf::Text::Bold);
-            t.setFillColor((m == Mau::DO) ? sf::Color(190, 25, 20) : sf::Color(20, 25, 35));
-            sf::FloatRect tb = t.getLocalBounds();
-            t.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-            t.setPosition(x, y);
-            window.draw(t);
+                sf::Sprite sprite(*tex);
+                sf::Vector2u texSize = tex->getSize();
+                sprite.setOrigin(texSize.x / 2.0f, texSize.y / 2.0f);
+                float scale = targetDiameter / static_cast<float>(texSize.x);
+                sprite.setScale(scale, scale);
+                sprite.setPosition(x, y);
+                window.draw(sprite);
+            } else {
+                sf::CircleShape outer(r + 2.0f);
+                outer.setOrigin(r + 2.0f, r + 2.0f);
+                outer.setPosition(x, y);
+                outer.setFillColor((m == Mau::DO) ? sf::Color(140, 30, 20) : sf::Color(30, 40, 50));
+                window.draw(outer);
+
+                sf::CircleShape body(r);
+                body.setOrigin(r, r);
+                body.setPosition(x, y);
+                body.setFillColor(sf::Color(250, 238, 215));
+                body.setOutlineThickness(2.0f);
+                body.setOutlineColor((m == Mau::DO) ? sf::Color(180, 40, 30) : sf::Color(40, 50, 65));
+                window.draw(body);
+
+                std::string label = layKyHieuQuanTheoStyle(name, m);
+                sf::Text t;
+                t.setFont(font);
+                t.setString(label);
+                t.setCharacterSize((label.size() > 2) ? 15 : 18);
+                t.setStyle(sf::Text::Bold);
+                t.setFillColor((m == Mau::DO) ? sf::Color(190, 25, 20) : sf::Color(20, 25, 35));
+                sf::FloatRect tb = t.getLocalBounds();
+                t.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+                t.setPosition(x, y);
+                window.draw(t);
+            }
         };
 
         drawPreviewPiece(prevX + 55.0f, prevY + prevH / 2.0f, "Xe", Mau::DO);

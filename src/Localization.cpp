@@ -147,6 +147,8 @@ std::string Loc::get(LocKey key) {
 
         case LocKey::SETTING_PIECE_STYLE:
             return vi ? "Kieu ky hieu quan co: " : "Piece Style: ";
+        case LocKey::PIECE_REALISTIC:
+            return vi ? "Quan go truyen thong (Sprite)" : "Traditional Wood (Sprites)";
         case LocKey::PIECE_VIETNAMESE:
             return vi ? "Tieng Viet (Xe, Ma, Voi...)" : "Full Names (Xe, Ma, Voi...)";
         case LocKey::PIECE_SHORT:
