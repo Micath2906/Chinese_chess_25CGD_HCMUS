@@ -168,6 +168,28 @@ std::string Loc::get(LocKey key) {
             return vi ? "Cua so (1200x800)" : "Windowed (1200x800)";
         case LocKey::MODE_FULLSCREEN:
             return vi ? "Toan man hinh" : "Fullscreen";
+        case LocKey::SETTING_ATMOSPHERE_STYLE:
+            return vi ? "Hieu ung khi quyen: " : "Atmospheric VFX: ";
+        case LocKey::SETTING_ATMOSPHERE_DENSITY:
+            return vi ? "Mat do hat khi quyen" : "Atmospheric Particle Density";
+        case LocKey::ATMOSPHERE_LEAVES:
+            return vi ? "La Truc Xanh (Bamboo)" : "Bamboo Leaves";
+        case LocKey::ATMOSPHERE_PETALS:
+            return vi ? "Canh Dao Hong (Peach)" : "Peach Blossoms";
+        case LocKey::ATMOSPHERE_SPARKS:
+            return vi ? "Tan Lua Vang (Sparks)" : "Golden Sparks";
+        case LocKey::PIECE_AURA_LABEL:
+            return vi ? "Trang tri quan: " : "Piece Aura: ";
+        case LocKey::AURA_CLASSIC:
+            return vi ? "Vanh Go Co Dien" : "Classic Wood Trim";
+        case LocKey::AURA_GOLD:
+            return vi ? "Hoang Kim Hao Quang" : "Imperial Gold Aura";
+        case LocKey::AURA_FLAME:
+            return vi ? "Xich Long Viem (Hoa)" : "Dragon Flame Aura";
+        case LocKey::AURA_THUNDER:
+            return vi ? "Lam Loi Phong (Ngoc)" : "Thunder Jade Aura";
+        case LocKey::AURA_VOID:
+            return vi ? "Hac Dieu Ma Thach" : "Shadow Void Aura";
 
         // Gameplay Settings
         case LocKey::SETTING_LANG:

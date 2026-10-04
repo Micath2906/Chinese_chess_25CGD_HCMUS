@@ -11,6 +11,8 @@
 #include "Localization.h"
 #include "KeyConfig.h"
 #include "TextInput.h"
+#include "Slider.h"
+#include "Atmosphere.h"
 
 enum class TrangThai {
     MENU_CHINH,
@@ -49,6 +51,14 @@ enum class PieceStyle {
     VIETNAMESE,     // "Xe", "Mã", "Voi", "Sĩ", "Tướng", "Pháo", "Tốt"
     SHORT_CODE,     // "X", "M", "V", "S", "TG", "P", "T"
     INTERNATIONAL   // "R", "H", "E", "A", "K", "C", "P"
+};
+
+enum class PieceAura {
+    CLASSIC_WOOD,   // Nguyên bản mộc mạc
+    IMPERIAL_GOLD,  // Hoàng Kim (Hào quang vàng)
+    DRAGON_FLAME,   // Xích Long (Hào quang lửa đỏ)
+    THUNDER_CYAN,   // Lam Lôi (Hào quang xanh ngọc)
+    SHADOW_VOID     // Hắc Diệu (Hào quang tím ma mị)
 };
 
 struct SaveSlotInfo {
@@ -102,6 +112,22 @@ private:
     std::vector<std::unique_ptr<Button>> settingsControlButtons;
     std::vector<std::unique_ptr<Button>> settingsBottomButtons;
     
+    // Atmospheric Particle System
+    AtmosphereSystem atmosphere;
+
+    // Piece Aura decoration choices
+    PieceAura p1Aura;
+    PieceAura p2Aura;
+    PieceAura auraDo;
+    PieceAura auraDen;
+
+    // Sliders
+    std::unique_ptr<Slider> sliderMaster;
+    std::unique_ptr<Slider> sliderSfx;
+    std::unique_ptr<Slider> sliderBgm;
+    std::unique_ptr<Slider> sliderAtmosphere;
+    std::vector<std::unique_ptr<Button>> soundboardButtons;
+
     // In-game buttons & popup buttons
     std::vector<std::unique_ptr<Button>> inGameButtons;
     std::vector<std::unique_ptr<Button>> popupButtons;
@@ -228,6 +254,8 @@ private:
     sf::Vector2i chuyenDoiToaDoManHinhThanhBanCo(const sf::Vector2i& viTriChuot);
     sf::Vector2f chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot);
     std::string layKyHieuQuanTheoStyle(const std::string& tenGoc, Mau mau) const;
+    std::string layTenPieceAura(PieceAura aura) const;
+    void veAuraQuan(sf::Vector2f pos, float r, PieceAura aura, bool isKing);
     
     // Rendering
     void ve();
