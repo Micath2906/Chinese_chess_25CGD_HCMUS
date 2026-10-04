@@ -30,6 +30,26 @@ enum class CheDoChoi {
     VOI_MAY
 };
 
+enum class SettingsTab {
+    AUDIO,
+    GRAPHICS,
+    GAMEPLAY,
+    CONTROLS
+};
+
+enum class BoardTheme {
+    CLASSIC_WOOD,
+    IMPERIAL_JADE,
+    MIDNIGHT_INK,
+    WARM_BAMBOO
+};
+
+enum class PieceStyle {
+    VIETNAMESE,   // "Xe", "Mã", "Voi", "Sĩ", "Tướng", "Pháo", "Tốt"
+    SHORT_CODE,   // "X", "M", "V", "S", "TG", "P", "T"
+    INTERNATIONAL // "R", "H", "E", "A", "K", "C", "P"
+};
+
 struct SaveSlotInfo {
     bool tonTai;
     std::string thoiGian;
@@ -51,6 +71,17 @@ private:
     SoundManager soundManager;
     KeyConfig keyConfig;
     KeyAction rebindingAction;
+
+    // Commercial Settings State
+    SettingsTab activeSettingsTab;
+    BoardTheme boardTheme;
+    PieceStyle pieceStyle;
+    bool hienGoiY;
+    bool hienNuocDiCuoi;
+    bool hienToaDo;
+    bool fullscreenMode;
+    bool aiThinkRealistic;
+    bool checkAlarmSound;
     
     // Menus
     Menu menuChinh;
@@ -61,6 +92,14 @@ private:
     Menu menuSettings;
     Menu menuKeybinding;
     Menu menuIntro;
+
+    // Settings dashboard sub-menus/buttons
+    std::vector<std::unique_ptr<Button>> settingsTabButtons;
+    std::vector<std::unique_ptr<Button>> settingsAudioButtons;
+    std::vector<std::unique_ptr<Button>> settingsGraphicsButtons;
+    std::vector<std::unique_ptr<Button>> settingsGameplayButtons;
+    std::vector<std::unique_ptr<Button>> settingsControlButtons;
+    std::vector<std::unique_ptr<Button>> settingsBottomButtons;
     
     // In-game buttons & popup buttons
     std::vector<std::unique_ptr<Button>> inGameButtons;
@@ -108,7 +147,6 @@ private:
     
     // Match settings
     float thoiGianVanDau; // 0 = unlimited, 300 = 5m, 600 = 10m, 900 = 15m
-    bool hienGoiY;
     
     // Chess clocks
     float thoiGianConDo;
@@ -132,9 +170,16 @@ public:
     
 private:
     void khoiTaoTatCaMenu();
+    void khoiTaoDashboardSettings();
     void capNhatNhanNut();
     void khoiTaoNutTrongGame();
     void khoiTaoNutPopup();
+    
+    // Config Persistence
+    void luuCaiDat();
+    void docCaiDat();
+    void khoiPhucCaiDatMacDinh();
+    void apDungCheDoManHinh();
     
     // Event handling
     void xuLySuKien();
@@ -174,6 +219,7 @@ private:
     // Coordinates conversion
     sf::Vector2i chuyenDoiToaDoManHinhThanhBanCo(const sf::Vector2i& viTriChuot);
     sf::Vector2f chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot);
+    std::string layKyHieuQuanTheoStyle(const std::string& tenGoc, Mau mau) const;
     
     // Rendering
     void ve();

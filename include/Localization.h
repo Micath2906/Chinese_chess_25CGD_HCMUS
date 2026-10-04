@@ -64,15 +64,50 @@ enum class LocKey {
     LOAD_BUTTON,
     DELETE_BUTTON,
 
-    // Settings Menu
+    // Settings Menu Commercial Dashboard
     SETTINGS_TITLE,
-    SOUND_FX,
-    SOUND_VOLUME,
-    KEY_BINDINGS_MENU,
-    LANGUAGE_LABEL,
-    HINT_MOVES,
+    TAB_AUDIO,
+    TAB_GRAPHICS,
+    TAB_GAMEPLAY,
+    TAB_CONTROLS,
+
+    // Audio Settings
+    SETTING_MASTER_VOL,
+    SETTING_SFX_TOGGLE,
+    SETTING_SFX_VOL,
+    SETTING_BGM_TOGGLE,
+    SETTING_BGM_VOL,
+    SETTING_TEST_AUDIO,
+
+    // Graphics Settings
+    SETTING_BOARD_THEME,
+    THEME_WOOD,
+    THEME_JADE,
+    THEME_DARK,
+    THEME_BAMBOO,
+    SETTING_PIECE_STYLE,
+    PIECE_VIETNAMESE,
+    PIECE_SHORT,
+    PIECE_INTL,
+    SETTING_MOVE_HINTS,
+    SETTING_LAST_MOVE,
+    SETTING_COORDINATES,
+    SETTING_WINDOW_MODE,
+    MODE_WINDOWED,
+    MODE_FULLSCREEN,
+
+    // Gameplay Settings
+    SETTING_LANG,
+    SETTING_AI_THINK,
+    AI_THINK_REALISTIC,
+    AI_THINK_INSTANT,
+    SETTING_CHECK_ALARM,
+
+    // Common & Actions
     ON,
     OFF,
+    BTN_APPLY_SAVE,
+    BTN_RESTORE_DEFAULTS,
 
     // Keybindings Menu
     KEYBINDING_TITLE,

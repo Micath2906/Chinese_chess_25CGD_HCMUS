@@ -1,6 +1,6 @@
 #include "Localization.h"
 
-// Default language is English as requested
+// Default language is English
 Language Loc::currentLang = Language::ENGLISH;
 
 std::string Loc::get(LocKey key) {
@@ -13,7 +13,7 @@ std::string Loc::get(LocKey key) {
         case LocKey::APP_SUBTITLE:
             return vi ? "DO AN MON OOP - HCMUS" : "OOP PROJECT - HCMUS";
 
-        // Main Menu (No numbering!)
+        // Main Menu
         case LocKey::MENU_PLAY:
             return vi ? "CHOI CO" : "PLAY";
         case LocKey::MENU_LOAD:
@@ -25,7 +25,7 @@ std::string Loc::get(LocKey key) {
         case LocKey::MENU_EXIT:
             return vi ? "THOAT" : "EXIT";
 
-        // Play Submenu (No numbering!)
+        // Play Submenu
         case LocKey::PLAY_SUB_TITLE:
             return vi ? "CHON CHE DO CHOI" : "SELECT GAME MODE";
         case LocKey::PLAY_PVP:
@@ -109,21 +109,85 @@ std::string Loc::get(LocKey key) {
 
         // Settings Menu
         case LocKey::SETTINGS_TITLE:
-            return vi ? "CAI DAT TRO CHOI" : "GAME SETTINGS";
-        case LocKey::SOUND_FX:
-            return vi ? "Am thanh: " : "Sound Effects: ";
-        case LocKey::SOUND_VOLUME:
-            return vi ? "Am luong: " : "Volume: ";
-        case LocKey::KEY_BINDINGS_MENU:
-            return vi ? "Cai dat phim dieu khien" : "Custom Key Bindings";
-        case LocKey::LANGUAGE_LABEL:
-            return vi ? "Ngon ngu: Tieng Viet" : "Language: English";
-        case LocKey::HINT_MOVES:
-            return vi ? "Goi y nuoc di: " : "Move Hints: ";
+            return vi ? "CAI DAT HE THONG" : "SYSTEM SETTINGS";
+        case LocKey::TAB_AUDIO:
+            return vi ? "AM THANH" : "AUDIO";
+        case LocKey::TAB_GRAPHICS:
+            return vi ? "DO HOA & BAN CO" : "GRAPHICS";
+        case LocKey::TAB_GAMEPLAY:
+            return vi ? "TRO CHOI" : "GAMEPLAY";
+        case LocKey::TAB_CONTROLS:
+            return vi ? "DIEU KHIEN" : "CONTROLS";
+
+        // Audio Settings
+        case LocKey::SETTING_MASTER_VOL:
+            return vi ? "Am luong tong (Master): " : "Master Volume: ";
+        case LocKey::SETTING_SFX_TOGGLE:
+            return vi ? "Hieu ung am thanh (SFX): " : "Sound Effects (SFX): ";
+        case LocKey::SETTING_SFX_VOL:
+            return vi ? "Am luong hieu ung (SFX): " : "SFX Volume: ";
+        case LocKey::SETTING_BGM_TOGGLE:
+            return vi ? "Nhac nen co trang (BGM): " : "Background Music (BGM): ";
+        case LocKey::SETTING_BGM_VOL:
+            return vi ? "Am luong nhac nen (BGM): " : "BGM Volume: ";
+        case LocKey::SETTING_TEST_AUDIO:
+            return vi ? "Nghe thu am thanh" : "Test Sound";
+
+        // Graphics Settings
+        case LocKey::SETTING_BOARD_THEME:
+            return vi ? "Giao dien ban co: " : "Board Theme: ";
+        case LocKey::THEME_WOOD:
+            return vi ? "Go Co Dien" : "Classic Wood";
+        case LocKey::THEME_JADE:
+            return vi ? "Ngoc Bich Hoang Gia" : "Imperial Jade";
+        case LocKey::THEME_DARK:
+            return vi ? "Huyen Thach (Dark Mode)" : "Midnight Obsidian";
+        case LocKey::THEME_BAMBOO:
+            return vi ? "Giay Truc Tram" : "Warm Bamboo";
+
+        case LocKey::SETTING_PIECE_STYLE:
+            return vi ? "Kieu ky hieu quan co: " : "Piece Style: ";
+        case LocKey::PIECE_VIETNAMESE:
+            return vi ? "Tieng Viet (Xe, Ma, Voi...)" : "Full Names (Xe, Ma, Voi...)";
+        case LocKey::PIECE_SHORT:
+            return vi ? "Ký hieu tat (X, M, V...)" : "Short Badges (X, M, V...)";
+        case LocKey::PIECE_INTL:
+            return vi ? "Quoc te (R, H, E...)" : "International (R, H, E...)";
+
+        case LocKey::SETTING_MOVE_HINTS:
+            return vi ? "Goi y nuoc di hop le: " : "Valid Move Hints: ";
+        case LocKey::SETTING_LAST_MOVE:
+            return vi ? "Danh dau nuoc vua di: " : "Last Move Highlight: ";
+        case LocKey::SETTING_COORDINATES:
+            return vi ? "Toa do mep ban co (1-9, A-J): " : "Board Coordinates (1-9, A-J): ";
+        case LocKey::SETTING_WINDOW_MODE:
+            return vi ? "Che do man hinh: " : "Display Mode: ";
+        case LocKey::MODE_WINDOWED:
+            return vi ? "Cua so (1200x800)" : "Windowed (1200x800)";
+        case LocKey::MODE_FULLSCREEN:
+            return vi ? "Toan man hinh" : "Fullscreen";
+
+        // Gameplay Settings
+        case LocKey::SETTING_LANG:
+            return vi ? "Ngon ngu game: " : "Game Language: ";
+        case LocKey::SETTING_AI_THINK:
+            return vi ? "Mo phong AI suy nghi: " : "AI Thinking Delay: ";
+        case LocKey::AI_THINK_REALISTIC:
+            return vi ? "Chan thuc (450ms)" : "Realistic (450ms)";
+        case LocKey::AI_THINK_INSTANT:
+            return vi ? "Tuc thi (0ms)" : "Instant (0ms)";
+        case LocKey::SETTING_CHECK_ALARM:
+            return vi ? "Bao dong chieu tuong: " : "Check Warning Alarm: ";
+
+        // Common & Actions
         case LocKey::ON:
             return vi ? "Bat" : "ON";
         case LocKey::OFF:
             return vi ? "Tat" : "OFF";
+        case LocKey::BTN_APPLY_SAVE:
+            return vi ? "Ap dung & Luu" : "Apply & Save";
+        case LocKey::BTN_RESTORE_DEFAULTS:
+            return vi ? "Khoi phuc mac dinh" : "Restore Defaults";
 
         // Keybindings Menu
         case LocKey::KEYBINDING_TITLE:
