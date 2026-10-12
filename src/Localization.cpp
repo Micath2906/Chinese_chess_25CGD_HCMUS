@@ -278,6 +278,16 @@ std::string Loc::get(LocKey key) {
         case LocKey::BACK_MENU:
             return vi ? "Ve Menu" : "Main Menu";
 
+        // In Game Pause Popup Menu
+        case LocKey::PAUSE_MENU_TITLE:
+            return vi ? "MENU TRAN DAU" : "MATCH PAUSED";
+        case LocKey::MATCH_PAUSED_SUBTITLE:
+            return vi ? "(Tran dau tam dung - Nhan [ESC] hoac bam de tiep tuc)" : "(Game Paused - Press [ESC] or click to resume)";
+        case LocKey::RESUME:
+            return vi ? "Tiep tuc choi" : "Resume Game";
+        case LocKey::BTN_GAME_MENU:
+            return vi ? "Menu tran dau [ESC]" : "Match Menu [ESC]";
+
         // End Game Popup
         case LocKey::GAME_OVER:
             return vi ? "KET THUC VAN CO" : "GAME OVER";
