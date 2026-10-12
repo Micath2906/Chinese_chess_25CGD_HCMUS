@@ -131,6 +131,10 @@ private:
     // In-game buttons & popup buttons
     std::vector<std::unique_ptr<Button>> inGameButtons;
     std::vector<std::unique_ptr<Button>> popupButtons;
+    std::vector<std::unique_ptr<Button>> inGameMenuButtons;
+    bool hienMenuPopUp;
+    TrangThai trangThaiTruocSettings;
+    TrangThai trangThaiTruocLoad;
     
     // Text inputs
     std::unique_ptr<TextInput> inputP1Name;
@@ -232,6 +236,8 @@ private:
     void thucHienLuuGame();
     void thucHienLoadGame();
     void quayLaiMenu();
+    void moMenuPopUp();
+    void dongMenuPopUp();
     
     // Save/Load system
     void capNhatThongTinSlots();
@@ -265,6 +271,7 @@ private:
     void veConTroBanPhim();
     void veThanhBenPhai();
     void vePopupKetThuc();
+    void veMenuPopUpInGame();
     void veToast();
     
     // Screen rendering
