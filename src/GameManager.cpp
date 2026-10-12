@@ -65,7 +65,10 @@ GameManager::GameManager()
       aiDangSuyNghi(false),
       thoiGianChoAI(0.0f),
       toastTimer(0.0f),
-      lyDoKetThuc("") {
+      lyDoKetThuc(""),
+      hienMenuPopUp(false),
+      trangThaiTruocSettings(TrangThai::MENU_CHINH),
+      trangThaiTruocLoad(TrangThai::MENU_CHINH) {
     
     window.setFramerateLimit(60);
     khoiTao();
@@ -121,6 +124,7 @@ void GameManager::khoiTaoTatCaMenu() {
     menuChinh.themButton(cx, startY + sp, bw, bh, Loc::get(LocKey::MENU_LOAD), [this]() {
         soundManager.play(SoundType::CLICK);
         capNhatThongTinSlots();
+        trangThaiTruocLoad = TrangThai::MENU_CHINH;
         trangThai = TrangThai::LOAD_MENU;
     });
     // Settings
@@ -128,6 +132,7 @@ void GameManager::khoiTaoTatCaMenu() {
         soundManager.play(SoundType::CLICK);
         activeSettingsTab = SettingsTab::AUDIO;
         rebindingAction = KeyAction::COUNT;
+        trangThaiTruocSettings = TrangThai::MENU_CHINH;
         capNhatNhanNut();
         trangThai = TrangThai::SETTINGS_MENU;
     });
@@ -424,7 +429,10 @@ void GameManager::khoiTaoTatCaMenu() {
     });
     menuLoad.themButton(720.0f, 650.0f, 200.0f, 52.0f, Loc::get(LocKey::BACK), [this]() {
         soundManager.play(SoundType::CLICK);
-        trangThai = TrangThai::MENU_CHINH;
+        trangThai = trangThaiTruocLoad;
+        if (trangThai == TrangThai::DANG_CHOI) {
+            hienMenuPopUp = true;
+        }
     });
 
     // ==========================================
@@ -669,7 +677,10 @@ void GameManager::khoiTaoDashboardSettings() {
     settingsBottomButtons.push_back(std::make_unique<Button>(730.0f, bY, 190.0f, 48.0f, Loc::get(LocKey::BACK), font, [this]() {
         rebindingAction = KeyAction::COUNT;
         soundManager.play(SoundType::CLICK);
-        trangThai = TrangThai::MENU_CHINH;
+        trangThai = trangThaiTruocSettings;
+        if (trangThai == TrangThai::DANG_CHOI) {
+            hienMenuPopUp = true;
+        }
     }));
 
     capNhatNhanNut();
@@ -819,42 +830,116 @@ void GameManager::capNhatNhanNut() {
     khoiTaoNutPopup();
 }
 
+void GameManager::moMenuPopUp() {
+    if (banCo.getKetThuc()) return;
+    if (quanDangChon != nullptr) {
+        quanDangChon = nullptr;
+        cacNuocDiHopLe.clear();
+    }
+    hienMenuPopUp = true;
+    soundManager.play(SoundType::CLICK);
+}
+
+void GameManager::dongMenuPopUp() {
+    hienMenuPopUp = false;
+    soundManager.play(SoundType::CLICK);
+}
+
 void GameManager::khoiTaoNutTrongGame() {
     inGameButtons.clear();
-    float bx = 680.0f;
-    float by = 470.0f;
-    float bw = 220.0f;
-    float bh = 45.0f;
-    float gapX = 245.0f;
-    float gapY = 55.0f;
+    inGameMenuButtons.clear();
 
-    inGameButtons.push_back(std::make_unique<Button>(bx, by, bw, bh, Loc::get(LocKey::UNDO), font, [this]() {
+    // 1. Nut mo Menu tran dau tren thanh ben phai (danh cho nguoi dung chuot)
+    float panelX = 670.0f;
+    float panelW = 490.0f;
+    float btnX = panelX + 15.0f;
+    float btnY = 650.0f;
+    float btnW = panelW - 30.0f;
+    float btnH = 48.0f;
+
+    auto btnOpen = std::make_unique<Button>(btnX, btnY, btnW, btnH, Loc::get(LocKey::BTN_GAME_MENU), font, [this]() {
+        moMenuPopUp();
+    });
+    btnOpen->setColors(sf::Color(52, 78, 120, 240), sf::Color(75, 110, 168, 255), sf::Color(38, 58, 92, 255));
+    inGameButtons.push_back(std::move(btnOpen));
+
+    // 2. Toan bo cac nut chuc nang duoc dua vao Menu Pop-up khi nhan ESC
+    float dw = 520.0f;
+    float dh = 390.0f;
+    float dx = (window.getSize().x - dw) / 2.0f;
+    float dy = (window.getSize().y - dh) / 2.0f;
+
+    float innerX = dx + 30.0f;
+    float fullW = dw - 60.0f;
+    float colW = (fullW - 16.0f) / 2.0f;
+    float col1X = innerX;
+    float col2X = innerX + colW + 16.0f;
+
+    float r0Y = dy + 84.0f;
+    float r1Y = dy + 130.0f;
+    float r2Y = dy + 172.0f;
+    float r3Y = dy + 214.0f;
+    float r4Y = dy + 256.0f;
+    float r5Y = dy + 302.0f;
+
+    // Hang 0: Nut Tiep tuc tran dau (Resume) - mau xanh ngoc noi bat
+    auto btnResume = std::make_unique<Button>(innerX, r0Y, fullW, 38.0f, Loc::get(LocKey::RESUME), font, [this]() {
+        dongMenuPopUp();
+    });
+    btnResume->setColors(sf::Color(35, 125, 75, 245), sf::Color(45, 160, 95, 255), sf::Color(25, 95, 55, 255));
+    inGameMenuButtons.push_back(std::move(btnResume));
+
+    // Hang 1: Hoan tac (Undo) & Di tiep (Redo)
+    inGameMenuButtons.push_back(std::make_unique<Button>(col1X, r1Y, colW, 34.0f, Loc::get(LocKey::UNDO), font, [this]() {
+        dongMenuPopUp();
         thucHienHoanTac();
     }));
-    inGameButtons.push_back(std::make_unique<Button>(bx + gapX, by, bw, bh, Loc::get(LocKey::REDO), font, [this]() {
+    inGameMenuButtons.push_back(std::make_unique<Button>(col2X, r1Y, colW, 34.0f, Loc::get(LocKey::REDO), font, [this]() {
+        dongMenuPopUp();
         thucHienDiTiep();
     }));
 
-    inGameButtons.push_back(std::make_unique<Button>(bx, by + gapY, bw, bh, Loc::get(LocKey::NEW_GAME), font, [this]() {
+    // Hang 2: Van moi (New Game) & Xin hoa (Offer Draw)
+    inGameMenuButtons.push_back(std::make_unique<Button>(col1X, r2Y, colW, 34.0f, Loc::get(LocKey::NEW_GAME), font, [this]() {
+        dongMenuPopUp();
         batDauTroChoiMoi(cheDoChoi);
     }));
-    inGameButtons.push_back(std::make_unique<Button>(bx + gapX, by + gapY, bw, bh, Loc::get(LocKey::DRAW_OFFER), font, [this]() {
+    inGameMenuButtons.push_back(std::make_unique<Button>(col2X, r2Y, colW, 34.0f, Loc::get(LocKey::DRAW_OFFER), font, [this]() {
+        dongMenuPopUp();
         thucHienXinHoa();
     }));
 
-    inGameButtons.push_back(std::make_unique<Button>(bx, by + gapY * 2, bw, bh, Loc::get(LocKey::SURRENDER), font, [this]() {
-        thucHienDauHang();
-    }));
-    inGameButtons.push_back(std::make_unique<Button>(bx + gapX, by + gapY * 2, bw, bh, Loc::get(LocKey::SAVE_GAME), font, [this]() {
+    // Hang 3: Luu game (Save) & Tai game (Load)
+    inGameMenuButtons.push_back(std::make_unique<Button>(col1X, r3Y, colW, 34.0f, Loc::get(LocKey::SAVE_GAME), font, [this]() {
+        dongMenuPopUp();
         thucHienLuuGame();
     }));
-
-    inGameButtons.push_back(std::make_unique<Button>(bx, by + gapY * 3, bw, bh, Loc::get(LocKey::LOAD_GAME), font, [this]() {
+    inGameMenuButtons.push_back(std::make_unique<Button>(col2X, r3Y, colW, 34.0f, Loc::get(LocKey::LOAD_GAME), font, [this]() {
+        dongMenuPopUp();
+        trangThaiTruocLoad = TrangThai::DANG_CHOI;
         thucHienLoadGame();
     }));
-    inGameButtons.push_back(std::make_unique<Button>(bx + gapX, by + gapY * 3, bw, bh, Loc::get(LocKey::BACK_MENU), font, [this]() {
-        quayLaiMenu();
+
+    // Hang 4: Dau hang (Resign) & Cai dat (Settings)
+    inGameMenuButtons.push_back(std::make_unique<Button>(col1X, r4Y, colW, 34.0f, Loc::get(LocKey::SURRENDER), font, [this]() {
+        dongMenuPopUp();
+        thucHienDauHang();
     }));
+    inGameMenuButtons.push_back(std::make_unique<Button>(col2X, r4Y, colW, 34.0f, Loc::get(LocKey::MENU_SETTINGS), font, [this]() {
+        dongMenuPopUp();
+        trangThaiTruocSettings = TrangThai::DANG_CHOI;
+        activeSettingsTab = SettingsTab::AUDIO;
+        capNhatNhanNut();
+        trangThai = TrangThai::SETTINGS_MENU;
+    }));
+
+    // Hang 5: Thoat ve Menu chinh - mau do thanh lich
+    auto btnQuit = std::make_unique<Button>(innerX, r5Y, fullW, 38.0f, Loc::get(LocKey::BACK_MENU), font, [this]() {
+        dongMenuPopUp();
+        quayLaiMenu();
+    });
+    btnQuit->setColors(sf::Color(140, 45, 45, 245), sf::Color(175, 60, 60, 255), sf::Color(105, 30, 30, 255));
+    inGameMenuButtons.push_back(std::move(btnQuit));
 }
 
 void GameManager::khoiTaoNutPopup() {
@@ -1091,6 +1176,7 @@ void GameManager::batDauTroChoiMoi(CheDoChoi cheDo) {
     quanDangChon = nullptr;
     cacNuocDiHopLe.clear();
     trangThai = TrangThai::DANG_CHOI;
+    hienMenuPopUp = false;
     
     thoiGianConDo = thoiGianVanDau;
     thoiGianConDen = thoiGianVanDau;
@@ -1207,6 +1293,7 @@ bool GameManager::docTuSlot(int slotIndex) {
         cacNuocDiHopLe.clear();
         viTriConTro = sf::Vector2i(9, 4);
         trangThai = TrangThai::DANG_CHOI;
+        hienMenuPopUp = false;
         aiDangSuyNghi = false;
         thoiGianChoAI = 0.0f;
         dtClock.restart();
@@ -1247,7 +1334,7 @@ void GameManager::chay() {
         
         xuLySuKien();
         
-        if (trangThai == TrangThai::DANG_CHOI && !banCo.getKetThuc()) {
+        if (trangThai == TrangThai::DANG_CHOI && !banCo.getKetThuc() && !hienMenuPopUp) {
             capNhatDongHo(dt);
             if (cheDoChoi == CheDoChoi::VOI_MAY) {
                 xuLyLuotAI(dt);
@@ -1291,6 +1378,8 @@ void GameManager::xuLySuKien() {
     else if (trangThai == TrangThai::DANG_CHOI) {
         if (banCo.getKetThuc()) {
             for (auto& btn : popupButtons) btn->update(mousePos);
+        } else if (hienMenuPopUp) {
+            for (auto& btn : inGameMenuButtons) btn->update(mousePos);
         } else {
             for (auto& btn : inGameButtons) btn->update(mousePos);
         }
@@ -1317,6 +1406,14 @@ void GameManager::xuLySuKien() {
         else if (event.type == sf::Event::MouseButtonPressed) {
             if (event.mouseButton.button == sf::Mouse::Left) {
                 xuLyClickChuot(mousePos);
+            } else if (event.mouseButton.button == sf::Mouse::Right) {
+                if (trangThai == TrangThai::DANG_CHOI && !hienMenuPopUp && !banCo.getKetThuc()) {
+                    if (quanDangChon != nullptr) {
+                        quanDangChon = nullptr;
+                        cacNuocDiHopLe.clear();
+                        soundManager.play(SoundType::CLICK);
+                    }
+                }
             }
         }
         else if (event.type == sf::Event::KeyPressed) {
@@ -1386,6 +1483,13 @@ void GameManager::xuLyClickChuot(const sf::Vector2i& viTri) {
             return;
         }
 
+        if (hienMenuPopUp) {
+            for (auto& btn : inGameMenuButtons) {
+                btn->handleClick(viTri);
+            }
+            return;
+        }
+
         for (auto& btn : inGameButtons) {
             btn->handleClick(viTri);
         }
@@ -1433,10 +1537,24 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
     // 3. Deselect or Return back
     if (keyConfig.isDeselectKey(key)) {
         soundManager.play(SoundType::CLICK);
-        if (trangThai == TrangThai::PLAY_SUBMENU || trangThai == TrangThai::LOAD_MENU || 
-            trangThai == TrangThai::SETTINGS_MENU || trangThai == TrangThai::INTRODUCTION_MENU) {
+        if (trangThai == TrangThai::PLAY_SUBMENU || trangThai == TrangThai::INTRODUCTION_MENU) {
             rebindingAction = KeyAction::COUNT;
             trangThai = TrangThai::MENU_CHINH;
+            return;
+        }
+        if (trangThai == TrangThai::LOAD_MENU) {
+            trangThai = trangThaiTruocLoad;
+            if (trangThai == TrangThai::DANG_CHOI) {
+                hienMenuPopUp = true;
+            }
+            return;
+        }
+        if (trangThai == TrangThai::SETTINGS_MENU) {
+            rebindingAction = KeyAction::COUNT;
+            trangThai = trangThaiTruocSettings;
+            if (trangThai == TrangThai::DANG_CHOI) {
+                hienMenuPopUp = true;
+            }
             return;
         }
         if (trangThai == TrangThai::PVP_SETUP || trangThai == TrangThai::PVAI_SETUP) {
@@ -1444,11 +1562,12 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
             return;
         }
         if (trangThai == TrangThai::DANG_CHOI) {
-            if (quanDangChon != nullptr) {
-                quanDangChon = nullptr;
-                cacNuocDiHopLe.clear();
+            if (banCo.getKetThuc()) return;
+
+            if (hienMenuPopUp) {
+                dongMenuPopUp();
             } else {
-                quayLaiMenu();
+                moMenuPopUp();
             }
             return;
         }
@@ -1456,7 +1575,7 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
 
     // 4. In game navigation and shortcuts
     if (trangThai == TrangThai::DANG_CHOI) {
-        if (banCo.getKetThuc()) return;
+        if (banCo.getKetThuc() || hienMenuPopUp) return;
 
         if (keyConfig.isUpKey(key)) {
             viTriConTro.x = std::max(0, viTriConTro.x - 1);
@@ -1695,6 +1814,7 @@ void GameManager::thucHienLoadGame() {
 }
 
 void GameManager::quayLaiMenu() {
+    hienMenuPopUp = false;
     trangThai = TrangThai::MENU_CHINH;
     soundManager.play(SoundType::CLICK);
 }
@@ -1937,6 +2057,8 @@ void GameManager::ve() {
 
         if (banCo.getKetThuc()) {
             vePopupKetThuc();
+        } else if (hienMenuPopUp) {
+            veMenuPopUpInGame();
         }
     }
 
@@ -2390,9 +2512,8 @@ void GameManager::veThanhBenPhai() {
         KeyConfig::getKeyName(keyConfig.keyLeft) + "," + 
         KeyConfig::getKeyName(keyConfig.keyDown) + "," + 
         KeyConfig::getKeyName(keyConfig.keyRight) + " ] Move  |  [ " + 
-        KeyConfig::getKeyName(keyConfig.keySelect) + " ] Select  |  [ " + 
-        KeyConfig::getKeyName(keyConfig.keyDeselect) + " ] Cancel\n" +
-        "Preset: " + keyConfig.getPresetName() + "  |  Mouse click supported";
+        KeyConfig::getKeyName(keyConfig.keySelect) + " ] Select  |  [ ESC ] Menu\n" +
+        "Mouse: Click to select & move  |  [ Right Click ] Cancel  |  Preset: " + keyConfig.getPresetName();
     keyText.setString(keyInfo);
     keyText.setFillColor(sf::Color(240, 220, 150));
     keyText.setPosition(px + 22.0f, keyY + 8.0f);
@@ -2409,7 +2530,8 @@ void GameManager::veThanhBenPhai() {
     histTitle.setPosition(px + 18.0f, histY);
     window.draw(histTitle);
 
-    sf::RectangleShape histBox(sf::Vector2f(pw - 30.0f, 100.0f));
+    float histH = 340.0f;
+    sf::RectangleShape histBox(sf::Vector2f(pw - 30.0f, histH));
     histBox.setPosition(px + 15.0f, histY + 24.0f);
     histBox.setFillColor(sf::Color(18, 22, 32));
     histBox.setOutlineThickness(1.0f);
@@ -2418,7 +2540,8 @@ void GameManager::veThanhBenPhai() {
 
     const auto& lichSu = banCo.getLichSuNuocDi();
     size_t count = lichSu.size();
-    size_t start = (count > 4) ? (count - 4) : 0;
+    size_t maxDisplay = 14;
+    size_t start = (count > maxDisplay) ? (count - maxDisplay) : 0;
     float textY = histY + 30.0f;
 
     if (lichSu.empty()) {
@@ -2510,6 +2633,73 @@ void GameManager::vePopupKetThuc() {
     }
 
     for (auto& btn : popupButtons) {
+        btn->draw(window);
+    }
+}
+
+void GameManager::veMenuPopUpInGame() {
+    sf::RectangleShape overlay(sf::Vector2f(static_cast<float>(window.getSize().x), static_cast<float>(window.getSize().y)));
+    overlay.setFillColor(sf::Color(0, 0, 0, 185));
+    window.draw(overlay);
+
+    float dw = 520.0f;
+    float dh = 390.0f;
+    float dx = (window.getSize().x - dw) / 2.0f;
+    float dy = (window.getSize().y - dh) / 2.0f;
+
+    // Outer shadow / glow
+    sf::RectangleShape shadowBox(sf::Vector2f(dw + 8.0f, dh + 8.0f));
+    shadowBox.setPosition(dx - 4.0f, dy - 4.0f);
+    shadowBox.setFillColor(sf::Color(0, 0, 0, 120));
+    window.draw(shadowBox);
+
+    // Modal background
+    sf::RectangleShape dialog(sf::Vector2f(dw, dh));
+    dialog.setPosition(dx, dy);
+    dialog.setFillColor(sf::Color(24, 30, 44, 250));
+    dialog.setOutlineThickness(3.0f);
+    dialog.setOutlineColor(sf::Color(240, 190, 70));
+    window.draw(dialog);
+
+    // Inner subtle outline
+    sf::RectangleShape innerBorder(sf::Vector2f(dw - 12.0f, dh - 12.0f));
+    innerBorder.setPosition(dx + 6.0f, dy + 6.0f);
+    innerBorder.setFillColor(sf::Color::Transparent);
+    innerBorder.setOutlineThickness(1.0f);
+    innerBorder.setOutlineColor(sf::Color(65, 80, 115, 160));
+    window.draw(innerBorder);
+
+    // Header title
+    sf::Text tTitle;
+    tTitle.setFont(font);
+    tTitle.setCharacterSize(26);
+    tTitle.setStyle(sf::Text::Bold);
+    tTitle.setString(Loc::get(LocKey::PAUSE_MENU_TITLE));
+    tTitle.setFillColor(sf::Color(240, 190, 70));
+    sf::FloatRect tb = tTitle.getLocalBounds();
+    tTitle.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+    tTitle.setPosition(window.getSize().x / 2.0f, dy + 30.0f);
+    window.draw(tTitle);
+
+    // Subtitle
+    sf::Text tSub;
+    tSub.setFont(font);
+    tSub.setCharacterSize(13);
+    tSub.setString(Loc::get(LocKey::MATCH_PAUSED_SUBTITLE));
+    tSub.setFillColor(sf::Color(170, 190, 215));
+    sf::FloatRect sb = tSub.getLocalBounds();
+    tSub.setOrigin(sb.left + sb.width / 2.0f, sb.top + sb.height / 2.0f);
+    tSub.setPosition(window.getSize().x / 2.0f, dy + 54.0f);
+    window.draw(tSub);
+
+    // Decorative divider line
+    sf::RectangleShape line(sf::Vector2f(dw - 50.0f, 1.5f));
+    line.setPosition(dx + 25.0f, dy + 70.0f);
+    line.setFillColor(sf::Color(70, 90, 130));
+    window.draw(line);
+
+    // Draw popup menu buttons
+    for (auto& btn : inGameMenuButtons) {
         btn->draw(window);
     }
 }
