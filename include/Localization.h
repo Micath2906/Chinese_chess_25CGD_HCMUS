@@ -156,6 +156,12 @@ enum class LocKey {
     LOAD_GAME,
     BACK_MENU,
 
+    // In Game Pause Popup Menu
+    PAUSE_MENU_TITLE,
+    MATCH_PAUSED_SUBTITLE,
+    RESUME,
+    BTN_GAME_MENU,
+
     // End Game Popup
     GAME_OVER,
     RED_WINS,
