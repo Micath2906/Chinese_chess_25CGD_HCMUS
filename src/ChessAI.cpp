@@ -5,55 +5,12 @@
 
 int ChessAI::layGiaTriQuan(const std::shared_ptr<QuanCo>& quan) {
     if (!quan || quan->getDaBiAn()) return 0;
-    
-    std::string ten = quan->layTen();
-    if (ten == "Tuong") return 10000;
-    if (ten == "Xe") return 900;
-    if (ten == "Phao") return 450;
-    if (ten == "Ma") return 400;
-    if (ten == "Voi") return 220;
-    if (ten == "Si") return 220;
-    if (ten == "Tot") {
-        int h = quan->getHang();
-        bool quaSong = (quan->getMau() == Mau::DO) ? (h < 5) : (h >= 5);
-        return quaSong ? 200 : 100;
-    }
-    return 0;
+    return quan->layGiaTri();
 }
 
 int ChessAI::layDiemViTri(const std::shared_ptr<QuanCo>& quan) {
     if (!quan || quan->getDaBiAn()) return 0;
-    
-    int h = quan->getHang();
-    int c = quan->getCot();
-    std::string ten = quan->layTen();
-    int diem = 0;
-
-    if (ten == "Ma") {
-        // Ma o trung tam manh hon o ria
-        if (c >= 2 && c <= 6 && h >= 2 && h <= 7) diem += 25;
-        if (c == 0 || c == 8) diem -= 20;
-    } else if (ten == "Xe") {
-        // Xe chiem trung lo
-        if (c >= 3 && c <= 5) diem += 20;
-        // Xe xong vao hang sau doi phuong
-        if ((quan->getMau() == Mau::DO && h <= 2) || (quan->getMau() == Mau::DEN && h >= 7)) {
-            diem += 30;
-        }
-    } else if (ten == "Phao") {
-        // Phao o trung lo
-        if (c == 4) diem += 25;
-    } else if (ten == "Tot") {
-        bool quaSong = (quan->getMau() == Mau::DO) ? (h < 5) : (h >= 5);
-        if (quaSong) {
-            // Tot ap sat cung
-            if (c >= 2 && c <= 6) diem += 30;
-            if (quan->getMau() == Mau::DO) diem += (4 - h) * 15;
-            else diem += (h - 5) * 15;
-        }
-    }
-
-    return diem;
+    return quan->layDiemViTri();
 }
 
 int ChessAI::danhGiaTheTran(const BanCo& banCo, Mau mauAI) {

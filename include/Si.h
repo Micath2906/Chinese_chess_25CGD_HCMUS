@@ -8,4 +8,6 @@ public:
     bool kiemTraNuocDi(const BanCo& banCo, int hangMoi, int cotMoi) const override;
     std::string layTen() const override { return "Si"; }
     std::string layKyHieu() const override { return "S"; }
+    int layGiaTri() const override { return 220; }
+    std::shared_ptr<QuanCo> clone() const override { return std::make_shared<Si>(*this); }
 };

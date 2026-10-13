@@ -7,6 +7,11 @@ Tot::Tot(int hang, int cot, Mau mau)
     capNhatTrangThaiQuaSong();
 }
 
+void Tot::datViTri(int hangMoi, int cotMoi) {
+    QuanCo::datViTri(hangMoi, cotMoi);
+    capNhatTrangThaiQuaSong();
+}
+
 void Tot::capNhatTrangThaiQuaSong() {
     if (mau == Mau::DO) {
         daQuaSong = hang < 5;
@@ -27,10 +32,8 @@ bool Tot::kiemTraNuocDi(const BanCo& banCo, int hangMoi, int cotMoi) const {
     int dh = hangMoi - hang;
     int dc = abs(cotMoi - cot);
     
-    bool quaSong = (mau == Mau::DO) ? (hang < 5) : (hang >= 5);
-    
     // Tot chua qua song
-    if (!quaSong) {
+    if (!daQuaSong) {
         // Chi di thang ve phia truoc
         if (mau == Mau::DO) {
             if (dh != -1 || dc != 0) return false;

@@ -1,4 +1,5 @@
 #include "BanCo.h"
+#include "QuanCoFactory.h"
 #include "Xe.h"
 #include "Ma.h"
 #include "Voi.h"
@@ -10,8 +11,61 @@
 #include <fstream>
 #include <sstream>
 
+namespace {
+    // RAII Guard Pattern: Tự động thực hiện mô phỏng nước đi và hoàn nguyên trạng thái khi ra khỏi scope
+    class ScopedMoveGuard {
+    private:
+        std::shared_ptr<QuanCo> quanDi;
+        std::shared_ptr<QuanCo> quanBiAn;
+        int hangCu;
+        int cotCu;
+    public:
+        ScopedMoveGuard(const std::shared_ptr<QuanCo>& qDi, int hMoi, int cMoi, const std::shared_ptr<QuanCo>& qAn)
+            : quanDi(qDi), quanBiAn(qAn), hangCu(qDi->getHang()), cotCu(qDi->getCot()) {
+            quanDi->datViTri(hMoi, cMoi);
+            if (quanBiAn) quanBiAn->datDaBiAn(true);
+        }
+        ~ScopedMoveGuard() {
+            quanDi->datViTri(hangCu, cotCu);
+            if (quanBiAn) quanBiAn->datDaBiAn(false);
+        }
+    };
+}
+
 BanCo::BanCo() : luotChoi(Mau::DO), ketThuc(false), nguoiThang(Mau::DO) {
     khoiTaoBanCo();
+}
+
+BanCo::BanCo(const BanCo& other)
+    : lichSuNuocDi(other.lichSuNuocDi),
+      lichSuRedo(other.lichSuRedo),
+      luotChoi(other.luotChoi),
+      ketThuc(other.ketThuc),
+      nguoiThang(other.nguoiThang) {
+    cacQuan.reserve(other.cacQuan.size());
+    for (const auto& q : other.cacQuan) {
+        if (q) {
+            cacQuan.push_back(q->clone()); // Prototype Pattern (Deep Copy)
+        }
+    }
+}
+
+BanCo& BanCo::operator=(const BanCo& other) {
+    if (this != &other) {
+        lichSuNuocDi = other.lichSuNuocDi;
+        lichSuRedo = other.lichSuRedo;
+        luotChoi = other.luotChoi;
+        ketThuc = other.ketThuc;
+        nguoiThang = other.nguoiThang;
+        cacQuan.clear();
+        cacQuan.reserve(other.cacQuan.size());
+        for (const auto& q : other.cacQuan) {
+            if (q) {
+                cacQuan.push_back(q->clone());
+            }
+        }
+    }
+    return *this;
 }
 
 void BanCo::khoiTaoBanCo() {
@@ -134,10 +188,10 @@ int BanCo::demQuanTrenDuong(int hang1, int cot1, int hang2, int cot2) const {
 }
 
 bool BanCo::kiemTraChieu(Mau mauTuong) const {
-    // Tim vi tri Tuong
+    // Tim vi tri Tuong bang phuong thuc da hinh laTuong()
     std::shared_ptr<QuanCo> tuong = nullptr;
     for (const auto& quan : cacQuan) {
-        if (!quan->getDaBiAn() && quan->getMau() == mauTuong && quan->layTen() == "Tuong") {
+        if (!quan->getDaBiAn() && quan->getMau() == mauTuong && quan->laTuong()) {
             tuong = quan;
             break;
         }
@@ -166,7 +220,7 @@ bool BanCo::kiemTraChieuTuong() const {
     std::shared_ptr<QuanCo> tuongDen = nullptr;
     
     for (const auto& quan : cacQuan) {
-        if (!quan->getDaBiAn() && quan->layTen() == "Tuong") {
+        if (!quan->getDaBiAn() && quan->laTuong()) {
             if (quan->getMau() == Mau::DO) {
                 tuongDo = quan;
             } else {
@@ -195,23 +249,11 @@ bool BanCo::kiemTraNuocDiHopLe(int hangBD, int cotBD, int hangKT, int cotKT) con
         return false;
     }
     
-    // Mo phong nuoc di de kiem tra khong lam Tuong phe minh bi chieu / khong lo mat Tuong
+    // Mo phong nuoc di bang RAII ScopedMoveGuard (khong dung const_cast, tu dong hoan nguyen an toan)
     auto quanBiAn = timQuan(hangKT, cotKT);
-    
-    // Thuc hien mo phong
-    const_cast<QuanCo*>(quan.get())->datViTri(hangKT, cotKT);
-    if (quanBiAn) {
-        const_cast<QuanCo*>(quanBiAn.get())->datDaBiAn(true);
-    }
+    ScopedMoveGuard guard(quan, hangKT, cotKT, quanBiAn);
     
     bool biChieu = kiemTraChieuTuong() || kiemTraChieu(quan->getMau());
-    
-    // Hoan nguyen mo phong
-    const_cast<QuanCo*>(quan.get())->datViTri(hangBD, cotBD);
-    if (quanBiAn) {
-        const_cast<QuanCo*>(quanBiAn.get())->datDaBiAn(false);
-    }
-    
     return !biChieu;
 }
 
@@ -398,14 +440,8 @@ bool BanCo::docFile(const std::string& duongDan) {
         file >> ten >> mauStr >> h >> c >> daBiAn;
         Mau mau = (mauStr == "DO") ? Mau::DO : Mau::DEN;
         
-        std::shared_ptr<QuanCo> q = nullptr;
-        if (ten == "Xe") q = std::make_shared<Xe>(h, c, mau);
-        else if (ten == "Ma") q = std::make_shared<Ma>(h, c, mau);
-        else if (ten == "Voi") q = std::make_shared<Voi>(h, c, mau);
-        else if (ten == "Si") q = std::make_shared<Si>(h, c, mau);
-        else if (ten == "Tuong") q = std::make_shared<Tuong>(h, c, mau);
-        else if (ten == "Phao") q = std::make_shared<Phao>(h, c, mau);
-        else if (ten == "Tot") q = std::make_shared<Tot>(h, c, mau);
+        // Su dung Factory Pattern de khoi tao doi tuong quan co theo ten
+        std::shared_ptr<QuanCo> q = QuanCoFactory::taoQuanCo(ten, h, c, mau);
         
         if (q) {
             q->datDaBiAn(daBiAn == 1);

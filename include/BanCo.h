@@ -39,6 +39,8 @@ private:
     
 public:
     BanCo();
+    BanCo(const BanCo& other);
+    BanCo& operator=(const BanCo& other);
     
     // Khoi tao
     void khoiTaoBanCo();

@@ -2287,7 +2287,7 @@ void GameManager::veCacQuanCo() {
         }
 
         PieceAura aura = (q->getMau() == Mau::DO) ? auraDo : auraDen;
-        bool isKing = (q->layTen() == "Tuong");
+        bool isKing = q->laTuong();
         veAuraQuan(pos, r, aura, isKing);
 
         if (tex != nullptr) {
@@ -3688,11 +3688,11 @@ void GameManager::veIntroMenu() {
     std::string text = (Loc::getLanguage() == Language::TIENG_VIET)
         ? "- GIOI THIEU DO AN:\n"
           "  Do an Lap trinh Huong doi tuong (OOP) - Truong Dai hoc Khoa hoc Tu nhien (HCMUS)\n"
-          "  Game Co Tuong hien thuc bang C++ va thu vien do hoa SFML.\n\n"
-          "- THIET KE HUONG DOI TUONG (OOP):\n"
-          "  * Lop co so truu tuong QuanCo voi phuong thuc thuan ao: kiemTraNuocDi(...)\n"
-          "  * Cac lop con ke thua da hinh: Xe, Voi, Phao, Ma, Tuong, Si, Tot\n"
-          "  * Tuan thu dung yeu cau: Ban co 10 hang 9 cot; 2 Xe & 2 Voi; WASD, Enter, Esc, Q.\n\n"
+          "  Game Co Tuong hien thuc bang C++17 va thu vien do hoa SFML.\n\n"
+          "- KIEN TRUC OOP & DESIGN PATTERNS:\n"
+          "  * Da hinh (Polymorphism): Lop truu tuong QuanCo (kiemTraNuocDi, layGiaTri, layDiemViTri, laTuong)\n"
+          "  * Cac lop con ke thua: Xe, Voi, Phao, Ma, Tuong, Si, Tot\n"
+          "  * Design Patterns: Factory Method (QuanCoFactory), Prototype (clone Deep Copy), RAII Move Guard.\n\n"
           "- LUAT DI CHUYEN CAC QUAN CO:\n"
           "  1. XE: Di ngang/doc khong gioi han, khong duoc nhay qua quan khac.\n"
           "  2. VOI: Di cheo dung 2 o, khong duoc qua song, khong bi chan mat Voi.\n"
@@ -3704,11 +3704,11 @@ void GameManager::veIntroMenu() {
           "- DIEU KHIEN: Phim W, A, S, D di chuyen con tro, Enter de chon/di, Esc de bo chon, Q thoat."
         : "- PROJECT INTRODUCTION:\n"
           "  Object-Oriented Programming (OOP) Project - VNU-HCM University of Science (HCMUS)\n"
-          "  Chinese Chess (Xiangqi) fully developed in C++ and SFML graphics library.\n\n"
-          "- OOP ARCHITECTURE:\n"
-          "  * Abstract Base Class: QuanCo with pure virtual kiemTraNuocDi(...) method.\n"
-          "  * Polymorphic Derived Classes: Xe, Voi, Phao, Ma, Tuong, Si, Tot.\n"
-          "  * Core milestone rules satisfied: 10 rows x 9 cols; 2 Chariots & 2 Elephants; WASD, Enter, Esc, Q.\n\n"
+          "  Chinese Chess (Xiangqi) fully developed in C++17 and SFML graphics library.\n\n"
+          "- OOP ARCHITECTURE & DESIGN PATTERNS:\n"
+          "  * Polymorphism: Abstract QuanCo base class (kiemTraNuocDi, layGiaTri, layDiemViTri, laTuong).\n"
+          "  * Derived Piece Classes: Xe, Voi, Phao, Ma, Tuong, Si, Tot.\n"
+          "  * Design Patterns: Factory Method (QuanCoFactory), Prototype (Deep Copy clone), RAII Move Guard.\n\n"
           "- PIECE MOVEMENT RULES:\n"
           "  1. CHARIOT (Xe): Moves orthogonally any number of spaces; blocked by obstacles.\n"
           "  2. ELEPHANT (Voi): Moves diagonally exactly 2 squares; cannot cross river; blocked by eye.\n"
