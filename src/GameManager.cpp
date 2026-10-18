@@ -1868,23 +1868,23 @@ void GameManager::taiTextures() {
         offsetY    = 30.0f;
     }
 
-    // Load Red piece textures
-    textureQuanDo["Tuong"].loadFromFile("resources/textures/pieces/r_jiang.png");
-    textureQuanDo["Si"].loadFromFile("resources/textures/pieces/r_shi.png");
-    textureQuanDo["Voi"].loadFromFile("resources/textures/pieces/r_xiang.png");
+    // Load Red piece textures (custom Vietnamese piece art)
+    textureQuanDo["Tuong"].loadFromFile("resources/textures/pieces/r_tuong.png");
+    textureQuanDo["Si"].loadFromFile("resources/textures/pieces/r_si.png");
+    textureQuanDo["Voi"].loadFromFile("resources/textures/pieces/r_voi.png");
     textureQuanDo["Ma"].loadFromFile("resources/textures/pieces/r_ma.png");
-    textureQuanDo["Xe"].loadFromFile("resources/textures/pieces/r_che.png");
-    textureQuanDo["Phao"].loadFromFile("resources/textures/pieces/r_pao.png");
-    textureQuanDo["Tot"].loadFromFile("resources/textures/pieces/r_bing.png");
+    textureQuanDo["Xe"].loadFromFile("resources/textures/pieces/r_xe.png");
+    textureQuanDo["Phao"].loadFromFile("resources/textures/pieces/r_phao.png");
+    textureQuanDo["Tot"].loadFromFile("resources/textures/pieces/r_tot.png");
 
-    // Load Black piece textures
-    textureQuanDen["Tuong"].loadFromFile("resources/textures/pieces/b_jiang.png");
-    textureQuanDen["Si"].loadFromFile("resources/textures/pieces/b_shi.png");
-    textureQuanDen["Voi"].loadFromFile("resources/textures/pieces/b_xiang.png");
+    // Load Black piece textures (custom Vietnamese piece art)
+    textureQuanDen["Tuong"].loadFromFile("resources/textures/pieces/b_tuong.png");
+    textureQuanDen["Si"].loadFromFile("resources/textures/pieces/b_si.png");
+    textureQuanDen["Voi"].loadFromFile("resources/textures/pieces/b_voi.png");
     textureQuanDen["Ma"].loadFromFile("resources/textures/pieces/b_ma.png");
-    textureQuanDen["Xe"].loadFromFile("resources/textures/pieces/b_che.png");
-    textureQuanDen["Phao"].loadFromFile("resources/textures/pieces/b_pao.png");
-    textureQuanDen["Tot"].loadFromFile("resources/textures/pieces/b_bing.png");
+    textureQuanDen["Xe"].loadFromFile("resources/textures/pieces/b_xe.png");
+    textureQuanDen["Phao"].loadFromFile("resources/textures/pieces/b_phao.png");
+    textureQuanDen["Tot"].loadFromFile("resources/textures/pieces/b_tot.png");
 
     for (auto& p : textureQuanDo) p.second.setSmooth(true);
     for (auto& p : textureQuanDen) p.second.setSmooth(true);
