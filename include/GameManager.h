@@ -249,6 +249,8 @@ private:
     // Textures & Graphic Assets
     std::map<std::string, sf::Texture> textureQuanDo;
     std::map<std::string, sf::Texture> textureQuanDen;
+    sf::Texture textureBackground;   // background_game.png (pixel art background)
+    sf::Texture textureBanCo;        // ban_co.png (chess board grid image)
     bool daTaiTextures;
     void taiTextures();
     const sf::Texture* layTextureQuan(const std::string& tenQuan, Mau mau) const;

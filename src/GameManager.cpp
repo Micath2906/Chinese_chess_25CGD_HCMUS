@@ -1852,6 +1852,22 @@ sf::Vector2f GameManager::chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot) {
 void GameManager::taiTextures() {
     daTaiTextures = false;
 
+    // Load background pixel art texture
+    textureBackground.loadFromFile("resources/textures/background_game.png");
+    textureBackground.setSmooth(false); // keep pixel-art sharp
+
+    // Load chess board grid image (transparent PNG, lines only)
+    if (textureBanCo.loadFromFile("resources/textures/ban_co.png")) {
+        textureBanCo.setSmooth(true);
+        // Adjust board parameters to fit ban_co.png grid intersections:
+        // Content bbox 300x336px scaled to 604x672 canvas area.
+        // Cell spacing: ~75px horizontal, ~74.67px vertical → use 75 as uniform step.
+        // First intersection aligns to bx=35, by=30.
+        kichThuocO = 75.0f;
+        offsetX    = 35.0f;
+        offsetY    = 30.0f;
+    }
+
     // Load Red piece textures
     textureQuanDo["Tuong"].loadFromFile("resources/textures/pieces/r_jiang.png");
     textureQuanDo["Si"].loadFromFile("resources/textures/pieces/r_shi.png");
@@ -2073,7 +2089,18 @@ void GameManager::veBanCoTruyenThong() {
     float bx = offsetX - 30.0f;
     float by = offsetY - 30.0f;
 
-    // 1. Board Colors according to BoardTheme
+    bool useImageBoard = (boardTheme == BoardTheme::CLASSIC_WOOD
+                          && textureBackground.getSize().x > 0
+                          && textureBanCo.getSize().x > 0);
+
+    // ── 1. Full-screen pixel-art background (CLASSIC_WOOD only) ──────────
+    if (boardTheme == BoardTheme::CLASSIC_WOOD && textureBackground.getSize().x > 0) {
+        sf::Sprite bgSprite(textureBackground);
+        bgSprite.setPosition(0.0f, 0.0f);
+        window.draw(bgSprite);
+    }
+
+    // ── 2. Board Colors ───────────────────────────────────────────────────
     sf::Color boardBgCol(228, 192, 138);
     sf::Color borderCol(90, 50, 25);
     sf::Color lineCol(90, 50, 25);
@@ -2081,96 +2108,98 @@ void GameManager::veBanCoTruyenThong() {
 
     if (boardTheme == BoardTheme::IMPERIAL_JADE) {
         boardBgCol = sf::Color(190, 222, 200);
-        borderCol = sf::Color(30, 70, 50);
-        lineCol = sf::Color(35, 80, 55);
-        riverCol = sf::Color(25, 75, 48, 190);
+        borderCol  = sf::Color(30, 70, 50);
+        lineCol    = sf::Color(35, 80, 55);
+        riverCol   = sf::Color(25, 75, 48, 190);
     } else if (boardTheme == BoardTheme::MIDNIGHT_INK) {
         boardBgCol = sf::Color(32, 38, 50);
-        borderCol = sf::Color(18, 22, 30);
-        lineCol = sf::Color(75, 95, 125);
-        riverCol = sf::Color(120, 150, 190, 190);
+        borderCol  = sf::Color(18, 22, 30);
+        lineCol    = sf::Color(75, 95, 125);
+        riverCol   = sf::Color(120, 150, 190, 190);
     } else if (boardTheme == BoardTheme::WARM_BAMBOO) {
         boardBgCol = sf::Color(242, 225, 190);
-        borderCol = sf::Color(115, 75, 40);
-        lineCol = sf::Color(110, 70, 35);
-        riverCol = sf::Color(145, 90, 45, 190);
+        borderCol  = sf::Color(115, 75, 40);
+        lineCol    = sf::Color(110, 70, 35);
+        riverCol   = sf::Color(145, 90, 45, 190);
     }
 
-    sf::RectangleShape boardBg(sf::Vector2f(boardW, boardH));
-    boardBg.setPosition(bx, by);
-    boardBg.setFillColor(boardBgCol);
-    boardBg.setOutlineThickness(4.0f);
-    boardBg.setOutlineColor(borderCol);
-    window.draw(boardBg);
+    // ── 3. Board surface + grid ───────────────────────────────────────────
+    if (useImageBoard) {
+        // Draw ban_co.png scaled to the board rect (content bbox 300x336 → 604x672)
+        // The image content starts at pixel (36,76) inside a 360x481 file.
+        // We use a RectangleShape with the texture mapped to the correct sub-rect.
+        sf::IntRect banCoRect(36, 76, 300, 336); // exact content bbox from scan
+        sf::RectangleShape boardSprite(sf::Vector2f(boardW, boardH));
+        boardSprite.setPosition(bx, by);
+        boardSprite.setTexture(&textureBanCo);
+        boardSprite.setTextureRect(banCoRect);
+        boardSprite.setFillColor(sf::Color::White); // no tint
+        window.draw(boardSprite);
+    } else {
+        // Solid color board for non-CLASSIC_WOOD themes
+        sf::RectangleShape boardBg(sf::Vector2f(boardW, boardH));
+        boardBg.setPosition(bx, by);
+        boardBg.setFillColor(boardBgCol);
+        boardBg.setOutlineThickness(4.0f);
+        boardBg.setOutlineColor(borderCol);
+        window.draw(boardBg);
 
-    // 2. Grid lines
-    for (int r = 0; r < BanCo::getSOHANG(); ++r) {
-        sf::Vertex line[] = {
-            sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(r, 0), lineCol),
-            sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(r, BanCo::getSOCOT() - 1), lineCol)
-        };
-        window.draw(line, 2, sf::Lines);
-    }
-
-    for (int c = 0; c < BanCo::getSOCOT(); ++c) {
-        if (c == 0 || c == BanCo::getSOCOT() - 1) {
+        // Grid lines (horizontal rows)
+        for (int r = 0; r < BanCo::getSOHANG(); ++r) {
             sf::Vertex line[] = {
-                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, c), lineCol),
-                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(BanCo::getSOHANG() - 1, c), lineCol)
+                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(r, 0), lineCol),
+                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(r, BanCo::getSOCOT() - 1), lineCol)
             };
             window.draw(line, 2, sf::Lines);
-        } else {
-            sf::Vertex lineTop[] = {
-                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, c), lineCol),
-                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(4, c), lineCol)
-            };
-            window.draw(lineTop, 2, sf::Lines);
-
-            sf::Vertex lineBot[] = {
-                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(5, c), lineCol),
-                sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(9, c), lineCol)
-            };
-            window.draw(lineBot, 2, sf::Lines);
         }
+
+        // Grid lines (vertical columns, broken at river)
+        for (int c = 0; c < BanCo::getSOCOT(); ++c) {
+            if (c == 0 || c == BanCo::getSOCOT() - 1) {
+                sf::Vertex line[] = {
+                    sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, c), lineCol),
+                    sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(BanCo::getSOHANG() - 1, c), lineCol)
+                };
+                window.draw(line, 2, sf::Lines);
+            } else {
+                sf::Vertex lineTop[] = {
+                    sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, c), lineCol),
+                    sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(4, c), lineCol)
+                };
+                window.draw(lineTop, 2, sf::Lines);
+                sf::Vertex lineBot[] = {
+                    sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(5, c), lineCol),
+                    sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(9, c), lineCol)
+                };
+                window.draw(lineBot, 2, sf::Lines);
+            }
+        }
+
+        // Palace diagonals
+        sf::Vertex palace1[] = { sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, 3), lineCol), sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(2, 5), lineCol) };
+        sf::Vertex palace2[] = { sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, 5), lineCol), sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(2, 3), lineCol) };
+        sf::Vertex palace3[] = { sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(7, 3), lineCol), sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(9, 5), lineCol) };
+        sf::Vertex palace4[] = { sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(7, 5), lineCol), sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(9, 3), lineCol) };
+        window.draw(palace1, 2, sf::Lines); window.draw(palace2, 2, sf::Lines);
+        window.draw(palace3, 2, sf::Lines); window.draw(palace4, 2, sf::Lines);
+
+        // River label
+        sf::Text riverText;
+        riverText.setFont(font);
+        riverText.setCharacterSize(22);
+        riverText.setStyle(sf::Text::Bold);
+        riverText.setString("SO HA               HAN GIOI");
+        riverText.setFillColor(riverCol);
+        sf::FloatRect rtb = riverText.getLocalBounds();
+        riverText.setOrigin(rtb.left + rtb.width / 2.0f, rtb.top + rtb.height / 2.0f);
+        riverText.setPosition(offsetX + 4 * kichThuocO, offsetY + 4.5f * kichThuocO);
+        window.draw(riverText);
     }
 
-    // Palaces diagonals
-    sf::Vertex palace1[] = {
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, 3), lineCol),
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(2, 5), lineCol)
-    };
-    sf::Vertex palace2[] = {
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, 5), lineCol),
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(2, 3), lineCol)
-    };
-    sf::Vertex palace3[] = {
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(7, 3), lineCol),
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(9, 5), lineCol)
-    };
-    sf::Vertex palace4[] = {
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(7, 5), lineCol),
-        sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(9, 3), lineCol)
-    };
-    window.draw(palace1, 2, sf::Lines);
-    window.draw(palace2, 2, sf::Lines);
-    window.draw(palace3, 2, sf::Lines);
-    window.draw(palace4, 2, sf::Lines);
-
-    // River label
-    sf::Text riverText;
-    riverText.setFont(font);
-    riverText.setCharacterSize(22);
-    riverText.setStyle(sf::Text::Bold);
-    riverText.setString("SO HA               HAN GIOI");
-    riverText.setFillColor(riverCol);
-    sf::FloatRect rtb = riverText.getLocalBounds();
-    riverText.setOrigin(rtb.left + rtb.width / 2.0f, rtb.top + rtb.height / 2.0f);
-    riverText.setPosition(offsetX + 4 * kichThuocO, offsetY + 4.5f * kichThuocO);
-    window.draw(riverText);
-
-    // 3. Board Coordinates (if enabled in settings)
+    // 5. Board Coordinates (if enabled in settings)
     if (hienToaDo) {
-        sf::Color coordCol = lineCol;
+        // When using image board, use the board's own dark-red color for coords
+        sf::Color coordCol = useImageBoard ? sf::Color(100, 20, 20, 180) : lineCol;
         coordCol.a = 180;
 
         // Columns: 1 to 9 (or 9 to 1)
