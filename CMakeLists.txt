@@ -1,5 +1,8 @@
-cmake_minimum_required(VERSION 3.15)
-
+﻿cmake_minimum_required(VERSION 3.15)
+# Bỏ qua cảnh báo LNK4099 không làm chặn build
+if(MSVC)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /IGNORE:4099")
+endif()
 project(CoTuong)
 
 set(CMAKE_CXX_STANDARD 17)

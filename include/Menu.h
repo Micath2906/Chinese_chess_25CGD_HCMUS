@@ -1,8 +1,11 @@
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <string>
+#include <vector>
 #include <functional>
+
+// Hàm toàn cục để vẽ nền cho mọi màn hình
+void veNenMenuGiaoDien(sf::RenderWindow& window);
 
 class Button {
 private:
@@ -11,20 +14,24 @@ private:
     std::function<void()> callback;
     bool hovered;
     bool enabled;
-    
+
     sf::Color colorNormal;
     sf::Color colorHover;
     sf::Color colorPressed;
     sf::Color colorDisabled;
-    
+
+    // Con trỏ chứa ảnh nút
+    const sf::Texture* texNormal = nullptr;
+    const sf::Texture* texHover = nullptr;
+
 public:
-    Button(float x, float y, float width, float height, 
-           const std::string& label, sf::Font& font,
-           std::function<void()> onClick);
+    Button(float x, float y, float width, float height,
+        const std::string& label, sf::Font& font,
+        std::function<void()> onClick);
+
     
     void setPosition(float x, float y);
     void setLabel(const std::string& label);
-    std::string getLabel() const { return text.getString(); }
     void setCharacterSize(unsigned int size);
     void setColors(sf::Color normal, sf::Color hover, sf::Color pressed);
     void setEnabled(bool en) { enabled = en; }
@@ -33,7 +40,6 @@ public:
     void update(const sf::Vector2i& mousePos);
     void handleClick(const sf::Vector2i& mousePos);
     void draw(sf::RenderWindow& window);
-    
     bool contains(const sf::Vector2i& point) const;
 };
 
@@ -42,20 +48,19 @@ private:
     sf::Font font;
     sf::Text title;
     std::vector<Button> buttons;
-    
+
 public:
     Menu();
     bool loadFont(const std::string& fontPath);
     void setFont(const sf::Font& f) { font = f; title.setFont(font); }
-    
+    void setTitle(const std::string& t) { title.setString(t); }
+
     void themButton(float x, float y, float width, float height,
-                    const std::string& label, std::function<void()> onClick);
+        const std::string& label, std::function<void()> onClick);
     void xoaTatCaButton() { buttons.clear(); }
     Button* layButton(size_t index) { return (index < buttons.size()) ? &buttons[index] : nullptr; }
-    
+
     void update(const sf::Vector2i& mousePos);
     void handleClick(const sf::Vector2i& mousePos);
     void draw(sf::RenderWindow& window);
-    
-    sf::Font& getFont() { return font; }
 };

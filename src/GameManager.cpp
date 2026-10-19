@@ -111,43 +111,57 @@ void GameManager::khoiTaoTatCaMenu() {
     // ==========================================
     // 1. Main Menu (No numbering!)
     // ==========================================
-    menuChinh.setFont(font);
+    // ==========================================
+    // ==========================================
+    // 1. Giao diện First Look (Main Menu 5 mục)
+    // ==========================================
+    menuChinh.setFont(font); 
     menuChinh.xoaTatCaButton();
-    float startY = 230.0f;
 
-    // Play
-    menuChinh.themButton(cx, startY, bw, bh, Loc::get(LocKey::MENU_PLAY), [this]() {
+    float menuBtnW = 320.0f;
+    float menuBtnH = 54.0f;
+    float menuCx = (1200.0f - menuBtnW) / 2.0f;
+    float startY = 320.0f;   // Kéo toàn bộ cụm nút lên cao hơn (ngay dưới chữ Chinese Chess)
+    float menuSp = 70.0f;    // Khoảng cách đều nhau
+
+    // Nút 0: Play / New Game
+    menuChinh.themButton(menuCx, startY, menuBtnW, menuBtnH, Loc::get(LocKey::MENU_PLAY), [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::PLAY_SUBMENU;
-    });
-    // Load
-    menuChinh.themButton(cx, startY + sp, bw, bh, Loc::get(LocKey::MENU_LOAD), [this]() {
+        });
+
+    // Nút 1: Tiếp tục (Load Game)
+    menuChinh.themButton(menuCx, startY + menuSp * 1, menuBtnW, menuBtnH, Loc::get(LocKey::MENU_LOAD), [this]() {
         soundManager.play(SoundType::CLICK);
         capNhatThongTinSlots();
         trangThaiTruocLoad = TrangThai::MENU_CHINH;
         trangThai = TrangThai::LOAD_MENU;
-    });
-    // Settings
-    menuChinh.themButton(cx, startY + sp * 2, bw, bh, Loc::get(LocKey::MENU_SETTINGS), [this]() {
+        });
+
+    // Nút 2: Cài đặt (Settings)
+    menuChinh.themButton(menuCx, startY + menuSp * 2, menuBtnW, menuBtnH, Loc::get(LocKey::MENU_SETTINGS), [this]() {
         soundManager.play(SoundType::CLICK);
         activeSettingsTab = SettingsTab::AUDIO;
         rebindingAction = KeyAction::COUNT;
         trangThaiTruocSettings = TrangThai::MENU_CHINH;
         capNhatNhanNut();
         trangThai = TrangThai::SETTINGS_MENU;
-    });
-    // Introduction
-    menuChinh.themButton(cx, startY + sp * 3, bw, bh, Loc::get(LocKey::MENU_INTRO), [this]() {
+        });
+
+    // Nút 3: About Us
+    std::string labelAbout = (Loc::getLanguage() == Language::TIENG_VIET) ? "VE CHUNG TOI" : "ABOUT US";
+    menuChinh.themButton(menuCx, startY + menuSp * 3, menuBtnW, menuBtnH, labelAbout, [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::INTRODUCTION_MENU;
     });
-    // Exit
-    menuChinh.themButton(cx, startY + sp * 4, bw, bh, Loc::get(LocKey::MENU_EXIT), [this]() {
+
+    // Nút 4: Thoát (Exit) - Đã sửa lỗi nhân với 4 để liền mạch
+    menuChinh.themButton(menuCx, startY + menuSp * 4, menuBtnW, menuBtnH, Loc::get(LocKey::MENU_EXIT), [this]() {
         soundManager.play(SoundType::CLICK);
         luuCaiDat();
         window.close();
     });
-
+   
     // ==========================================
     // 2. Play Submenu
     // ==========================================
@@ -687,11 +701,12 @@ void GameManager::khoiTaoDashboardSettings() {
 }
 
 void GameManager::capNhatNhanNut() {
-    // 1. Menu Chinh
-    if (auto b = menuChinh.layButton(0)) b->setLabel(Loc::get(LocKey::MENU_PLAY));
-    if (auto b = menuChinh.layButton(1)) b->setLabel(Loc::get(LocKey::MENU_LOAD));
+    // 1. Menu Chinh (5 mục)
+    bool isVi = (Loc::getLanguage() == Language::TIENG_VIET);
+    if (auto b = menuChinh.layButton(0)) b->setLabel(isVi ? "CHOI MOI" : "NEW GAME");
+    if (auto b = menuChinh.layButton(1)) b->setLabel(isVi ? "TIEP TUC" : "CONTINUE");
     if (auto b = menuChinh.layButton(2)) b->setLabel(Loc::get(LocKey::MENU_SETTINGS));
-    if (auto b = menuChinh.layButton(3)) b->setLabel(Loc::get(LocKey::MENU_INTRO));
+    if (auto b = menuChinh.layButton(3)) b->setLabel(isVi ? "VE CHUNG TOI" : "ABOUT US");
     if (auto b = menuChinh.layButton(4)) b->setLabel(Loc::get(LocKey::MENU_EXIT));
 
     // 2. Play Submenu
@@ -2073,10 +2088,14 @@ void GameManager::veAuraQuan(sf::Vector2f pos, float r, PieceAura aura, bool isK
 // ==========================================
 void GameManager::ve() {
     window.clear(sf::Color(14, 18, 26));
+    if (trangThai != TrangThai::DANG_CHOI) {
+        veNenMenuGiaoDien(window);
+    }
 
     if (trangThai == TrangThai::MENU_CHINH) {
         veMenuChinh();
-    } else if (trangThai == TrangThai::PLAY_SUBMENU) {
+    }
+    else if (trangThai == TrangThai::PLAY_SUBMENU) {
         vePlaySubmenu();
     } else if (trangThai == TrangThai::PVP_SETUP) {
         vePvpSetup();
@@ -2106,7 +2125,6 @@ void GameManager::ve() {
     veToast();
     window.display();
 }
-
 void GameManager::veBanCoTruyenThong() {
     float boardW = (BanCo::getSOCOT() - 1) * kichThuocO + 60.0f;
     float boardH = (BanCo::getSOHANG() - 1) * kichThuocO + 60.0f;
@@ -2114,8 +2132,8 @@ void GameManager::veBanCoTruyenThong() {
     float by = offsetY - 30.0f;
 
     bool useImageBoard = (boardTheme == BoardTheme::CLASSIC_WOOD
-                          && textureBackground.getSize().x > 0
-                          && textureBanCo.getSize().x > 0);
+        && textureBackground.getSize().x > 0
+        && textureBanCo.getSize().x > 0);
 
     // ── 1. Full-screen pixel-art background (CLASSIC_WOOD only) ──────────
     if (boardTheme == BoardTheme::CLASSIC_WOOD && textureBackground.getSize().x > 0) {
@@ -2132,36 +2150,50 @@ void GameManager::veBanCoTruyenThong() {
 
     if (boardTheme == BoardTheme::IMPERIAL_JADE) {
         boardBgCol = sf::Color(190, 222, 200);
-        borderCol  = sf::Color(30, 70, 50);
-        lineCol    = sf::Color(35, 80, 55);
-        riverCol   = sf::Color(25, 75, 48, 190);
-    } else if (boardTheme == BoardTheme::MIDNIGHT_INK) {
+        borderCol = sf::Color(30, 70, 50);
+        lineCol = sf::Color(35, 80, 55);
+        riverCol = sf::Color(25, 75, 48, 190);
+    }
+    else if (boardTheme == BoardTheme::MIDNIGHT_INK) {
         boardBgCol = sf::Color(32, 38, 50);
-        borderCol  = sf::Color(18, 22, 30);
-        lineCol    = sf::Color(75, 95, 125);
-        riverCol   = sf::Color(120, 150, 190, 190);
-    } else if (boardTheme == BoardTheme::WARM_BAMBOO) {
+        borderCol = sf::Color(18, 22, 30);
+        lineCol = sf::Color(75, 95, 125);
+        riverCol = sf::Color(120, 150, 190, 190);
+    }
+    else if (boardTheme == BoardTheme::WARM_BAMBOO) {
         boardBgCol = sf::Color(242, 225, 190);
-        borderCol  = sf::Color(115, 75, 40);
-        lineCol    = sf::Color(110, 70, 35);
-        riverCol   = sf::Color(145, 90, 45, 190);
+        borderCol = sf::Color(115, 75, 40);
+        lineCol = sf::Color(110, 70, 35);
+        riverCol = sf::Color(145, 90, 45, 190);
     }
 
     // ── 3. Board surface + grid ───────────────────────────────────────────
     if (useImageBoard) {
-        // bancofinal.png (1376x768) → crop content (678x676 from left=348,top=47)
-        // → scale 0.944 → dest 640x638 at (5,81)
-        float imgDestX = 5.0f;
-        float imgDestY = 81.0f;
-        float imgDestW = 640.0f;
-        float imgDestH = 638.0f;
-
         sf::Sprite boardSprite(textureBanCo);
-        sf::Vector2u texSz = textureBanCo.getSize(); // 1376x768
-        boardSprite.setScale(imgDestW / texSz.x, imgDestH / texSz.y);
-        boardSprite.setPosition(imgDestX, imgDestY);
+
+        // BƯỚC 1: Cắt bỏ phần trong suốt thừa thãi hai bên, chỉ lấy chính xác mặt bàn cờ vàng
+        boardSprite.setTextureRect(sf::IntRect(348, 47, 678, 676));
+
+        // BƯỚC 2: Tính toán kích thước lưới logic thực tế của các quân cờ
+        float gridW = (BanCo::getSOCOT() - 1) * kichThuocO;  // Rộng 8 ô
+        float gridH = (BanCo::getSOHANG() - 1) * kichThuocO; // Dài 9 ô
+
+        // BƯỚC 3: Tính bù trừ phần lề (margin) của tấm gỗ vàng so với lưới kẻ
+        float leX = 35.0f;
+        float leY = 35.0f;
+
+        float targetW = gridW + leX * 2.0f;
+        float targetH = gridH + leY * 2.0f;
+
+        // BƯỚC 4: Scale mặt gỗ giãn ra cho vừa khít với lưới tọa độ game
+        boardSprite.setScale(targetW / 678.0f, targetH / 676.0f);
+
+        // BƯỚC 5: Căn chỉnh vị trí mặt gỗ lùi lại so với tọa độ góc của con Xe đầu tiên
+        boardSprite.setPosition(offsetX - leX, offsetY - leY);
+
         window.draw(boardSprite);
-    } else {
+    }
+    else {
         // Solid color board for non-CLASSIC_WOOD themes
         sf::RectangleShape boardBg(sf::Vector2f(boardW, boardH));
         boardBg.setPosition(bx, by);
@@ -2187,7 +2219,8 @@ void GameManager::veBanCoTruyenThong() {
                     sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(BanCo::getSOHANG() - 1, c), lineCol)
                 };
                 window.draw(line, 2, sf::Lines);
-            } else {
+            }
+            else {
                 sf::Vertex lineTop[] = {
                     sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(0, c), lineCol),
                     sf::Vertex(chuyenDoiToaDoBanCoThanhManHinh(4, c), lineCol)
@@ -2214,7 +2247,7 @@ void GameManager::veBanCoTruyenThong() {
         riverText.setFont(font);
         riverText.setCharacterSize(22);
         riverText.setStyle(sf::Text::Bold);
-        riverText.setString("SO HA               HAN GIOI");
+        riverText.setString("SO HA                HAN GIOI");
         riverText.setFillColor(riverCol);
         sf::FloatRect rtb = riverText.getLocalBounds();
         riverText.setOrigin(rtb.left + rtb.width / 2.0f, rtb.top + rtb.height / 2.0f);
@@ -2791,32 +2824,6 @@ void GameManager::veToast() {
 // Screen Renderers
 // ==========================================
 void GameManager::veMenuChinh() {
-    sf::Text title;
-    title.setFont(font);
-    title.setString(Loc::get(LocKey::APP_TITLE));
-    title.setCharacterSize(64);
-    title.setFillColor(sf::Color(240, 190, 70));
-    title.setStyle(sf::Text::Bold);
-    
-    sf::FloatRect tb = title.getLocalBounds();
-    title.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    title.setPosition(window.getSize().x / 2.0f, 90.0f);
-    window.draw(title);
-
-    sf::RectangleShape goldLine(sf::Vector2f(380.0f, 3.0f));
-    goldLine.setPosition((window.getSize().x - 380.0f) / 2.0f, 130.0f);
-    goldLine.setFillColor(sf::Color(240, 190, 70));
-    window.draw(goldLine);
-
-    sf::Text sub;
-    sub.setFont(font);
-    sub.setString(Loc::get(LocKey::APP_SUBTITLE));
-    sub.setCharacterSize(18);
-    sub.setFillColor(sf::Color(165, 185, 210));
-    tb = sub.getLocalBounds();
-    sub.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    sub.setPosition(window.getSize().x / 2.0f, 155.0f);
-    window.draw(sub);
     
     menuChinh.draw(window);
 }

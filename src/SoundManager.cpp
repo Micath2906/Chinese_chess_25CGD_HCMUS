@@ -1,39 +1,74 @@
-#include "SoundManager.h"
+﻿#include "SoundManager.h"
 #include <algorithm>
 #include <cstdlib>
 #include <vector>
+#include <string>
 
 SoundManager::SoundManager()
     : amThanhBat(true),
-      sfxBat(true),
-      bgmBat(true),
-      masterVolume(80.0f),
-      sfxVolume(80.0f),
-      bgmVolume(50.0f) {
+    sfxBat(true),
+    bgmBat(true),
+    masterVolume(80.0f),
+    sfxVolume(80.0f),
+    bgmVolume(50.0f) {
+}
+
+// Hàm phụ trợ tự động tìm đường dẫn file dù chạy ở thư mục gốc hay trong out/build/x64-Debug
+static bool loadSoundFile(sf::SoundBuffer& buf, const std::string& relativePath) {
+    const std::vector<std::string> prefixes = {
+        "",
+        "../",
+        "../../",
+        "../../../",
+        "../../../../"
+    };
+    for (const auto& prefix : prefixes) {
+        if (buf.loadFromFile(prefix + relativePath)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void SoundManager::khoiTao() {
-    sinhAmThanh(); // Generate synthesized sounds first as 100% reliable fallback
+    sinhAmThanh(); // Tạo sẵn âm thanh dự phòng cho các hiệu ứng khác (Click, Check, Win, Lose)
 
-    // Attempt to load high-fidelity recorded sound assets if available
     sf::SoundBuffer tempBuf;
-    if (tempBuf.loadFromFile("resources/sounds/move.wav")) {
+
+    // 1. Nạp âm thanh ĐẶT CỜ (dat_co.ogg)
+    if (loadSoundFile(tempBuf, "assets/music/dat_co.ogg") ||
+        loadSoundFile(tempBuf, "assets/dat_co.ogg") ||
+        loadSoundFile(tempBuf, "resources/sounds/move.wav")) {
         bufferMove = tempBuf;
         soundMove.setBuffer(bufferMove);
     }
-    if (tempBuf.loadFromFile("resources/sounds/capture.wav")) {
+
+    // 2. Nạp âm thanh ĂN CỜ (an_co.ogg)
+    if (loadSoundFile(tempBuf, "assets/music/an_co.ogg") ||
+        loadSoundFile(tempBuf, "assets/an_co.ogg") ||
+        loadSoundFile(tempBuf, "resources/sounds/capture.wav")) {
         bufferCapture = tempBuf;
         soundCapture.setBuffer(bufferCapture);
     }
-    if (tempBuf.loadFromFile("resources/sounds/check.wav")) {
+
+    // 3. Nạp NHẠC NỀN BGM (Golden Gleam.ogg)
+    if (loadSoundFile(tempBuf, "assets/music/Golden Gleam.ogg") ||
+        loadSoundFile(tempBuf, "assets/Golden Gleam.ogg")) {
+        bufferBgm = tempBuf;
+        soundBgm.setBuffer(bufferBgm);
+        soundBgm.setLoop(true);
+    }
+
+    // Các âm thanh phụ khác (nếu có trong resources/sounds)
+    if (loadSoundFile(tempBuf, "resources/sounds/check.wav")) {
         bufferCheck = tempBuf;
         soundCheck.setBuffer(bufferCheck);
     }
-    if (tempBuf.loadFromFile("resources/sounds/win.wav")) {
+    if (loadSoundFile(tempBuf, "resources/sounds/win.wav")) {
         bufferVictory = tempBuf;
         soundVictory.setBuffer(bufferVictory);
     }
-    if (tempBuf.loadFromFile("resources/sounds/select.wav")) {
+    if (loadSoundFile(tempBuf, "resources/sounds/select.wav")) {
         bufferClick = tempBuf;
         soundClick.setBuffer(bufferClick);
     }
@@ -72,28 +107,28 @@ void SoundManager::sinhAmThanh() {
             samples[i] = static_cast<sf::Int16>(v * 32767.0);
         }
         buffer.loadFromSamples(samples.data(), samples.size(), 1, sampleRate);
-    };
+        };
 
-    // 1. Move: Crisp wooden piece click
+    // 1. Move fallback
     makeBuffer(0.08, [&](double t, size_t, size_t) {
         double decay = std::exp(-t * 60.0);
         double freq = 500.0 - t * 2500.0;
         if (freq < 160.0) freq = 160.0;
         return std::sin(2.0 * PI * freq * t) * decay;
-    }, bufferMove);
+        }, bufferMove);
     soundMove.setBuffer(bufferMove);
 
-    // 2. Capture: Heavy wooden impact with resonance
+    // 2. Capture fallback
     makeBuffer(0.18, [&](double t, size_t, size_t) {
         double decay = std::exp(-t * 30.0);
         double tone1 = std::sin(2.0 * PI * 240.0 * t);
         double tone2 = std::sin(2.0 * PI * 480.0 * t) * 0.4;
         double click = (t < 0.015) ? (((rand() % 1000) / 500.0 - 1.0) * 0.4) : 0.0;
         return (tone1 * 0.6 + tone2 * 0.3 + click) * decay;
-    }, bufferCapture);
+        }, bufferCapture);
     soundCapture.setBuffer(bufferCapture);
 
-    // 3. Check: Warning chime (two clear ascending bell tones)
+    // 3. Check: Warning chime
     makeBuffer(0.38, [&](double t, size_t, size_t) {
         double env1 = std::exp(-t * 14.0);
         double s1 = std::sin(2.0 * PI * 700.0 * t) * env1 * 0.45;
@@ -104,7 +139,7 @@ void SoundManager::sinhAmThanh() {
             s2 = (std::sin(2.0 * PI * 980.0 * t2) + 0.3 * std::sin(2.0 * PI * 1960.0 * t2)) * env2 * 0.55;
         }
         return s1 + s2;
-    }, bufferCheck);
+        }, bufferCheck);
     soundCheck.setBuffer(bufferCheck);
 
     // 4. Victory: Triumphant fanfare arpeggio
@@ -116,7 +151,7 @@ void SoundManager::sinhAmThanh() {
         double tLocal = t - (idx * seg);
         double env = std::exp(-tLocal * 7.0);
         return (std::sin(2.0 * PI * notes[idx] * t) + 0.2 * std::sin(2.0 * PI * notes[idx] * 2.0 * t)) * env * 0.5;
-    }, bufferVictory);
+        }, bufferVictory);
     soundVictory.setBuffer(bufferVictory);
 
     // 5. Defeat: Descending somber notes
@@ -128,17 +163,17 @@ void SoundManager::sinhAmThanh() {
         double tLocal = t - (idx * seg);
         double env = std::exp(-tLocal * 5.0);
         return std::sin(2.0 * PI * notes[idx] * t) * env * 0.45;
-    }, bufferDefeat);
+        }, bufferDefeat);
     soundDefeat.setBuffer(bufferDefeat);
 
     // 6. Click: UI button click
     makeBuffer(0.04, [&](double t, size_t, size_t) {
         double decay = std::exp(-t * 90.0);
         return std::sin(2.0 * PI * 1100.0 * t) * decay * 0.5;
-    }, bufferClick);
+        }, bufferClick);
     soundClick.setBuffer(bufferClick);
 
-    // 7. Ambient BGM: 14-second Chinese Pentatonic Guzheng loop
+    // 7. Ambient BGM fallback (chỉ dùng nếu không tìm thấy file Golden Gleam.ogg)
     struct NoteEvent {
         double startTime;
         double freq;
@@ -164,11 +199,9 @@ void SoundManager::sinhAmThanh() {
 
     makeBuffer(14.0, [&](double t, size_t, size_t) {
         double val = 0.0;
-        // Warm sub-bass drone
         val += std::sin(2.0 * PI * 130.81 * t) * 0.08;
         val += std::sin(2.0 * PI * 196.00 * t) * 0.05;
 
-        // Plucked notes
         for (const auto& ne : bgmNotes) {
             if (t >= ne.startTime) {
                 double dt = t - ne.startTime;
@@ -182,7 +215,7 @@ void SoundManager::sinhAmThanh() {
             }
         }
         return val * 0.45;
-    }, bufferBgm);
+        }, bufferBgm);
 
     soundBgm.setBuffer(bufferBgm);
     soundBgm.setLoop(true);
@@ -192,24 +225,24 @@ void SoundManager::play(SoundType type) {
     if (!amThanhBat || !sfxBat) return;
 
     switch (type) {
-        case SoundType::MOVE:
-            soundMove.play();
-            break;
-        case SoundType::CAPTURE:
-            soundCapture.play();
-            break;
-        case SoundType::CHECK:
-            soundCheck.play();
-            break;
-        case SoundType::VICTORY:
-            soundVictory.play();
-            break;
-        case SoundType::DEFEAT:
-            soundDefeat.play();
-            break;
-        case SoundType::CLICK:
-            soundClick.play();
-            break;
+    case SoundType::MOVE:
+        soundMove.play();
+        break;
+    case SoundType::CAPTURE:
+        soundCapture.play();
+        break;
+    case SoundType::CHECK:
+        soundCheck.play();
+        break;
+    case SoundType::VICTORY:
+        soundVictory.play();
+        break;
+    case SoundType::DEFEAT:
+        soundDefeat.play();
+        break;
+    case SoundType::CLICK:
+        soundClick.play();
+        break;
     }
 }
 
@@ -234,7 +267,8 @@ void SoundManager::setAmThanhBat(bool bat) {
     capNhatAmLuong();
     if (!amThanhBat) {
         soundBgm.pause();
-    } else if (bgmBat) {
+    }
+    else if (bgmBat) {
         playBgm();
     }
 }
@@ -259,7 +293,8 @@ void SoundManager::setBgmBat(bool bat) {
     capNhatAmLuong();
     if (bgmBat && amThanhBat) {
         playBgm();
-    } else {
+    }
+    else {
         soundBgm.pause();
     }
 }
