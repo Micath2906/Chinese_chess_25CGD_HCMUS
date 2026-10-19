@@ -1856,16 +1856,17 @@ void GameManager::taiTextures() {
     textureBackground.loadFromFile("resources/textures/background_game.png");
     textureBackground.setSmooth(false); // keep pixel-art sharp
 
-    // Load chess board grid image (transparent PNG, lines only)
+    // Load chess board grid image (transparent PNG)
     if (textureBanCo.loadFromFile("resources/textures/ban_co.png")) {
         textureBanCo.setSmooth(true);
-        // Adjust board parameters to fit ban_co.png grid intersections:
-        // Content bbox 300x336px scaled to 604x672 canvas area.
-        // Cell spacing: ~75px horizontal, ~74.67px vertical → use 75 as uniform step.
-        // First intersection aligns to bx=35, by=30.
-        kichThuocO = 75.0f;
-        offsetX    = 35.0f;
-        offsetY    = 30.0f;
+        // Parameters derived from scanning ban_co_new.png grid intersections:
+        // Image scaled to 569x760 placed at (5,20) on the 1200x800 canvas.
+        // Grid intersections at:
+        //   col 0..8 starting at offsetX=98, spacing=57px
+        //   row 0..9 starting at offsetY=194, spacing=57px
+        kichThuocO = 57.0f;
+        offsetX    = 98.0f;
+        offsetY    = 194.0f;
     }
 
     // Load Red piece textures (custom Vietnamese piece art)
@@ -2125,15 +2126,17 @@ void GameManager::veBanCoTruyenThong() {
 
     // ── 3. Board surface + grid ───────────────────────────────────────────
     if (useImageBoard) {
-        // Draw ban_co.png scaled to the board rect (content bbox 300x336 → 604x672)
-        // The image content starts at pixel (36,76) inside a 360x481 file.
-        // We use a RectangleShape with the texture mapped to the correct sub-rect.
-        sf::IntRect banCoRect(36, 76, 300, 336); // exact content bbox from scan
-        sf::RectangleShape boardSprite(sf::Vector2f(boardW, boardH));
-        boardSprite.setPosition(bx, by);
+        // Scale ban_co_new.png (360x481) to 569x760, placed at (5,20)
+        // so that grid intersections align with SFML piece positions.
+        float imgDestX = 5.0f;
+        float imgDestY = 20.0f;
+        float imgDestW = 569.0f;
+        float imgDestH = 760.0f;
+
+        sf::RectangleShape boardSprite(sf::Vector2f(imgDestW, imgDestH));
+        boardSprite.setPosition(imgDestX, imgDestY);
         boardSprite.setTexture(&textureBanCo);
-        boardSprite.setTextureRect(banCoRect);
-        boardSprite.setFillColor(sf::Color::White); // no tint
+        boardSprite.setFillColor(sf::Color::White);
         window.draw(boardSprite);
     } else {
         // Solid color board for non-CLASSIC_WOOD themes
