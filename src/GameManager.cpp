@@ -1856,17 +1856,40 @@ void GameManager::taiTextures() {
     textureBackground.loadFromFile("resources/textures/background_game.png");
     textureBackground.setSmooth(false); // keep pixel-art sharp
 
-    // Load chess board grid image (transparent PNG)
-    if (textureBanCo.loadFromFile("resources/textures/ban_co.png")) {
-        textureBanCo.setSmooth(true);
-        // Parameters derived from scanning ban_co_new.png grid intersections:
-        // Image scaled to 569x760 placed at (5,20) on the 1200x800 canvas.
-        // Grid intersections at:
-        //   col 0..8 starting at offsetX=98, spacing=57px
-        //   row 0..9 starting at offsetY=194, spacing=57px
-        kichThuocO = 57.0f;
-        offsetX    = 98.0f;
-        offsetY    = 194.0f;
+    // Load chess board image — bancofinal.png (yellow 3D board, white background)
+    // White background is removed via pixel-level alpha masking.
+    {
+        sf::Image imgBanCo;
+        if (imgBanCo.loadFromFile("resources/textures/ban_co.png")) {
+            // Remove white/near-white background (keep the yellow board)
+            sf::Vector2u sz = imgBanCo.getSize();
+            for (unsigned y = 0; y < sz.y; ++y) {
+                for (unsigned x = 0; x < sz.x; ++x) {
+                    sf::Color px = imgBanCo.getPixel(x, y);
+                    int minCh = std::min({(int)px.r, (int)px.g, (int)px.b});
+                    if (minCh > 230) {
+                        // Pure white background → transparent
+                        imgBanCo.setPixel(x, y, sf::Color::Transparent);
+                    } else if (minCh > 200) {
+                        // Anti-aliasing edge → semi-transparent
+                        sf::Uint8 alpha = static_cast<sf::Uint8>(
+                            255.0f * (1.0f - (minCh - 200) / 55.0f));
+                        imgBanCo.setPixel(x, y, sf::Color(px.r, px.g, px.b, alpha));
+                    }
+                }
+            }
+            textureBanCo.loadFromImage(imgBanCo);
+            textureBanCo.setSmooth(true);
+
+            // Parameters derived from scanning bancofinal.png (1376x768):
+            // Content bbox: left=348, top=47, W=678, H=676
+            // Scale 0.944 → dest size 640x638 placed at (5,81)
+            // Grid: col spacing=74px→70, row spacing=68px→64 in source
+            //       kichThuocO=67 (avg), offsetX=45, offsetY=113
+            kichThuocO = 67.0f;
+            offsetX    = 45.0f;
+            offsetY    = 113.0f;
+        }
     }
 
     // Load Red piece textures (custom Vietnamese piece art)
@@ -2126,17 +2149,17 @@ void GameManager::veBanCoTruyenThong() {
 
     // ── 3. Board surface + grid ───────────────────────────────────────────
     if (useImageBoard) {
-        // Scale ban_co_new.png (360x481) to 569x760, placed at (5,20)
-        // so that grid intersections align with SFML piece positions.
+        // bancofinal.png (1376x768) → crop content (678x676 from left=348,top=47)
+        // → scale 0.944 → dest 640x638 at (5,81)
         float imgDestX = 5.0f;
-        float imgDestY = 20.0f;
-        float imgDestW = 569.0f;
-        float imgDestH = 760.0f;
+        float imgDestY = 81.0f;
+        float imgDestW = 640.0f;
+        float imgDestH = 638.0f;
 
-        sf::RectangleShape boardSprite(sf::Vector2f(imgDestW, imgDestH));
+        sf::Sprite boardSprite(textureBanCo);
+        sf::Vector2u texSz = textureBanCo.getSize(); // 1376x768
+        boardSprite.setScale(imgDestW / texSz.x, imgDestH / texSz.y);
         boardSprite.setPosition(imgDestX, imgDestY);
-        boardSprite.setTexture(&textureBanCo);
-        boardSprite.setFillColor(sf::Color::White);
         window.draw(boardSprite);
     } else {
         // Solid color board for non-CLASSIC_WOOD themes
