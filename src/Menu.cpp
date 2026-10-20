@@ -6,29 +6,45 @@
 static bool loadTexSafe(sf::Texture& tex, const std::string& path) {
     const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
     for (const auto& p : prefixes) {
-        if (tex.loadFromFile(p + path)) return true;
+        if (tex.loadFromFile(p + path)) {
+            tex.setSmooth(true);
+            return true;
+        }
     }
     return false;
 }
 
 // Hàm quản lý tài nguyên an toàn (tránh lỗi Static Initialization Order)
 struct MenuAssets {
-    sf::Texture menuBg;
+    sf::Texture menuBg;         // Ảnh nền Menu chính (Có chữ)
+    sf::Texture subMenuBg;      // Ảnh nền các màn hình phụ (KHÔNG chữ)
     sf::Sprite menuSprite;
+    sf::Sprite subMenuSprite;
     sf::Texture btnNormal;
     sf::Texture btnHover;
     bool loaded = false;
 
     MenuAssets() {
-        // Nạp ảnh nền menu chính
+        // 1. Nạp ảnh nền KHÔNG chữ cho các màn hình phụ (Settings,...)
+        if (loadTexSafe(subMenuBg, "assets/first_look_ko_chu.png") ||
+            loadTexSafe(subMenuBg, "resources/textures/first_look_ko_chu.png")) {
+            subMenuSprite.setTexture(subMenuBg);
+        }
+        else {
+            // Fallback nếu không tìm thấy bản không chữ, dùng tạm bản có chữ
+            if (loadTexSafe(subMenuBg, "resources/textures/first look.png") || loadTexSafe(subMenuBg, "assets/first look.png")) {
+                subMenuSprite.setTexture(subMenuBg);
+            }
+        }
+
+        // 2. Nạp ảnh nền Menu chính (Có chữ)
         if (loadTexSafe(menuBg, "resources/textures/first look.png") || loadTexSafe(menuBg, "assets/first look.png")) {
-            menuBg.setSmooth(true);
             menuSprite.setTexture(menuBg);
         }
 
-        // Nạp ảnh nút bấm
-        loadTexSafe(btnNormal, "resources/textures/play_nhat.png") || loadTexSafe(btnNormal, "assets/play_nhat.png");
-        loadTexSafe(btnHover, "resources/textures/play_dam.png") || loadTexSafe(btnHover, "assets/play_dam.png");
+        // 3. Nạp ảnh nút bấm (Đã đổi tên thành play_thuong.png theo đúng file của bạn)
+        loadTexSafe(btnNormal, "assets/button_menu_normal3.png");
+        loadTexSafe(btnHover, "assets/button_menu_hover3.png");
 
         btnNormal.setSmooth(true);
         btnHover.setSmooth(true);
@@ -41,14 +57,14 @@ static MenuAssets& getMenuAssets() {
     return assets;
 }
 
-// Hàm vẽ nền màn hình phụ
+// Hàm vẽ nền cho các màn hình phụ (KHÔNG chữ: first_look_ko_chu.png)
 void veNenMenuGiaoDien(sf::RenderWindow& window) {
     auto& assets = getMenuAssets();
-    if (assets.menuBg.getSize().x > 0) {
+    if (assets.subMenuBg.getSize().x > 0) {
         sf::Vector2u winSz = window.getSize();
-        sf::Vector2u texSz = assets.menuBg.getSize();
-        assets.menuSprite.setScale(static_cast<float>(winSz.x) / texSz.x, static_cast<float>(winSz.y) / texSz.y);
-        window.draw(assets.menuSprite);
+        sf::Vector2u texSz = assets.subMenuBg.getSize();
+        assets.subMenuSprite.setScale(static_cast<float>(winSz.x) / texSz.x, static_cast<float>(winSz.y) / texSz.y);
+        window.draw(assets.subMenuSprite);
     }
 }
 
@@ -162,7 +178,7 @@ bool Button::contains(const sf::Vector2i& point) const {
 }
 
 // ============================================================
-// Menu Implementation
+// Menu Implementation (Dùng ảnh nền chuẩn có chữ cho Menu chính)
 // ============================================================
 Menu::Menu() {
     title.setCharacterSize(44);

@@ -33,7 +33,7 @@ std::string Loc::get(LocKey key) {
         case LocKey::PLAY_PVAI:
             return vi ? "Dau voi may (PvAI)" : "Player vs AI";
         case LocKey::PLAY_DEMO:
-            return vi ? "Che do Demo (2 Xe & 2 Voi)" : "Demo Mode (2 Chariots & 2 Elephants)";
+            return vi ? "Che do Demo" : "Demo Mode";
         case LocKey::BACK:
             return vi ? "Quay lai" : "Back";
 
