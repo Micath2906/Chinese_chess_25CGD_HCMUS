@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 
-// Hàm hỗ trợ tìm file an toàn qua nhiều cấp thư mục
 static bool loadTexSafe(sf::Texture& tex, const std::string& path) {
     const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
     for (const auto& p : prefixes) {
@@ -14,41 +13,38 @@ static bool loadTexSafe(sf::Texture& tex, const std::string& path) {
     return false;
 }
 
-// Hàm quản lý tài nguyên an toàn (tránh lỗi Static Initialization Order)
+static bool loadFontSafe(sf::Font& font, const std::string& path) {
+    const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
+    for (const auto& p : prefixes) {
+        if (font.loadFromFile(p + path)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 struct MenuAssets {
-    sf::Texture menuBg;         // Ảnh nền Menu chính (Có chữ)
-    sf::Texture subMenuBg;      // Ảnh nền các màn hình phụ (KHÔNG chữ)
-    sf::Sprite menuSprite;
-    sf::Sprite subMenuSprite;
-    sf::Texture btnNormal;
-    sf::Texture btnHover;
-    bool loaded = false;
+    sf::Texture cleanBg;          // Nền sạch background.png
+    sf::Texture titleEn;          // Title tiếng Anh chinese_chess.png
+    sf::Texture titleVi;          // Title tiếng Việt co_tuong.png
+    sf::Texture btnNormal;        // Nút xanh lá thường
+    sf::Texture btnHover;         // Nút xanh lá đậm
+    sf::Font globalFont;          // Font zpix
+    bool fontLoaded = false;
 
     MenuAssets() {
-        // 1. Nạp ảnh nền KHÔNG chữ cho các màn hình phụ (Settings,...)
-        if (loadTexSafe(subMenuBg, "assets/first_look_ko_chu.png") ||
-            loadTexSafe(subMenuBg, "resources/textures/first_look_ko_chu.png")) {
-            subMenuSprite.setTexture(subMenuBg);
-        }
-        else {
-            // Fallback nếu không tìm thấy bản không chữ, dùng tạm bản có chữ
-            if (loadTexSafe(subMenuBg, "resources/textures/first look.png") || loadTexSafe(subMenuBg, "assets/first look.png")) {
-                subMenuSprite.setTexture(subMenuBg);
-            }
-        }
+        loadTexSafe(cleanBg, "assets/background.png") || loadTexSafe(cleanBg, "resources/textures/background.png");
+        loadTexSafe(titleEn, "assets/chinese_chess_2.png") || loadTexSafe(titleEn, "resources/textures/chinese_chess_2.png");
+        loadTexSafe(titleVi, "assets/co_tuong_2.png") || loadTexSafe(titleVi, "resources/textures/co_tuong_2.png");
 
-        // 2. Nạp ảnh nền Menu chính (Có chữ)
-        if (loadTexSafe(menuBg, "resources/textures/first look.png") || loadTexSafe(menuBg, "assets/first look.png")) {
-            menuSprite.setTexture(menuBg);
-        }
+        // Đã trả lại nút xanh lá như bạn yêu cầu
+        loadTexSafe(btnNormal, "assets/button_menu_nor2.png");
+        loadTexSafe(btnHover, "assets/button_menu_hol2.png");
 
-        // 3. Nạp ảnh nút bấm (Đã đổi tên thành play_thuong.png theo đúng file của bạn)
-        loadTexSafe(btnNormal, "assets/button_menu_normal3.png");
-        loadTexSafe(btnHover, "assets/button_menu_hover3.png");
-
-        btnNormal.setSmooth(true);
-        btnHover.setSmooth(true);
-        loaded = true;
+        // Nạp font zpix.ttf
+        fontLoaded = loadFontSafe(globalFont, "assets/font/zpix.ttf") ||
+            loadFontSafe(globalFont, "resources/font/zpix.ttf") ||
+            loadFontSafe(globalFont, "assets/zpix.ttf");
     }
 };
 
@@ -57,20 +53,32 @@ static MenuAssets& getMenuAssets() {
     return assets;
 }
 
-// Hàm vẽ nền cho các màn hình phụ (KHÔNG chữ: first_look_ko_chu.png)
 void veNenMenuGiaoDien(sf::RenderWindow& window) {
     auto& assets = getMenuAssets();
-    if (assets.subMenuBg.getSize().x > 0) {
+    if (assets.cleanBg.getSize().x > 0) {
+        sf::Sprite sp(assets.cleanBg);
         sf::Vector2u winSz = window.getSize();
-        sf::Vector2u texSz = assets.subMenuBg.getSize();
-        assets.subMenuSprite.setScale(static_cast<float>(winSz.x) / texSz.x, static_cast<float>(winSz.y) / texSz.y);
-        window.draw(assets.subMenuSprite);
+        sf::Vector2u texSz = assets.cleanBg.getSize();
+        sp.setScale(static_cast<float>(winSz.x) / texSz.x, static_cast<float>(winSz.y) / texSz.y);
+        window.draw(sp);
     }
 }
 
 // ============================================================
 // Button Implementation
 // ============================================================
+void Button::canGiuaText() {
+    sf::FloatRect textBounds = text.getLocalBounds();
+    // Chú ý: Cộng thêm textBounds.top và left để bù sai số của font pixel
+    text.setOrigin(textBounds.left + textBounds.width / 2.0f,
+        textBounds.top + textBounds.height / 2.0f);
+
+    // Đặt vào tâm nút (thêm offset Y nếu viền dưới nút của bạn dày hơn viền trên)
+    // Nếu chữ vẫn hơi cao/thấp, bạn có thể chỉnh "- 2.0f" hoặc "+ 2.0f" ở tọa độ Y
+    text.setPosition(shape.getPosition().x + shape.getSize().x / 2.0f,
+        shape.getPosition().y + shape.getSize().y / 2.0f + 5.0f);
+}
+
 Button::Button(float x, float y, float width, float height,
     const std::string& label, sf::Font& font,
     std::function<void()> onClick)
@@ -89,39 +97,36 @@ Button::Button(float x, float y, float width, float height,
     colorDisabled = sf::Color(70, 70, 70);
 
     shape.setFillColor(colorNormal);
-    shape.setOutlineThickness(2.0f);
-    shape.setOutlineColor(sf::Color(220, 220, 220, 180));
+    shape.setOutlineThickness(0.0f);
 
-    text.setFont(font);
+    if (assets.fontLoaded) {
+        text.setFont(assets.globalFont);
+    }
+    else {
+        text.setFont(font);
+    }
+
     text.setString(label);
     text.setCharacterSize(22);
     text.setStyle(sf::Text::Bold);
     text.setFillColor(sf::Color::White);
 
-    sf::FloatRect textBounds = text.getLocalBounds();
-    text.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
-    text.setPosition(x + width / 2.0f, y + height / 2.0f);
+    canGiuaText();
 }
 
 void Button::setPosition(float x, float y) {
     shape.setPosition(x, y);
-    sf::FloatRect textBounds = text.getLocalBounds();
-    text.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
-    text.setPosition(x + shape.getSize().x / 2.0f, y + shape.getSize().y / 2.0f);
+    canGiuaText();
 }
 
 void Button::setLabel(const std::string& label) {
     text.setString(label);
-    sf::FloatRect textBounds = text.getLocalBounds();
-    text.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
-    text.setPosition(shape.getPosition().x + shape.getSize().x / 2.0f, shape.getPosition().y + shape.getSize().y / 2.0f);
+    canGiuaText();
 }
 
 void Button::setCharacterSize(unsigned int size) {
     text.setCharacterSize(size);
-    sf::FloatRect textBounds = text.getLocalBounds();
-    text.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
-    text.setPosition(shape.getPosition().x + shape.getSize().x / 2.0f, shape.getPosition().y + shape.getSize().y / 2.0f);
+    canGiuaText();
 }
 
 void Button::setColors(sf::Color normal, sf::Color hover, sf::Color pressed) {
@@ -178,18 +183,21 @@ bool Button::contains(const sf::Vector2i& point) const {
 }
 
 // ============================================================
-// Menu Implementation (Dùng ảnh nền chuẩn có chữ cho Menu chính)
+// Menu Implementation
 // ============================================================
 Menu::Menu() {
+    auto& assets = getMenuAssets();
+    if (assets.fontLoaded) {
+        font = assets.globalFont;
+    }
+    title.setFont(font);
     title.setCharacterSize(44);
     title.setFillColor(sf::Color::White);
     title.setStyle(sf::Text::Bold);
 }
 
 bool Menu::loadFont(const std::string& fontPath) {
-    if (!font.loadFromFile(fontPath)) return false;
-    title.setFont(font);
-    return true;
+    return loadFontSafe(font, fontPath);
 }
 
 void Menu::themButton(float x, float y, float width, float height,
@@ -205,15 +213,36 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
     for (auto& button : buttons) button.handleClick(mousePos);
 }
 
-void Menu::draw(sf::RenderWindow& window) {
+void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     auto& assets = getMenuAssets();
-    if (assets.menuBg.getSize().x > 0) {
-        sf::Vector2u winSz = window.getSize();
-        sf::Vector2u texSz = assets.menuBg.getSize();
-        assets.menuSprite.setScale(static_cast<float>(winSz.x) / texSz.x, static_cast<float>(winSz.y) / texSz.y);
-        window.draw(assets.menuSprite);
+    sf::Vector2u winSz = window.getSize();
+
+    // 1. Vẽ nền sạch
+    if (assets.cleanBg.getSize().x > 0) {
+        sf::Sprite bgSp(assets.cleanBg);
+        sf::Vector2u texSz = assets.cleanBg.getSize();
+        bgSp.setScale(static_cast<float>(winSz.x) / texSz.x, static_cast<float>(winSz.y) / texSz.y);
+        window.draw(bgSp);
     }
 
+    // 2. Nếu là Menu Chính -> Vẽ Title theo ngôn ngữ (file đã được căn chuẩn)
+    if (laMenuChinh) {
+        const sf::Texture* titleTex = tiengViet ? &assets.titleVi : &assets.titleEn;
+        if (titleTex && titleTex->getSize().x > 0) {
+            sf::Sprite titleSp(*titleTex);
+            sf::FloatRect b = titleSp.getLocalBounds();
+
+            // Lấy tâm ở chính giữa bề ngang, đỉnh ở trên cùng
+            titleSp.setOrigin(b.width / 2.0f, 0.0f);
+
+            // Đặt cố định ở giữa màn hình ngang, và cách mép trên 10% (hoặc bạn có thể để 20.0f nếu muốn bám sát lên đỉnh)
+            titleSp.setPosition(winSz.x / 2.0f, winSz.y * 0.10f);
+
+            window.draw(titleSp);
+        }
+    }
+
+    // 3. Vẽ nút
     for (auto& button : buttons) {
         button.draw(window);
     }

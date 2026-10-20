@@ -7,6 +7,7 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include "Localization.h"
 
 namespace fs = std::filesystem;
 
@@ -69,6 +70,7 @@ GameManager::GameManager()
       hienMenuPopUp(false),
       trangThaiTruocSettings(TrangThai::MENU_CHINH),
       trangThaiTruocLoad(TrangThai::MENU_CHINH) {
+    menuChinh.laMenuChinh = true;
     
     window.setFramerateLimit(60);
     khoiTao();
@@ -2469,21 +2471,51 @@ void GameManager::veThanhBenPhai() {
     float pw = 490.0f;
     float ph = 730.0f;
 
-    sf::RectangleShape panel(sf::Vector2f(pw, ph));
-    panel.setPosition(px, py);
-    panel.setFillColor(sf::Color(22, 28, 40));
-    panel.setOutlineThickness(2.0f);
-    panel.setOutlineColor(sf::Color(55, 68, 92));
-    window.draw(panel);
+    static sf::Texture texScoreBoard;
+    static bool thuTaiAnh = false;
+    static bool daTaiThanhCong = false;
+
+    if (!thuTaiAnh) {
+        const std::vector<std::string> thuMuc = { "assets/", "../assets/", "../../assets/", "resources/textures/", "" };
+        for (const auto& tm : thuMuc) {
+            if (texScoreBoard.loadFromFile(tm + "score_board.png")) {
+                daTaiThanhCong = true;
+                texScoreBoard.setSmooth(true);
+                break;
+            }
+        }
+        thuTaiAnh = true;
+    }
+
+    if (daTaiThanhCong) {
+        sf::Sprite spScore(texScoreBoard);
+        spScore.setPosition(px, py);
+        spScore.setScale(pw / texScoreBoard.getSize().x, ph / texScoreBoard.getSize().y);
+        window.draw(spScore);
+    }
+    else {
+        sf::RectangleShape panel(sf::Vector2f(pw, ph));
+        panel.setPosition(px, py);
+        // Thay màu nền thành nâu gỗ tối
+        panel.setFillColor(sf::Color(60, 40, 20));
+        panel.setOutlineThickness(2.0f);
+        // Thay màu viền thành nâu gỗ sáng
+        panel.setOutlineColor(sf::Color(100, 70, 35));
+        window.draw(panel);
+    }
+
+    
 
     // Red Player Profile Box
     float boxW = 225.0f;
     float boxH = 90.0f;
     sf::RectangleShape redBox(sf::Vector2f(boxW, boxH));
     redBox.setPosition(px + 15.0f, py + 15.0f);
-    redBox.setFillColor(sf::Color(38, 25, 25));
+    // Nền nâu đỏ sẫm (hợp với quân Đỏ)
+    redBox.setFillColor(sf::Color(45, 20, 20));
     redBox.setOutlineThickness((banCo.getLuotChoi() == Mau::DO) ? 2.5f : 1.0f);
-    redBox.setOutlineColor((banCo.getLuotChoi() == Mau::DO) ? sf::Color(240, 80, 80) : sf::Color(80, 50, 50));
+    // Nếu đến lượt: viền sáng rực rỡ, Chưa đến lượt: viền gỗ xỉn màu
+    redBox.setOutlineColor((banCo.getLuotChoi() == Mau::DO) ? sf::Color(240, 80, 80) : sf::Color(80, 45, 45));
     window.draw(redBox);
 
     sf::Text rName;
@@ -2524,9 +2556,11 @@ void GameManager::veThanhBenPhai() {
     // Black Player Profile Box
     sf::RectangleShape blackBox(sf::Vector2f(boxW, boxH));
     blackBox.setPosition(px + 250.0f, py + 15.0f);
-    blackBox.setFillColor(sf::Color(20, 28, 42));
+    // Nền nâu đen tối màu (hợp với quân Đen)
+    blackBox.setFillColor(sf::Color(25, 25, 28));
     blackBox.setOutlineThickness((banCo.getLuotChoi() == Mau::DEN) ? 2.5f : 1.0f);
-    blackBox.setOutlineColor((banCo.getLuotChoi() == Mau::DEN) ? sf::Color(100, 180, 255) : sf::Color(50, 70, 95));
+    // Nếu đến lượt: viền sáng rực rỡ, Chưa đến lượt: viền gỗ xỉn màu
+    blackBox.setOutlineColor((banCo.getLuotChoi() == Mau::DEN) ? sf::Color(100, 160, 240) : sf::Color(45, 45, 55));
     window.draw(blackBox);
 
     sf::Text bName;
@@ -2556,13 +2590,16 @@ void GameManager::veThanhBenPhai() {
     window.draw(bTime);
 
     // Status / Check alert banner
+   
     float statusY = py + 115.0f;
     sf::RectangleShape turnBox(sf::Vector2f(pw - 30.0f, 44.0f));
     turnBox.setPosition(px + 15.0f, statusY);
     bool checkAlert = banCo.kiemTraChieuTuong();
-    turnBox.setFillColor(checkAlert ? sf::Color(130, 20, 20) : sf::Color(28, 36, 52));
+
+    // Trạng thái bình thường: Nền nâu sẫm, viền nâu gỗ sáng. Trạng thái báo động: Nền đỏ, viền đỏ rực.
+    turnBox.setFillColor(checkAlert ? sf::Color(130, 20, 20) : sf::Color(45, 30, 15));
     turnBox.setOutlineThickness(1.5f);
-    turnBox.setOutlineColor(checkAlert ? sf::Color(255, 70, 70) : sf::Color(70, 90, 125));
+    turnBox.setOutlineColor(checkAlert ? sf::Color(255, 70, 70) : sf::Color(100, 70, 35));
     window.draw(turnBox);
 
     sf::Text turnText;
@@ -2587,9 +2624,14 @@ void GameManager::veThanhBenPhai() {
     float keyY = statusY + 54.0f;
     sf::RectangleShape keyBox(sf::Vector2f(pw - 30.0f, 52.0f));
     keyBox.setPosition(px + 15.0f, keyY);
-    keyBox.setFillColor(sf::Color(18, 24, 34));
+
+    // Đổi nền thành màu nâu gỗ sẫm (đồng bộ với hộp Lịch sử nước đi)
+    keyBox.setFillColor(sf::Color(45, 30, 15));
     keyBox.setOutlineThickness(1.0f);
-    keyBox.setOutlineColor(sf::Color(55, 75, 105));
+
+    // Đổi viền thành màu nâu gỗ sáng
+    keyBox.setOutlineColor(sf::Color(100, 70, 35));
+
     window.draw(keyBox);
 
     sf::Text keyText;
@@ -2621,9 +2663,10 @@ void GameManager::veThanhBenPhai() {
     float histH = 340.0f;
     sf::RectangleShape histBox(sf::Vector2f(pw - 30.0f, histH));
     histBox.setPosition(px + 15.0f, histY + 24.0f);
-    histBox.setFillColor(sf::Color(18, 22, 32));
+   
+    histBox.setFillColor(sf::Color(45, 30, 15));
     histBox.setOutlineThickness(1.0f);
-    histBox.setOutlineColor(sf::Color(50, 60, 80));
+    histBox.setOutlineColor(sf::Color(100, 70, 35));
     window.draw(histBox);
 
     const auto& lichSu = banCo.getLichSuNuocDi();
@@ -2825,7 +2868,10 @@ void GameManager::veToast() {
 // ==========================================
 void GameManager::veMenuChinh() {
     
-    menuChinh.draw(window);
+    
+    
+    bool isVietnamese = (Loc::get(LocKey::APP_TITLE) == "CO TUONG");
+    menuChinh.draw(window, isVietnamese);
 }
 
 void GameManager::vePlaySubmenu() {
@@ -3391,18 +3437,48 @@ void GameManager::veSettingsMenu() {
         settingsTabButtons[i]->draw(window);
     }
 
+   
     // 3. Central Main Dashboard Panel
     float panelX = 100.0f;
     float panelY = 195.0f;
     float panelW = 1000.0f;
     float panelH = 490.0f;
 
-    sf::RectangleShape mainCard(sf::Vector2f(panelW, panelH));
-    mainCard.setPosition(panelX, panelY);
-    mainCard.setFillColor(sf::Color(20, 26, 38));
-    mainCard.setOutlineThickness(2.0f);
-    mainCard.setOutlineColor(sf::Color(55, 72, 102));
-    window.draw(mainCard);
+    static sf::Texture texSetting;
+    static bool thuTaiSetting = false;
+    static bool taiSettingXong = false;
+
+    if (!thuTaiSetting) {
+        // Quét tìm file ở mọi ngóc ngách có thể
+        const std::vector<std::string> thuMuc = { "assets/", "../assets/", "../../assets/", "resources/textures/", "" };
+        for (const auto& tm : thuMuc) {
+            if (texSetting.loadFromFile(tm + "setting_background.png")) {
+                taiSettingXong = true;
+                texSetting.setSmooth(true);
+                break;
+            }
+        }
+        thuTaiSetting = true;
+    }
+
+    if (taiSettingXong) {
+        sf::Sprite spSetting(texSetting);
+        spSetting.setPosition(panelX, panelY);
+        spSetting.setScale(panelW / texSetting.getSize().x, panelH / texSetting.getSize().y);
+        window.draw(spSetting);
+    }
+    else {
+        sf::RectangleShape mainCard(sf::Vector2f(panelW, panelH));
+        mainCard.setPosition(panelX, panelY);
+        // Thay màu nền thành nâu gỗ tối
+        mainCard.setFillColor(sf::Color(60, 40, 20));
+        mainCard.setOutlineThickness(2.0f);
+        // Thay màu viền thành nâu gỗ sáng
+        mainCard.setOutlineColor(sf::Color(100, 70, 35));
+        window.draw(mainCard);
+    }
+
+    
 
     // 4. Render Active Tab Content
     if (activeSettingsTab == SettingsTab::AUDIO) {
@@ -3436,9 +3512,15 @@ void GameManager::veSettingsMenu() {
 
         sf::RectangleShape infoBox(sf::Vector2f(rcW, rcH));
         infoBox.setPosition(rcX, rcY);
-        infoBox.setFillColor(sf::Color(26, 34, 48));
-        infoBox.setOutlineThickness(1.5f);
-        infoBox.setOutlineColor(sf::Color(65, 85, 120));
+
+        // Nền: Nâu sồi sáng vừa (đủ sáng nhưng không làm chìm chữ trắng)
+        infoBox.setFillColor(sf::Color(85, 55, 35));
+
+        infoBox.setOutlineThickness(2.0f); // Tăng độ viền lên 2.0f cho rõ nét
+
+        // Viền: Vàng gỗ sáng rực rỡ
+        infoBox.setOutlineColor(sf::Color(160, 105, 50));
+
         window.draw(infoBox);
 
         sf::Text cardTitle;
@@ -3489,9 +3571,15 @@ void GameManager::veSettingsMenu() {
 
         sf::RectangleShape infoBox(sf::Vector2f(rcW, rcH));
         infoBox.setPosition(rcX, rcY);
-        infoBox.setFillColor(sf::Color(26, 34, 48));
-        infoBox.setOutlineThickness(1.5f);
-        infoBox.setOutlineColor(sf::Color(65, 85, 120));
+
+        // Nền: Nâu sồi sáng vừa (đủ sáng nhưng không làm chìm chữ trắng)
+        infoBox.setFillColor(sf::Color(85, 55, 35));
+
+        infoBox.setOutlineThickness(2.0f); // Tăng độ viền lên 2.0f cho rõ nét
+
+        // Viền: Vàng gỗ sáng rực rỡ
+        infoBox.setOutlineColor(sf::Color(160, 105, 50));
+
         window.draw(infoBox);
 
         sf::Text cardTitle;
@@ -3613,6 +3701,7 @@ void GameManager::veSettingsMenu() {
         for (auto& btn : settingsGameplayButtons) btn->draw(window);
 
         // Right side info card
+        
         float rcX = 640.0f;
         float rcY = 220.0f;
         float rcW = 420.0f;
@@ -3620,9 +3709,13 @@ void GameManager::veSettingsMenu() {
 
         sf::RectangleShape infoBox(sf::Vector2f(rcW, rcH));
         infoBox.setPosition(rcX, rcY);
-        infoBox.setFillColor(sf::Color(26, 34, 48));
-        infoBox.setOutlineThickness(1.5f);
-        infoBox.setOutlineColor(sf::Color(65, 85, 120));
+
+        // Nền: Nâu sồi sáng vừa
+        infoBox.setFillColor(sf::Color(85, 55, 35));
+        infoBox.setOutlineThickness(2.0f);
+        // Viền: Vàng gỗ sáng rực rỡ
+        infoBox.setOutlineColor(sf::Color(160, 105, 50));
+
         window.draw(infoBox);
 
         sf::Text cardTitle;
@@ -3661,9 +3754,13 @@ void GameManager::veSettingsMenu() {
 
         sf::RectangleShape infoBox(sf::Vector2f(rcW, rcH));
         infoBox.setPosition(rcX, rcY);
-        infoBox.setFillColor(sf::Color(26, 34, 48));
-        infoBox.setOutlineThickness(1.5f);
-        infoBox.setOutlineColor(sf::Color(65, 85, 120));
+
+        // Nền: Nâu sồi sáng vừa
+        infoBox.setFillColor(sf::Color(85, 55, 35));
+        infoBox.setOutlineThickness(2.0f);
+        // Viền: Vàng gỗ sáng rực rỡ
+        infoBox.setOutlineColor(sf::Color(160, 105, 50));
+
         window.draw(infoBox);
 
         sf::Text cardTitle;

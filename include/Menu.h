@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-// Hàm toàn cục để vẽ nền cho mọi màn hình
+// Hàm toàn cục để vẽ nền sạch cho mọi màn hình phụ
 void veNenMenuGiaoDien(sf::RenderWindow& window);
 
 class Button {
@@ -20,16 +20,17 @@ private:
     sf::Color colorPressed;
     sf::Color colorDisabled;
 
-    // Con trỏ chứa ảnh nút
-    const sf::Texture* texNormal = nullptr;
-    const sf::Texture* texHover = nullptr;
+    const sf::Texture* texNormal;
+    const sf::Texture* texHover;
+
+    // Hàm căn giữa text tuyệt đối
+    void canGiuaText();
 
 public:
     Button(float x, float y, float width, float height,
         const std::string& label, sf::Font& font,
         std::function<void()> onClick);
 
-    
     void setPosition(float x, float y);
     void setLabel(const std::string& label);
     void setCharacterSize(unsigned int size);
@@ -50,6 +51,8 @@ private:
     std::vector<Button> buttons;
 
 public:
+    bool laMenuChinh = false;
+
     Menu();
     bool loadFont(const std::string& fontPath);
     void setFont(const sf::Font& f) { font = f; title.setFont(font); }
@@ -62,5 +65,6 @@ public:
 
     void update(const sf::Vector2i& mousePos);
     void handleClick(const sf::Vector2i& mousePos);
-    void draw(sf::RenderWindow& window);
+    // Thêm tham số tiengViet để đổi Title
+    void draw(sf::RenderWindow& window, bool tiengViet = false);
 };
