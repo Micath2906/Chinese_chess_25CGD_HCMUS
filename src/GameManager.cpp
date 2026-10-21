@@ -2123,7 +2123,10 @@ void GameManager::ve() {
         }
     }
 
-    atmosphere.draw(window);
+    // Hieu ung particle chi hien o Main Menu
+    if (trangThai == TrangThai::MENU_CHINH) {
+        atmosphere.draw(window);
+    }
     veToast();
     window.display();
 }
@@ -2717,7 +2720,7 @@ void GameManager::vePopupKetThuc() {
     dialog.setFillColor(sf::Color(28, 34, 48));
     dialog.setOutlineThickness(3.0f);
     dialog.setOutlineColor(sf::Color(240, 190, 70));
-    window.draw(dialog);
+    veBangGo(window, dx, dy, dw, dh);
 
     sf::Text tTitle;
     tTitle.setFont(font);
@@ -2790,7 +2793,7 @@ void GameManager::veMenuPopUpInGame() {
     dialog.setFillColor(sf::Color(24, 30, 44, 250));
     dialog.setOutlineThickness(3.0f);
     dialog.setOutlineColor(sf::Color(240, 190, 70));
-    window.draw(dialog);
+    veBangGo(window, dx, dy, dw, dh);
 
     // Inner subtle outline
     sf::RectangleShape innerBorder(sf::Vector2f(dw - 12.0f, dh - 12.0f));
@@ -2798,7 +2801,7 @@ void GameManager::veMenuPopUpInGame() {
     innerBorder.setFillColor(sf::Color::Transparent);
     innerBorder.setOutlineThickness(1.0f);
     innerBorder.setOutlineColor(sf::Color(65, 80, 115, 160));
-    window.draw(innerBorder);
+
 
     // Header title
     sf::Text tTitle;
@@ -2892,6 +2895,7 @@ void GameManager::vePlaySubmenu() {
     goldLine.setFillColor(sf::Color(240, 190, 70));
     window.draw(goldLine);
 
+    veBangGo(window, (window.getSize().x - 440.0f) / 2.0f, 205.0f, 440.0f, 310.0f);
     menuPlaySub.draw(window);
 }
 
@@ -2914,7 +2918,7 @@ void GameManager::vePvpSetup() {
     p1Card.setFillColor(sf::Color(24, 30, 44));
     p1Card.setOutlineThickness(2.0f);
     p1Card.setOutlineColor(sf::Color(70, 90, 125));
-    window.draw(p1Card);
+    veBangGo(window, 100.0f, 115.0f, 440.0f, 255.0f);
 
     sf::Text p1Label;
     p1Label.setFont(font);
@@ -3001,7 +3005,7 @@ void GameManager::vePvpSetup() {
     p2Card.setFillColor(sf::Color(24, 30, 44));
     p2Card.setOutlineThickness(2.0f);
     p2Card.setOutlineColor(sf::Color(70, 90, 125));
-    window.draw(p2Card);
+    veBangGo(window, 660.0f, 115.0f, 440.0f, 255.0f);
 
     sf::Text p2Label;
     p2Label.setFont(font);
@@ -3084,8 +3088,9 @@ void GameManager::vePvpSetup() {
     // Center Match Controls Card (Timer + Random Roll)
     sf::RectangleShape rollCard(sf::Vector2f(600.0f, 230.0f));
     rollCard.setPosition(300.0f, 390.0f);
-    rollCard.setFillColor(sf::Color(22, 28, 40));
-    rollCard.setOutlineThickness(1.5f);
+    veBangGo(window, 300.0f, 390.0f, 600.0f, 230.0f);
+    rollCard.setFillColor(sf::Color::Transparent);
+    rollCard.setOutlineThickness(0.0f);
     rollCard.setOutlineColor(sf::Color(65, 80, 110));
     window.draw(rollCard);
 
@@ -3130,7 +3135,7 @@ void GameManager::vePvaiSetup() {
     pCard.setFillColor(sf::Color(24, 30, 44));
     pCard.setOutlineThickness(2.0f);
     pCard.setOutlineColor(sf::Color(70, 90, 125));
-    window.draw(pCard);
+    veBangGo(window, 100.0f, 115.0f, 440.0f, 255.0f);
 
     sf::Text pLabel;
     pLabel.setFont(font);
@@ -3217,7 +3222,7 @@ void GameManager::vePvaiSetup() {
     aiCard.setFillColor(sf::Color(24, 30, 44));
     aiCard.setOutlineThickness(2.0f);
     aiCard.setOutlineColor(sf::Color(70, 90, 125));
-    window.draw(aiCard);
+    veBangGo(window, 660.0f, 115.0f, 440.0f, 255.0f);
 
     sf::Text aiLabel;
     aiLabel.setFont(font);
@@ -3311,8 +3316,9 @@ void GameManager::vePvaiSetup() {
     // Center Match Controls Card
     sf::RectangleShape rollCard(sf::Vector2f(600.0f, 245.0f));
     rollCard.setPosition(300.0f, 375.0f);
-    rollCard.setFillColor(sf::Color(22, 28, 40));
-    rollCard.setOutlineThickness(1.5f);
+    veBangGo(window, 300.0f, 375.0f, 600.0f, 245.0f);
+    rollCard.setFillColor(sf::Color::Transparent);
+    rollCard.setOutlineThickness(0.0f);
     rollCard.setOutlineColor(sf::Color(65, 80, 110));
     window.draw(rollCard);
 
@@ -3355,11 +3361,12 @@ void GameManager::veLoadMenu() {
         float sy = 160.0f + i * 145.0f;
         sf::RectangleShape card(sf::Vector2f(900.0f, 125.0f));
         card.setPosition(150.0f, sy);
+        veBangGo(window, 150.0f, sy, 900.0f, 125.0f);
         
         bool isSel = (selectedSlot == i);
-        card.setFillColor(isSel ? sf::Color(32, 42, 62) : sf::Color(22, 28, 40));
-        card.setOutlineThickness(isSel ? 3.0f : 1.5f);
-        card.setOutlineColor(isSel ? sf::Color(240, 190, 70) : sf::Color(55, 70, 95));
+        card.setFillColor(isSel ? sf::Color(255, 215, 80, 40) : sf::Color::Transparent);
+        card.setOutlineThickness(isSel ? 2.5f : 0.0f);
+        card.setOutlineColor(isSel ? sf::Color(240, 200, 80) : sf::Color::Transparent);
         window.draw(card);
 
         sf::Text slotHeader;
@@ -3521,7 +3528,7 @@ void GameManager::veSettingsMenu() {
         // Viền: Vàng gỗ sáng rực rỡ
         infoBox.setOutlineColor(sf::Color(160, 105, 50));
 
-        window.draw(infoBox);
+        veBangGo(window, rcX, rcY, rcW, rcH);
 
         sf::Text cardTitle;
         cardTitle.setFont(font);
@@ -3580,7 +3587,7 @@ void GameManager::veSettingsMenu() {
         // Viền: Vàng gỗ sáng rực rỡ
         infoBox.setOutlineColor(sf::Color(160, 105, 50));
 
-        window.draw(infoBox);
+        veBangGo(window, rcX, rcY, rcW, rcH);
 
         sf::Text cardTitle;
         cardTitle.setFont(font);
@@ -3716,7 +3723,7 @@ void GameManager::veSettingsMenu() {
         // Viền: Vàng gỗ sáng rực rỡ
         infoBox.setOutlineColor(sf::Color(160, 105, 50));
 
-        window.draw(infoBox);
+        veBangGo(window, rcX, rcY, rcW, rcH);
 
         sf::Text cardTitle;
         cardTitle.setFont(font);
@@ -3761,7 +3768,7 @@ void GameManager::veSettingsMenu() {
         // Viền: Vàng gỗ sáng rực rỡ
         infoBox.setOutlineColor(sf::Color(160, 105, 50));
 
-        window.draw(infoBox);
+        veBangGo(window, rcX, rcY, rcW, rcH);
 
         sf::Text cardTitle;
         cardTitle.setFont(font);
@@ -3842,7 +3849,7 @@ void GameManager::veIntroMenu() {
     box.setFillColor(sf::Color(24, 30, 44));
     box.setOutlineThickness(2.0f);
     box.setOutlineColor(sf::Color(65, 80, 115));
-    window.draw(box);
+    veBangGo(window, (window.getSize().x - 960.0f) / 2.0f, 120.0f, 960.0f, 545.0f);
 
     std::string text = (Loc::getLanguage() == Language::TIENG_VIET)
         ? "- GIOI THIEU DO AN:\n"

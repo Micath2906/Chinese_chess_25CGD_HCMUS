@@ -75,6 +75,10 @@ add_custom_command(TARGET CoTuong POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_SOURCE_DIR}/resources"
     "$<TARGET_FILE_DIR:CoTuong>/resources"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/assets"
+    "$<TARGET_FILE_DIR:CoTuong>/assets"
+
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/SFML/bin/openal32.dll"
     "$<TARGET_FILE_DIR:CoTuong>/openal32.dll"

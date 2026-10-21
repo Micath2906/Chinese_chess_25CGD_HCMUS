@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
@@ -6,6 +6,7 @@
 
 // Hàm toàn cục để vẽ nền sạch cho mọi màn hình phụ
 void veNenMenuGiaoDien(sf::RenderWindow& window);
+void veBangGo(sf::RenderWindow& window, float x, float y, float w, float h);
 
 class Button {
 private:

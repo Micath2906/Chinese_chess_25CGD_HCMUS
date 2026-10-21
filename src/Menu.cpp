@@ -1,4 +1,4 @@
-﻿#include "Menu.h"
+#include "Menu.h"
 #include <iostream>
 #include <vector>
 
@@ -28,7 +28,8 @@ struct MenuAssets {
     sf::Texture titleEn;          // Title tiếng Anh chinese_chess.png
     sf::Texture titleVi;          // Title tiếng Việt co_tuong.png
     sf::Texture btnNormal;        // Nút xanh lá thường
-    sf::Texture btnHover;         // Nút xanh lá đậm
+    sf::Texture btnHover;         // Hover
+    sf::Texture boardWood;        // Medieval Fantasy UI board
     sf::Font globalFont;          // Font zpix
     bool fontLoaded = false;
 
@@ -40,6 +41,7 @@ struct MenuAssets {
         // Đã trả lại nút xanh lá như bạn yêu cầu
         loadTexSafe(btnNormal, "assets/button_menu_nor2.png");
         loadTexSafe(btnHover, "assets/button_menu_hol2.png");
+        loadTexSafe(boardWood, "assets/panel_brown_window.png");
 
         // Nạp font zpix.ttf
         fontLoaded = loadFontSafe(globalFont, "assets/font/zpix.ttf") ||
@@ -67,6 +69,89 @@ void veNenMenuGiaoDien(sf::RenderWindow& window) {
 // ============================================================
 // Button Implementation
 // ============================================================
+void veBangGo(sf::RenderWindow& window, float x, float y, float w, float h) {
+    auto& assets = getMenuAssets();
+    if (assets.boardWood.getSize().x == 0) {
+        sf::RectangleShape fallback(sf::Vector2f(w, h));
+        fallback.setPosition(x, y);
+        fallback.setFillColor(sf::Color(55, 38, 22, 235));
+        fallback.setOutlineThickness(2.0f);
+        fallback.setOutlineColor(sf::Color(140, 95, 45));
+        window.draw(fallback);
+        return;
+    }
+
+    const float c = 14.0f;
+    const float tw = static_cast<float>(assets.boardWood.getSize().x);
+    const float th = static_cast<float>(assets.boardWood.getSize().y);
+
+    sf::Sprite sp(assets.boardWood);
+
+    // 1. Top-Left
+    sp.setTextureRect(sf::IntRect(0, 0, static_cast<int>(c), static_cast<int>(c)));
+    sp.setPosition(x, y);
+    sp.setScale(1.0f, 1.0f);
+    window.draw(sp);
+
+    // 2. Top-Right
+    sp.setTextureRect(sf::IntRect(static_cast<int>(tw - c), 0, static_cast<int>(c), static_cast<int>(c)));
+    sp.setPosition(x + w - c, y);
+    sp.setScale(1.0f, 1.0f);
+    window.draw(sp);
+
+    // 3. Bottom-Left
+    sp.setTextureRect(sf::IntRect(0, static_cast<int>(th - c), static_cast<int>(c), static_cast<int>(c)));
+    sp.setPosition(x, y + h - c);
+    sp.setScale(1.0f, 1.0f);
+    window.draw(sp);
+
+    // 4. Bottom-Right
+    sp.setTextureRect(sf::IntRect(static_cast<int>(tw - c), static_cast<int>(th - c), static_cast<int>(c), static_cast<int>(c)));
+    sp.setPosition(x + w - c, y + h - c);
+    sp.setScale(1.0f, 1.0f);
+    window.draw(sp);
+
+    // 5. Top edge
+    if (w > 2 * c) {
+        sp.setTextureRect(sf::IntRect(static_cast<int>(c), 0, static_cast<int>(tw - 2 * c), static_cast<int>(c)));
+        sp.setPosition(x + c, y);
+        sp.setScale((w - 2 * c) / (tw - 2 * c), 1.0f);
+        window.draw(sp);
+    }
+
+    // 6. Bottom edge
+    if (w > 2 * c) {
+        sp.setTextureRect(sf::IntRect(static_cast<int>(c), static_cast<int>(th - c), static_cast<int>(tw - 2 * c), static_cast<int>(c)));
+        sp.setPosition(x + c, y + h - c);
+        sp.setScale((w - 2 * c) / (tw - 2 * c), 1.0f);
+        window.draw(sp);
+    }
+
+    // 7. Left edge
+    if (h > 2 * c) {
+        sp.setTextureRect(sf::IntRect(0, static_cast<int>(c), static_cast<int>(c), static_cast<int>(th - 2 * c)));
+        sp.setPosition(x, y + c);
+        sp.setScale(1.0f, (h - 2 * c) / (th - 2 * c));
+        window.draw(sp);
+    }
+
+    // 8. Right edge
+    if (h > 2 * c) {
+        sp.setTextureRect(sf::IntRect(static_cast<int>(tw - c), static_cast<int>(c), static_cast<int>(c), static_cast<int>(th - 2 * c)));
+        sp.setPosition(x + w - c, y + c);
+        sp.setScale(1.0f, (h - 2 * c) / (th - 2 * c));
+        window.draw(sp);
+    }
+
+    // 9. Center
+    if (w > 2 * c && h > 2 * c) {
+        sp.setTextureRect(sf::IntRect(static_cast<int>(c), static_cast<int>(c), static_cast<int>(tw - 2 * c), static_cast<int>(th - 2 * c)));
+        sp.setPosition(x + c, y + c);
+        sp.setScale((w - 2 * c) / (tw - 2 * c), (h - 2 * c) / (th - 2 * c));
+        window.draw(sp);
+    }
+}
+
 void Button::canGiuaText() {
     sf::FloatRect textBounds = text.getLocalBounds();
     // Chú ý: Cộng thêm textBounds.top và left để bù sai số của font pixel
