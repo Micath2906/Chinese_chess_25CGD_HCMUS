@@ -10,11 +10,7 @@
 #include "Phao.h"
 #include "Tot.h"
 
-/**
- * @brief Factory Method Pattern (Mẫu thiết kế Nhà máy)
- * Chuyên trách khởi tạo đối tượng Quân cờ tương ứng dựa trên tên loại quân.
- * Giúp tách biệt hoàn toàn logic khởi tạo khỏi lớp BanCo (tuân thủ Open/Closed Principle).
- */
+// Factory method
 class QuanCoFactory {
 public:
     static std::shared_ptr<QuanCo> taoQuanCo(const std::string& loaiQuan, int hang, int cot, Mau mau) {

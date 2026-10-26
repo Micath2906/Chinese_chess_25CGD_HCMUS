@@ -54,7 +54,7 @@ public:
     }
 
     void draw(sf::RenderWindow& window) {
-        // 1. Draw Title
+        // Draw title
         sf::Text labelText;
         labelText.setFont(font);
         labelText.setCharacterSize(16);
@@ -64,7 +64,7 @@ public:
         labelText.setPosition(posX, posY - 24.0f);
         window.draw(labelText);
 
-        // 2. Draw Value Percentage on the right
+        // Draw value
         std::ostringstream ss;
         ss << static_cast<int>(std::round(currentValue)) << "%";
         sf::Text valText;
@@ -77,7 +77,7 @@ public:
         valText.setPosition(posX + trackWidth - vb.width, posY - 24.0f);
         window.draw(valText);
 
-        // 3. Draw Track Background
+        // Draw track
         sf::RectangleShape trackBg(sf::Vector2f(trackWidth, trackHeight));
         trackBg.setPosition(posX, posY);
         trackBg.setFillColor(sf::Color(22, 28, 40));
@@ -85,7 +85,7 @@ public:
         trackBg.setOutlineColor(sf::Color(65, 85, 120));
         window.draw(trackBg);
 
-        // 4. Draw Filled Progress Bar (Active track)
+        // Draw progress
         float progressFraction = (maxValue > minValue) ? ((currentValue - minValue) / (maxValue - minValue)) : 0.0f;
         progressFraction = std::clamp(progressFraction, 0.0f, 1.0f);
         float fillW = trackWidth * progressFraction;
@@ -97,7 +97,7 @@ public:
             window.draw(fillTrack);
         }
 
-        // 5. Draw Thumb Knob
+        // Draw knob
         float knobRadius = trackHeight * 0.9f;
         float knobX = posX + fillW;
         float knobY = posY + trackHeight / 2.0f;

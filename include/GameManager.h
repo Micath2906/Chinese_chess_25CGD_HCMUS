@@ -47,18 +47,18 @@ enum class BoardTheme {
 };
 
 enum class PieceStyle {
-    REALISTIC_WOOD, // Traditional wooden sprite tokens with calligraphy
-    VIETNAMESE,     // "Xe", "Mã", "Voi", "Sĩ", "Tướng", "Pháo", "Tốt"
-    SHORT_CODE,     // "X", "M", "V", "S", "TG", "P", "T"
-    INTERNATIONAL   // "R", "H", "E", "A", "K", "C", "P"
+    REALISTIC_WOOD,
+    VIETNAMESE,
+    SHORT_CODE,
+    INTERNATIONAL
 };
 
 enum class PieceAura {
-    CLASSIC_WOOD,   // Nguyên bản mộc mạc
-    IMPERIAL_GOLD,  // Hoàng Kim (Hào quang vàng)
-    DRAGON_FLAME,   // Xích Long (Hào quang lửa đỏ)
-    THUNDER_CYAN,   // Lam Lôi (Hào quang xanh ngọc)
-    SHADOW_VOID     // Hắc Diệu (Hào quang tím ma mị)
+    CLASSIC_WOOD,
+    IMPERIAL_GOLD,
+    DRAGON_FLAME,
+    THUNDER_CYAN,
+    SHADOW_VOID
 };
 
 struct SaveSlotInfo {
@@ -75,6 +75,11 @@ class GameManager {
 private:
     sf::RenderWindow window;
     sf::Font font;
+    sf::Font fontBold;
+    sf::Font fontEn;
+    sf::Font fontEnBold;
+    sf::Font fontVn;
+    sf::Font fontVnBold;
     
     TrangThai trangThai;
     CheDoChoi cheDoChoi;
@@ -83,7 +88,7 @@ private:
     KeyConfig keyConfig;
     KeyAction rebindingAction;
 
-    // Commercial Settings State
+    // Settings state
     SettingsTab activeSettingsTab;
     BoardTheme boardTheme;
     PieceStyle pieceStyle;
@@ -104,7 +109,15 @@ private:
     Menu menuKeybinding;
     Menu menuIntro;
 
-    // Settings dashboard sub-menus/buttons
+    // Play setup mode
+    int playSetupMode;
+    std::vector<std::unique_ptr<Button>> playSetupButtons;
+    void khoiTaoPlaySetupButtons();
+    void vePlaySetup();
+    void vePieceStylePreview(sf::RenderWindow& win, float x, float y, float w, float h);
+    void xuLyClickPlaySetup(const sf::Vector2i& viTri);
+
+    // Settings buttons
     std::vector<std::unique_ptr<Button>> settingsTabButtons;
     std::vector<std::unique_ptr<Button>> settingsAudioButtons;
     std::vector<std::unique_ptr<Button>> settingsGraphicsButtons;
@@ -112,10 +125,10 @@ private:
     std::vector<std::unique_ptr<Button>> settingsControlButtons;
     std::vector<std::unique_ptr<Button>> settingsBottomButtons;
     
-    // Atmospheric Particle System
+    // Atmosphere system
     AtmosphereSystem atmosphere;
 
-    // Piece Aura decoration choices
+    // Piece aura
     PieceAura p1Aura;
     PieceAura p2Aura;
     PieceAura auraDo;
@@ -128,13 +141,17 @@ private:
     std::unique_ptr<Slider> sliderAtmosphere;
     std::vector<std::unique_ptr<Button>> soundboardButtons;
 
-    // In-game buttons & popup buttons
+    // In-game buttons
     std::vector<std::unique_ptr<Button>> inGameButtons;
     std::vector<std::unique_ptr<Button>> popupButtons;
     std::vector<std::unique_ptr<Button>> inGameMenuButtons;
     bool hienMenuPopUp;
     TrangThai trangThaiTruocSettings;
     TrangThai trangThaiTruocLoad;
+    bool matchMenuTuDangChoi = false;
+    bool daPhatAmKetThuc = false;
+    void capNhatFontTheoNgonNgu();
+    void phatAmThanhKetThuc();
     
     // Text inputs
     std::unique_ptr<TextInput> inputP1Name;
@@ -144,17 +161,17 @@ private:
     // PvP setup state
     int p1CharIndex;
     int p2CharIndex;
-    int pvpFirstPlayer; // 1 = P1 Red (goes first), 2 = P2 Red (goes first)
+    int pvpFirstPlayer; // 1 = P1, 2 = P2
     std::string pvpRollBanner;
     
     // PvAI setup state
     int aiPlayerCharIndex;
     DoKho aiDifficulty;
-    int aiFirstChoice; // 0 = Player Red, 1 = AI Red, 2 = Random
+    int aiFirstChoice; // 0 = Player, 1 = AI, 2 = Random
     Mau aiPlayerSide;
     std::string aiRollBanner;
     
-    // Active match player profiles
+    // Player profiles
     std::string tenNguoiChoiDo;
     std::string tenNguoiChoiDen;
     int nhanVatDo;
@@ -177,7 +194,7 @@ private:
     float offsetY;
     
     // Match settings
-    float thoiGianVanDau; // 0 = unlimited, 300 = 5m, 600 = 10m, 900 = 15m
+    float thoiGianVanDau; // Match duration
     
     // Chess clocks
     float thoiGianConDo;
@@ -188,7 +205,7 @@ private:
     bool aiDangSuyNghi;
     float thoiGianChoAI;
     
-    // Notifications & End Game
+    // Notifications
     std::string toastMessage;
     float toastTimer;
     std::string lyDoKetThuc;
@@ -206,11 +223,12 @@ private:
     void khoiTaoNutTrongGame();
     void khoiTaoNutPopup();
     
-    // Config Persistence
+    // Config
     void luuCaiDat();
     void docCaiDat();
     void khoiPhucCaiDatMacDinh();
     void apDungCheDoManHinh();
+    void capNhatViewManHinh();
     
     // Event handling
     void xuLySuKien();
@@ -239,26 +257,30 @@ private:
     void moMenuPopUp();
     void dongMenuPopUp();
     
-    // Save/Load system
+    // Save and load
     void capNhatThongTinSlots();
     void luuVaoSlot(int slotIndex);
     bool docTuSlot(int slotIndex);
     void xoaSlot(int slotIndex);
     std::string layDuongDanSlot(int slotIndex) const;
     
-    // Textures & Graphic Assets
+    // Textures
     std::map<std::string, sf::Texture> textureQuanDo;
     std::map<std::string, sf::Texture> textureQuanDen;
-    sf::Texture textureBackground;   // background_game.png (pixel art background)
-    sf::Texture textureBanCo;        // ban_co.png (chess board grid image)
+    sf::Texture textureBackground;
+    sf::Texture texturePlayBg;
+    sf::Texture textureBanCo;
+    sf::Texture avatarTextures[5];
     bool daTaiTextures;
+    bool daTaiAvatarTextures;
+    void taiAvatarTextures();
     void taiTextures();
     const sf::Texture* layTextureQuan(const std::string& tenQuan, Mau mau) const;
 
     // Toast
     void hienToast(const std::string& msg);
     
-    // Coordinates conversion
+    // Coordinates
     sf::Vector2i chuyenDoiToaDoManHinhThanhBanCo(const sf::Vector2i& viTriChuot);
     sf::Vector2f chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot);
     std::string layKyHieuQuanTheoStyle(const std::string& tenGoc, Mau mau) const;
@@ -271,12 +293,14 @@ private:
     void veCacQuanCo();
     void veHighlights();
     void veConTroBanPhim();
+    void veThanhBenTrai();
     void veThanhBenPhai();
+    void veThanhThongBao();
     void vePopupKetThuc();
     void veMenuPopUpInGame();
     void veToast();
     
-    // Screen rendering
+    // Screens
     void veMenuChinh();
     void vePlaySubmenu();
     void vePvpSetup();

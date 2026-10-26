@@ -94,7 +94,7 @@ public:
             transform.scale(p.scale, p.scale);
 
             if (style == AtmosphereStyle::BAMBOO_LEAVES) {
-                // Bamboo leaf: slender curved polygon
+                // Bamboo leaf
                 sf::ConvexShape leaf(6);
                 leaf.setPoint(0, sf::Vector2f(0.0f, -14.0f));
                 leaf.setPoint(1, sf::Vector2f(4.0f, -4.0f));

@@ -80,7 +80,7 @@ int ChessAI::minimax(BanCo& banCo, int doSau, int alpha, int beta, bool laLuotAI
 
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
-            if (beta <= alpha) break; // Alpha-beta cutoff
+            if (beta <= alpha) break;
         }
         return maxEval;
     } else {
@@ -92,7 +92,7 @@ int ChessAI::minimax(BanCo& banCo, int doSau, int alpha, int beta, bool laLuotAI
 
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
-            if (beta <= alpha) break; // Alpha-beta cutoff
+            if (beta <= alpha) break;
         }
         return minEval;
     }
@@ -104,7 +104,7 @@ NuocDi ChessAI::timNuocDi(BanCo& banCo, DoKho doKho, Mau mauAI) {
         return NuocDi(-1, -1, -1, -1);
     }
 
-    // Do kho DE: chon ngau nhien trong top 3 nuoc di tot
+    // Easy difficulty
     if (doKho == DoKho::DE) {
         std::vector<std::pair<int, NuocDi>> danhGiaList;
         for (const auto& nd : danhSachNuocDi) {

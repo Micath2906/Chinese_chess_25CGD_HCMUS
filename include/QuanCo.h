@@ -33,14 +33,14 @@ public:
     virtual void datViTri(int hangMoi, int cotMoi);
     void datDaBiAn(bool trangThai) { daBiAn = trangThai; }
     
-    // Pure virtual functions (Polymorphism & Prototype Pattern)
+    // Pure virtual functions
     virtual bool kiemTraNuocDi(const BanCo& banCo, int hangMoi, int cotMoi) const = 0;
     virtual std::string layTen() const = 0;
     virtual std::string layKyHieu() const = 0;
     virtual int layGiaTri() const = 0;
     virtual std::shared_ptr<QuanCo> clone() const = 0;
     
-    // Virtual functions with default behavior
+    // Virtual functions
     virtual int layDiemViTri() const { return 0; }
     virtual bool laTuong() const { return false; }
     virtual void ve(sf::RenderWindow& window, float x, float y, float kichThuoc) const;

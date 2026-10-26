@@ -26,5 +26,5 @@ void QuanCo::ve(sf::RenderWindow& window, float x, float y, float kichThuoc) con
     
     window.draw(circle);
     
-    // Ve chu tren quan co (se duoc override trong cac lop con neu can)
+    // Draw piece text
 }

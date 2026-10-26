@@ -21,12 +21,12 @@ bool Phao::kiemTraNuocDi(const BanCo& banCo, int hangMoi, int cotMoi) const {
     auto quanTaiDich = banCo.timQuan(hangMoi, cotMoi);
     int soQuanGiua = banCo.demQuanTrenDuong(hang, cot, hangMoi, cotMoi);
     
-    // Neu di chuyen khong an quan: khong co quan nao o giua
+    // Move without capture
     if (quanTaiDich == nullptr) {
         return soQuanGiua == 0;
     }
     
-    // Neu an quan: phai co dung 1 quan lam cau
+    // Capture with cannon mount
     if (quanTaiDich->getMau() != this->mau) {
         return soQuanGiua == 1;
     }

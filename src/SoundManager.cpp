@@ -1,4 +1,4 @@
-﻿#include "SoundManager.h"
+#include "SoundManager.h"
 #include <algorithm>
 #include <cstdlib>
 #include <vector>
@@ -13,7 +13,7 @@ SoundManager::SoundManager()
     bgmVolume(50.0f) {
 }
 
-// Hàm phụ trợ tự động tìm đường dẫn file dù chạy ở thư mục gốc hay trong out/build/x64-Debug
+// Find sound file
 static bool loadSoundFile(sf::SoundBuffer& buf, const std::string& relativePath) {
     const std::vector<std::string> prefixes = {
         "",
@@ -31,11 +31,11 @@ static bool loadSoundFile(sf::SoundBuffer& buf, const std::string& relativePath)
 }
 
 void SoundManager::khoiTao() {
-    sinhAmThanh(); // Tạo sẵn âm thanh dự phòng cho các hiệu ứng khác (Click, Check, Win, Lose)
+    sinhAmThanh(); // Fallback sounds
 
     sf::SoundBuffer tempBuf;
 
-    // 1. Nạp âm thanh ĐẶT CỜ (dat_co.ogg)
+    // Move sound
     if (loadSoundFile(tempBuf, "assets/music/dat_co.ogg") ||
         loadSoundFile(tempBuf, "assets/dat_co.ogg") ||
         loadSoundFile(tempBuf, "resources/sounds/move.wav")) {
@@ -43,7 +43,7 @@ void SoundManager::khoiTao() {
         soundMove.setBuffer(bufferMove);
     }
 
-    // 2. Nạp âm thanh ĂN CỜ (an_co.ogg)
+    // Capture sound
     if (loadSoundFile(tempBuf, "assets/music/an_co.ogg") ||
         loadSoundFile(tempBuf, "assets/an_co.ogg") ||
         loadSoundFile(tempBuf, "resources/sounds/capture.wav")) {
@@ -51,7 +51,7 @@ void SoundManager::khoiTao() {
         soundCapture.setBuffer(bufferCapture);
     }
 
-    // 3. Nạp NHẠC NỀN BGM (Golden Gleam.ogg)
+    // BGM sound
     if (loadSoundFile(tempBuf, "assets/music/Golden Gleam.ogg") ||
         loadSoundFile(tempBuf, "assets/Golden Gleam.ogg")) {
         bufferBgm = tempBuf;
@@ -59,7 +59,7 @@ void SoundManager::khoiTao() {
         soundBgm.setLoop(true);
     }
 
-    // Các âm thanh phụ khác (nếu có trong resources/sounds)
+    // Other sounds
     if (loadSoundFile(tempBuf, "resources/sounds/check.wav")) {
         bufferCheck = tempBuf;
         soundCheck.setBuffer(bufferCheck);
@@ -128,7 +128,7 @@ void SoundManager::sinhAmThanh() {
         }, bufferCapture);
     soundCapture.setBuffer(bufferCapture);
 
-    // 3. Check: Warning chime
+    // Check sound
     makeBuffer(0.38, [&](double t, size_t, size_t) {
         double env1 = std::exp(-t * 14.0);
         double s1 = std::sin(2.0 * PI * 700.0 * t) * env1 * 0.45;
@@ -142,7 +142,7 @@ void SoundManager::sinhAmThanh() {
         }, bufferCheck);
     soundCheck.setBuffer(bufferCheck);
 
-    // 4. Victory: Triumphant fanfare arpeggio
+    // Victory sound
     makeBuffer(0.9, [&](double t, size_t, size_t) {
         double notes[] = { 523.25, 659.25, 783.99, 1046.50 };
         double seg = 0.18;
@@ -154,7 +154,7 @@ void SoundManager::sinhAmThanh() {
         }, bufferVictory);
     soundVictory.setBuffer(bufferVictory);
 
-    // 5. Defeat: Descending somber notes
+    // Defeat sound
     makeBuffer(0.8, [&](double t, size_t, size_t) {
         double notes[] = { 440.0, 349.23, 293.66 };
         double seg = 0.24;
@@ -166,14 +166,14 @@ void SoundManager::sinhAmThanh() {
         }, bufferDefeat);
     soundDefeat.setBuffer(bufferDefeat);
 
-    // 6. Click: UI button click
+    // Click sound
     makeBuffer(0.04, [&](double t, size_t, size_t) {
         double decay = std::exp(-t * 90.0);
         return std::sin(2.0 * PI * 1100.0 * t) * decay * 0.5;
         }, bufferClick);
     soundClick.setBuffer(bufferClick);
 
-    // 7. Ambient BGM fallback (chỉ dùng nếu không tìm thấy file Golden Gleam.ogg)
+    // BGM fallback
     struct NoteEvent {
         double startTime;
         double freq;

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 # Bỏ qua cảnh báo LNK4099 không làm chặn build
 if(MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /IGNORE:4099")
+    add_compile_options("/utf-8")
 endif()
 project(CoTuong)
 
@@ -38,7 +39,7 @@ include_directories(
 # Source files
 # =========================
 
-file(GLOB_RECURSE SOURCES
+file(GLOB SOURCES
     "${CMAKE_SOURCE_DIR}/src/*.cpp"
 )
 
@@ -46,7 +47,11 @@ file(GLOB_RECURSE SOURCES
 # Executable
 # =========================
 
-add_executable(CoTuong ${SOURCES})
+add_executable(CoTuong main.cpp ${SOURCES})
+
+if(MSVC)
+    target_compile_options(CoTuong PRIVATE "/utf-8")
+endif()
 
 # Ensure CoTuong is the default startup project in Visual Studio instead of ALL_BUILD
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT CoTuong)
@@ -75,6 +80,9 @@ add_custom_command(TARGET CoTuong POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_SOURCE_DIR}/resources"
     "$<TARGET_FILE_DIR:CoTuong>/resources"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/assets"
+    "$<TARGET_FILE_DIR:CoTuong>/assets"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${CMAKE_SOURCE_DIR}/SFML/bin/openal32.dll"
     "$<TARGET_FILE_DIR:CoTuong>/openal32.dll"

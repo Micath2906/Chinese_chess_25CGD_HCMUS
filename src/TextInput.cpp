@@ -1,4 +1,5 @@
 #include "TextInput.h"
+#include "Localization.h"
 #include <cmath>
 
 TextInput::TextInput(float x, float y, float w, float h, sf::Font& font,
@@ -6,7 +7,8 @@ TextInput::TextInput(float x, float y, float w, float h, sf::Font& font,
     : value(""),
       placeholder(placeholder),
       focused(false),
-      maxLength(maxLen) {
+      maxLength(maxLen),
+      parchmentStyle(false) {
     
     box.setPosition(x, y);
     box.setSize(sf::Vector2f(w, h));
@@ -16,13 +18,15 @@ TextInput::TextInput(float x, float y, float w, float h, sf::Font& font,
 
     text.setFont(font);
     text.setCharacterSize(18);
+    text.setStyle(sf::Text::Bold);
     text.setFillColor(sf::Color::White);
     text.setPosition(x + 12.0f, y + (h - 22.0f) / 2.0f);
 
     placeholderText.setFont(font);
     placeholderText.setCharacterSize(18);
-    placeholderText.setFillColor(sf::Color(130, 145, 165));
-    placeholderText.setString(placeholder);
+    placeholderText.setStyle(sf::Text::Bold);
+    placeholderText.setFillColor(sf::Color(160, 175, 195));
+    placeholderText.setString(toUtf8(placeholder));
     placeholderText.setPosition(x + 12.0f, y + (h - 22.0f) / 2.0f);
 }
 
@@ -43,7 +47,7 @@ void TextInput::setSize(float w, float h) {
 
 void TextInput::setPlaceholder(const std::string& p) {
     placeholder = p;
-    placeholderText.setString(p);
+    placeholderText.setString(toUtf8(p));
 }
 
 void TextInput::setValue(const std::string& v) {
@@ -80,12 +84,25 @@ void TextInput::handleTextEntered(sf::Uint32 unicode) {
 }
 
 void TextInput::draw(sf::RenderWindow& window) {
-    if (focused) {
-        box.setOutlineColor(sf::Color(240, 190, 70));
-        box.setFillColor(sf::Color(35, 42, 58));
+    if (parchmentStyle) {
+        if (focused) {
+            box.setOutlineColor(sf::Color(195, 35, 25));
+            box.setFillColor(sf::Color(255, 248, 235));
+            text.setFillColor(sf::Color(50, 25, 15));
+        } else {
+            box.setOutlineColor(sf::Color(170, 140, 105));
+            box.setFillColor(sf::Color(245, 235, 220));
+            text.setFillColor(sf::Color(55, 30, 18));
+            placeholderText.setFillColor(sf::Color(140, 115, 90));
+        }
     } else {
-        box.setOutlineColor(sf::Color(70, 85, 110));
-        box.setFillColor(sf::Color(25, 30, 42));
+        if (focused) {
+            box.setOutlineColor(sf::Color(240, 190, 70));
+            box.setFillColor(sf::Color(35, 42, 58));
+        } else {
+            box.setOutlineColor(sf::Color(70, 85, 110));
+            box.setFillColor(sf::Color(25, 30, 42));
+        }
     }
 
     window.draw(box);
@@ -101,7 +118,7 @@ void TextInput::draw(sf::RenderWindow& window) {
                 displayStr += "|";
             }
         }
-        text.setString(displayStr);
+        text.setString(toUtf8(displayStr));
         window.draw(text);
     }
 }

@@ -37,3 +37,6 @@ Makefile
 # OS specific
 .DS_Store
 Thumbs.db
+
+# Temporary scratch files
+scratch/

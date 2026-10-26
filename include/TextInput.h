@@ -12,6 +12,7 @@ private:
     bool focused;
     size_t maxLength;
     sf::Clock blinkClock;
+    bool parchmentStyle;
     
 public:
     TextInput(float x, float y, float w, float h, sf::Font& font,
@@ -22,9 +23,14 @@ public:
     void setPlaceholder(const std::string& p);
     void setValue(const std::string& v);
     std::string getValue() const { return value; }
+    void setFont(const sf::Font& f) {
+        text.setFont(f);
+        placeholderText.setFont(f);
+    }
 
     bool isFocused() const { return focused; }
     void setFocused(bool f) { focused = f; }
+    void setParchmentStyle(bool p) { parchmentStyle = p; }
 
     bool handleClick(const sf::Vector2i& mousePos);
     void handleTextEntered(sf::Uint32 unicode);

@@ -61,7 +61,7 @@ public:
     bool diChuyen(int hangBD, int cotBD, int hangKT, int cotKT);
     bool coNuocDiHopLe(Mau mau) const;
     
-    // Hoàn tác & Đi tiếp (Undo & Redo)
+    // Undo and redo
     bool hoanTac();
     bool diTiep();
     bool coTheHoanTac() const { return !lichSuNuocDi.empty(); }

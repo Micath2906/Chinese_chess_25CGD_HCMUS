@@ -1,6 +1,16 @@
 #pragma once
+#include <SFML/System/String.hpp>
 #include <string>
 #include <vector>
+
+inline sf::String toUtf8(const std::string& str) {
+    return sf::String::fromUtf8(str.begin(), str.end());
+}
+
+inline sf::String toUtf8(const char* str) {
+    std::string s(str ? str : "");
+    return sf::String::fromUtf8(s.begin(), s.end());
+}
 
 enum class Language {
     TIENG_VIET,
@@ -182,6 +192,10 @@ public:
     }
 
     static std::string get(LocKey key);
+    static sf::String getUtf8(LocKey key) {
+        std::string s = get(key);
+        return sf::String::fromUtf8(s.begin(), s.end());
+    }
     static std::string getCharName(int index);
     static std::string getCharDesc(int index);
     static int getCharCount() { return 5; }

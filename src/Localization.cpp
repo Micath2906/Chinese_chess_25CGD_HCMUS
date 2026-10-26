@@ -1,7 +1,7 @@
 #include "Localization.h"
 
-// Default language is English
-Language Loc::currentLang = Language::ENGLISH;
+// Default language is Vietnamese
+Language Loc::currentLang = Language::TIENG_VIET;
 
 std::string Loc::get(LocKey key) {
     bool vi = (currentLang == Language::TIENG_VIET);
@@ -9,296 +9,296 @@ std::string Loc::get(LocKey key) {
     switch (key) {
         // App Header
         case LocKey::APP_TITLE:
-            return vi ? "CO TUONG" : "CHINESE CHESS";
+            return vi ? "CỜ TƯỚNG" : "CHINESE CHESS";
         case LocKey::APP_SUBTITLE:
-            return vi ? "DO AN MON OOP - HCMUS" : "OOP PROJECT - HCMUS";
+            return vi ? "ĐỒ ÁN MÔN HỌC OOP - HCMUS" : "OOP PROJECT - HCMUS";
 
         // Main Menu
         case LocKey::MENU_PLAY:
-            return vi ? "CHOI CO" : "PLAY";
+            return vi ? "CHƠI MỚI" : "PLAY";
         case LocKey::MENU_LOAD:
-            return vi ? "TAI VAN CO" : "LOAD";
+            return vi ? "TIẾP TỤC" : "LOAD";
         case LocKey::MENU_SETTINGS:
-            return vi ? "CAI DAT" : "SETTINGS";
+            return vi ? "CÀI ĐẶT" : "SETTINGS";
         case LocKey::MENU_INTRO:
-            return vi ? "GIOI THIEU" : "INTRODUCTION";
+            return vi ? "THÔNG TIN" : "INTRODUCTION";
         case LocKey::MENU_EXIT:
-            return vi ? "THOAT" : "EXIT";
+            return vi ? "THOÁT" : "EXIT";
 
         // Play Submenu
         case LocKey::PLAY_SUB_TITLE:
-            return vi ? "CHON CHE DO CHOI" : "SELECT GAME MODE";
+            return vi ? "CHỌN CHẾ ĐỘ CHƠI" : "SELECT GAME MODE";
         case LocKey::PLAY_PVP:
-            return vi ? "Hai nguoi choi (PvP)" : "Player vs Player";
+            return vi ? "Đấu hai người (PvP)" : "Player vs Player";
         case LocKey::PLAY_PVAI:
-            return vi ? "Dau voi may (PvAI)" : "Player vs AI";
+            return vi ? "Đấu với máy (PvAI)" : "Player vs AI";
         case LocKey::PLAY_DEMO:
-            return vi ? "Che do Demo" : "Demo Mode";
+            return vi ? "Xem máy đánh (Demo)" : "Demo Mode";
         case LocKey::BACK:
-            return vi ? "Quay lai" : "Back";
+            return vi ? "Quay lại" : "Back";
 
         // Match Setup
         case LocKey::SETUP_PVP_TITLE:
-            return vi ? "THIET LAP: HAI NGUOI CHOI" : "SETUP: PLAYER VS PLAYER";
+            return vi ? "THIẾT LẬP: HAI NGƯỜI CHƠI" : "SETUP: PLAYER VS PLAYER";
         case LocKey::SETUP_PVAI_TITLE:
-            return vi ? "THIET LAP: DAU VOI MAY" : "SETUP: PLAYER VS AI";
+            return vi ? "THIẾT LẬP: ĐẤU VỚI MÁY" : "SETUP: PLAYER VS AI";
         case LocKey::P1_LABEL:
-            return vi ? "NGUOI CHOI 1" : "PLAYER 1";
+            return vi ? "NGƯỜI CHƠI 1" : "PLAYER 1";
         case LocKey::P2_LABEL:
-            return vi ? "NGUOI CHOI 2" : "PLAYER 2";
+            return vi ? "NGƯỜI CHƠI 2" : "PLAYER 2";
         case LocKey::PLAYER_LABEL:
-            return vi ? "NGUOI CHOI" : "PLAYER";
+            return vi ? "NGƯỜI CHƠI" : "PLAYER";
         case LocKey::AI_LABEL:
-            return vi ? "MAY AI" : "AI ENGINE";
+            return vi ? "MÁY AI" : "AI ENGINE";
         case LocKey::ENTER_NAME_P1:
-            return vi ? "Ten nguoi choi 1:" : "Player 1 name:";
+            return vi ? "Tên người chơi 1:" : "Player 1 name:";
         case LocKey::ENTER_NAME_P2:
-            return vi ? "Ten nguoi choi 2:" : "Player 2 name:";
+            return vi ? "Tên người chơi 2:" : "Player 2 name:";
         case LocKey::ENTER_NAME_PLAYER:
-            return vi ? "Ten nguoi choi:" : "Player name:";
+            return vi ? "Tên người chơi:" : "Player name:";
         case LocKey::CHOOSE_CHAR:
-            return vi ? "Nhan vat: " : "Character: ";
+            return vi ? "Nhân vật: " : "Character: ";
         case LocKey::MATCH_TIMER_LABEL:
-            return vi ? "Thoi gian moi ben: " : "Match Time: ";
+            return vi ? "Thời gian mỗi bên: " : "Match Time: ";
         case LocKey::TIME_5M:
-            return vi ? "5 Phut" : "5 Mins";
+            return vi ? "5 Phút" : "5 Mins";
         case LocKey::TIME_10M:
-            return vi ? "10 Phut" : "10 Mins";
+            return vi ? "10 Phút" : "10 Mins";
         case LocKey::TIME_15M:
-            return vi ? "15 Phut" : "15 Mins";
+            return vi ? "15 Phút" : "15 Mins";
         case LocKey::TIME_UNLIMITED:
-            return vi ? "Vo han" : "Unlimited";
+            return vi ? "Vô hạn" : "Unlimited";
         case LocKey::TOSS_COIN:
-            return vi ? "Tung dong xu chon ai di truoc" : "Roll Random First Move";
+            return vi ? "Tung đồng xu chọn bên đi trước" : "Roll Random First Move";
         case LocKey::FIRST_MOVE_INFO:
-            return vi ? "Phe di truoc: Quan Do" : "First move: Red side";
+            return vi ? "Phe đi trước: Quân Đỏ" : "First move: Red side";
         case LocKey::START_GAME:
-            return vi ? "BAT DAU VAN DAU" : "START GAME";
+            return vi ? "BẮT ĐẦU VÁN ĐẤU" : "START GAME";
 
         // AI options
         case LocKey::AI_DIFFICULTY:
-            return vi ? "Do kho may: " : "AI Difficulty: ";
+            return vi ? "Độ khó máy: " : "AI Difficulty: ";
         case LocKey::DIFF_EASY:
-            return vi ? "De" : "Easy";
+            return vi ? "Dễ" : "Easy";
         case LocKey::DIFF_MED:
-            return vi ? "Vua" : "Medium";
+            return vi ? "Vừa" : "Medium";
         case LocKey::DIFF_HARD:
-            return vi ? "Kho" : "Hard";
+            return vi ? "Khó" : "Hard";
         case LocKey::WHO_GOES_FIRST:
-            return vi ? "Ai di truoc: " : "First Move: ";
+            return vi ? "Ai đi trước: " : "First Move: ";
         case LocKey::PLAYER_FIRST:
-            return vi ? "Ban di truoc (Quan Do)" : "You first (Red)";
+            return vi ? "Bạn đi trước (Quân Đỏ)" : "You first (Red)";
         case LocKey::AI_FIRST:
-            return vi ? "May di truoc (Quan Do)" : "AI first (Red)";
+            return vi ? "Máy đi trước (Quân Đỏ)" : "AI first (Red)";
         case LocKey::RANDOM_FIRST:
-            return vi ? "Ngau nhien" : "Random";
+            return vi ? "Ngẫu nhiên" : "Random";
 
         // Load Menu
         case LocKey::LOAD_TITLE:
-            return vi ? "CAC VAN DAU DA LUU" : "SAVED GAMES";
+            return vi ? "CÁC VÁN ĐẤU ĐÃ LƯU" : "SAVED GAMES";
         case LocKey::SAVED_GAMES:
-            return vi ? "Danh sach file luu" : "Saved Games List";
+            return vi ? "Danh sách ván đã lưu" : "Saved Games List";
         case LocKey::SLOT_LABEL:
-            return vi ? "O luu " : "Save Slot ";
+            return vi ? "Ô lưu " : "Save Slot ";
         case LocKey::EMPTY_SLOT:
-            return vi ? "(O luu trong - Chua co du lieu)" : "(Empty save slot)";
+            return vi ? "(Ô lưu trống - Chưa có dữ liệu)" : "(Empty save slot)";
         case LocKey::LOAD_BUTTON:
-            return vi ? "Tai van dau" : "Load Game";
+            return vi ? "Vào ván đấu" : "Load Game";
         case LocKey::DELETE_BUTTON:
-            return vi ? "Xoa ban luu" : "Delete Save";
+            return vi ? "Xóa bản lưu" : "Delete Save";
 
         // Settings Menu
         case LocKey::SETTINGS_TITLE:
-            return vi ? "CAI DAT HE THONG" : "SYSTEM SETTINGS";
+            return vi ? "CÀI ĐẶT HỆ THỐNG" : "SYSTEM SETTINGS";
         case LocKey::TAB_AUDIO:
-            return vi ? "AM THANH" : "AUDIO";
+            return vi ? "ÂM THANH" : "AUDIO";
         case LocKey::TAB_GRAPHICS:
-            return vi ? "DO HOA & BAN CO" : "GRAPHICS";
+            return vi ? "ĐỒ HỌA & BÀN CỜ" : "GRAPHICS";
         case LocKey::TAB_GAMEPLAY:
-            return vi ? "TRO CHOI" : "GAMEPLAY";
+            return vi ? "TRÒ CHƠI" : "GAMEPLAY";
         case LocKey::TAB_CONTROLS:
-            return vi ? "DIEU KHIEN" : "CONTROLS";
+            return vi ? "ĐIỀU KHIỂN" : "CONTROLS";
 
         // Audio Settings
         case LocKey::SETTING_MASTER_VOL:
-            return vi ? "Am luong tong (Master): " : "Master Volume: ";
+            return vi ? "Âm lượng tổng (Master): " : "Master Volume: ";
         case LocKey::SETTING_SFX_TOGGLE:
-            return vi ? "Hieu ung am thanh (SFX): " : "Sound Effects (SFX): ";
+            return vi ? "Hiệu ứng âm thanh (SFX): " : "Sound Effects (SFX): ";
         case LocKey::SETTING_SFX_VOL:
-            return vi ? "Am luong hieu ung (SFX): " : "SFX Volume: ";
+            return vi ? "Âm lượng hiệu ứng (SFX): " : "SFX Volume: ";
         case LocKey::SETTING_BGM_TOGGLE:
-            return vi ? "Nhac nen co trang (BGM): " : "Background Music (BGM): ";
+            return vi ? "Nhạc nền cổ trang (BGM): " : "Background Music (BGM): ";
         case LocKey::SETTING_BGM_VOL:
-            return vi ? "Am luong nhac nen (BGM): " : "BGM Volume: ";
+            return vi ? "Âm lượng nhạc nền (BGM): " : "BGM Volume: ";
         case LocKey::SETTING_TEST_AUDIO:
-            return vi ? "Nghe thu am thanh" : "Test Sound";
+            return vi ? "Nghe thử âm thanh" : "Test Sound";
 
         // Graphics Settings
         case LocKey::SETTING_BOARD_THEME:
-            return vi ? "Giao dien ban co: " : "Board Theme: ";
+            return vi ? "Giao diện bàn cờ: " : "Board Theme: ";
         case LocKey::THEME_WOOD:
-            return vi ? "Go Co Dien" : "Classic Wood";
+            return vi ? "Gỗ Cổ Điển" : "Classic Wood";
         case LocKey::THEME_JADE:
-            return vi ? "Ngoc Bich Hoang Gia" : "Imperial Jade";
+            return vi ? "Ngọc Bích Hoàng Gia" : "Imperial Jade";
         case LocKey::THEME_DARK:
-            return vi ? "Huyen Thach (Dark Mode)" : "Midnight Obsidian";
+            return vi ? "Huyền Thạch (Dark Mode)" : "Midnight Obsidian";
         case LocKey::THEME_BAMBOO:
-            return vi ? "Giay Truc Tram" : "Warm Bamboo";
+            return vi ? "Giấy Trúc Trầm" : "Warm Bamboo";
 
         case LocKey::SETTING_PIECE_STYLE:
-            return vi ? "Kieu ky hieu quan co: " : "Piece Style: ";
+            return vi ? "Kiểu ký hiệu quân cờ: " : "Piece Style: ";
         case LocKey::PIECE_REALISTIC:
-            return vi ? "Quan go truyen thong (Sprite)" : "Traditional Wood (Sprites)";
+            return vi ? "Quân gỗ truyền thống (Hình ảnh)" : "Traditional Wood (Sprites)";
         case LocKey::PIECE_VIETNAMESE:
-            return vi ? "Tieng Viet (Xe, Ma, Voi...)" : "Full Names (Xe, Ma, Voi...)";
+            return vi ? "Tiếng Việt (Xe, Mã, Voi...)" : "Full Names (Xe, Mã, Voi...)";
         case LocKey::PIECE_SHORT:
-            return vi ? "Ký hieu tat (X, M, V...)" : "Short Badges (X, M, V...)";
+            return vi ? "Ký hiệu tắt (X, M, V...)" : "Short Badges (X, M, V...)";
         case LocKey::PIECE_INTL:
-            return vi ? "Quoc te (R, H, E...)" : "International (R, H, E...)";
+            return vi ? "Quốc tế (R, H, E...)" : "International (R, H, E...)";
 
         case LocKey::SETTING_MOVE_HINTS:
-            return vi ? "Goi y nuoc di hop le: " : "Valid Move Hints: ";
+            return vi ? "Gợi ý nước đi hợp lệ: " : "Valid Move Hints: ";
         case LocKey::SETTING_LAST_MOVE:
-            return vi ? "Danh dau nuoc vua di: " : "Last Move Highlight: ";
+            return vi ? "Đánh dấu nước vừa đi: " : "Last Move Highlight: ";
         case LocKey::SETTING_COORDINATES:
-            return vi ? "Toa do mep ban co (1-9, A-J): " : "Board Coordinates (1-9, A-J): ";
+            return vi ? "Tọa độ mép bàn cờ (1-9, A-J): " : "Board Coordinates (1-9, A-J): ";
         case LocKey::SETTING_WINDOW_MODE:
-            return vi ? "Che do man hinh: " : "Display Mode: ";
+            return vi ? "Chế độ màn hình: " : "Display Mode: ";
         case LocKey::MODE_WINDOWED:
-            return vi ? "Cua so (1200x800)" : "Windowed (1200x800)";
+            return vi ? "Cửa sổ (1200x800)" : "Windowed (1200x800)";
         case LocKey::MODE_FULLSCREEN:
-            return vi ? "Toan man hinh" : "Fullscreen";
+            return vi ? "Toàn màn hình" : "Fullscreen";
         case LocKey::SETTING_ATMOSPHERE_STYLE:
-            return vi ? "Hieu ung khi quyen: " : "Atmospheric VFX: ";
+            return vi ? "Hiệu ứng khí quyển: " : "Atmospheric VFX: ";
         case LocKey::SETTING_ATMOSPHERE_DENSITY:
-            return vi ? "Mat do hat khi quyen" : "Atmospheric Particle Density";
+            return vi ? "Mật độ hạt khí quyển" : "Atmospheric Particle Density";
         case LocKey::ATMOSPHERE_LEAVES:
-            return vi ? "La Truc Xanh (Bamboo)" : "Bamboo Leaves";
+            return vi ? "Lá Trúc Xanh (Bamboo)" : "Bamboo Leaves";
         case LocKey::ATMOSPHERE_PETALS:
-            return vi ? "Canh Dao Hong (Peach)" : "Peach Blossoms";
+            return vi ? "Cánh Đào Hồng (Peach)" : "Peach Blossoms";
         case LocKey::ATMOSPHERE_SPARKS:
-            return vi ? "Tan Lua Vang (Sparks)" : "Golden Sparks";
+            return vi ? "Tàn Lửa Vàng (Sparks)" : "Golden Sparks";
         case LocKey::PIECE_AURA_LABEL:
-            return vi ? "Trang tri quan: " : "Piece Aura: ";
+            return vi ? "Hào quang quân cờ: " : "Piece Aura: ";
         case LocKey::AURA_CLASSIC:
-            return vi ? "Vanh Go Co Dien" : "Classic Wood Trim";
+            return vi ? "Vành Gỗ Cổ Điển" : "Classic Wood Trim";
         case LocKey::AURA_GOLD:
-            return vi ? "Hoang Kim Hao Quang" : "Imperial Gold Aura";
+            return vi ? "Hoàng Kim Hào Quang" : "Imperial Gold Aura";
         case LocKey::AURA_FLAME:
-            return vi ? "Xich Long Viem (Hoa)" : "Dragon Flame Aura";
+            return vi ? "Xích Long Viêm (Hỏa)" : "Dragon Flame Aura";
         case LocKey::AURA_THUNDER:
-            return vi ? "Lam Loi Phong (Ngoc)" : "Thunder Jade Aura";
+            return vi ? "Lam Lôi Phong (Ngọc)" : "Thunder Jade Aura";
         case LocKey::AURA_VOID:
-            return vi ? "Hac Dieu Ma Thach" : "Shadow Void Aura";
+            return vi ? "Hắc Diệu Ma Thạch" : "Shadow Void Aura";
 
         // Gameplay Settings
         case LocKey::SETTING_LANG:
-            return vi ? "Ngon ngu game: " : "Game Language: ";
+            return vi ? "Ngôn ngữ game: " : "Game Language: ";
         case LocKey::SETTING_AI_THINK:
-            return vi ? "Mo phong AI suy nghi: " : "AI Thinking Delay: ";
+            return vi ? "Mô phỏng AI suy nghĩ: " : "AI Thinking Delay: ";
         case LocKey::AI_THINK_REALISTIC:
-            return vi ? "Chan thuc (450ms)" : "Realistic (450ms)";
+            return vi ? "Chân thực (450ms)" : "Realistic (450ms)";
         case LocKey::AI_THINK_INSTANT:
-            return vi ? "Tuc thi (0ms)" : "Instant (0ms)";
+            return vi ? "Tức thì (0ms)" : "Instant (0ms)";
         case LocKey::SETTING_CHECK_ALARM:
-            return vi ? "Bao dong chieu tuong: " : "Check Warning Alarm: ";
+            return vi ? "Báo động chiếu tướng: " : "Check Warning Alarm: ";
 
         // Common & Actions
         case LocKey::ON:
-            return vi ? "Bat" : "ON";
+            return vi ? "Bật" : "ON";
         case LocKey::OFF:
-            return vi ? "Tat" : "OFF";
+            return vi ? "Tắt" : "OFF";
         case LocKey::BTN_APPLY_SAVE:
-            return vi ? "Ap dung & Luu" : "Apply & Save";
+            return vi ? "Áp dụng & Lưu" : "Apply & Save";
         case LocKey::BTN_RESTORE_DEFAULTS:
-            return vi ? "Khoi phuc mac dinh" : "Restore Defaults";
+            return vi ? "Khôi phục mặc định" : "Restore Defaults";
 
         // Keybindings Menu
         case LocKey::KEYBINDING_TITLE:
-            return vi ? "CAI DAT PHIM DIEU KHIEN" : "CUSTOM KEY BINDINGS";
+            return vi ? "CÀI ĐẶT PHÍM ĐIỀU KHIỂN" : "CUSTOM KEY BINDINGS";
         case LocKey::KEYBINDING_SUBTITLE:
-            return vi ? "Click vao hanh dong ben duoi de tuy y doi phim theo y muon:"
+            return vi ? "Nhấp vào hành động bên dưới để tùy ý đổi phím theo ý muốn:"
                       : "Click on any action below to customize its key binding:";
         case LocKey::KEY_ACTION_UP:
-            return vi ? "Di chuyen Len" : "Move Up";
+            return vi ? "Di chuyển Lên" : "Move Up";
         case LocKey::KEY_ACTION_DOWN:
-            return vi ? "Di chuyen Xuong" : "Move Down";
+            return vi ? "Di chuyển Xuống" : "Move Down";
         case LocKey::KEY_ACTION_LEFT:
-            return vi ? "Di chuyen Trai" : "Move Left";
+            return vi ? "Di chuyển Trái" : "Move Left";
         case LocKey::KEY_ACTION_RIGHT:
-            return vi ? "Di chuyen Phai" : "Move Right";
+            return vi ? "Di chuyển Phải" : "Move Right";
         case LocKey::KEY_ACTION_SELECT:
-            return vi ? "Chon / Ha co" : "Select / Move";
+            return vi ? "Chọn / Hạ cờ" : "Select / Move";
         case LocKey::KEY_ACTION_DESELECT:
-            return vi ? "Huy chon / Menu" : "Deselect / Cancel";
+            return vi ? "Hủy chọn / Menu" : "Deselect / Cancel";
         case LocKey::KEY_ACTION_QUIT:
-            return vi ? "Thoat nhanh" : "Quick Quit";
+            return vi ? "Thoát nhanh" : "Quick Quit";
         case LocKey::KEY_PRESS_PROMPT:
-            return vi ? "[ Nhan phim bat ky... ]" : "[ Press any key... ]";
+            return vi ? "[ Nhấn phím bất kỳ... ]" : "[ Press any key... ]";
         case LocKey::KEY_RESET_DEFAULT:
-            return vi ? "Dat lai mac dinh" : "Reset Defaults";
+            return vi ? "Đặt lại mặc định" : "Reset Defaults";
         case LocKey::PRESET_WASD_BTN:
-            return "WASD Preset";
+            return vi ? "Bộ phím WASD" : "WASD Preset";
         case LocKey::PRESET_ARROWS_BTN:
-            return vi ? "Bo phim Mui ten" : "Arrow Keys Preset";
+            return vi ? "Bộ phím Mũi tên" : "Arrow Keys Preset";
 
         // Introduction Menu
         case LocKey::INTRO_TITLE:
-            return vi ? "GIOI THIEU & LUAT CHOI CO TUONG" : "INTRODUCTION & RULES";
+            return vi ? "GIỚI THIỆU & LUẬT CHƠI CỜ TƯỚNG" : "INTRODUCTION & RULES";
 
         // In Game UI
         case LocKey::TURN_RED:
-            return vi ? "Luot di: Quan Do" : "Turn: Red";
+            return vi ? "Lượt đi: Quân Đỏ" : "Turn: Red";
         case LocKey::TURN_BLACK:
-            return vi ? "Luot di: Quan Den" : "Turn: Black";
+            return vi ? "Lượt đi: Quân Đen" : "Turn: Black";
         case LocKey::CHECK_ALERT:
-            return vi ? "!!! CHIEU TUONG !!!" : "!!! CHECK !!!";
+            return vi ? "!!! CHIẾU TƯỚNG !!!" : "!!! CHECK !!!";
         case LocKey::MOVE_HISTORY:
-            return vi ? "Lich su nuoc di:" : "Move History:";
+            return vi ? "Lịch sử nước đi:" : "Move History:";
         case LocKey::NO_MOVES_YET:
-            return vi ? "(Chua co nuoc di nao)" : "(No moves yet)";
+            return vi ? "(Chưa có nước đi nào)" : "(No moves yet)";
         case LocKey::TIME_RED:
-            return vi ? "Do: " : "Red: ";
+            return vi ? "Đỏ: " : "Red: ";
         case LocKey::TIME_BLACK:
-            return vi ? "Den: " : "Black: ";
+            return vi ? "Đen: " : "Black: ";
         case LocKey::UNDO:
-            return vi ? "Hoan tac" : "Undo";
+            return vi ? "Hoàn tác" : "Undo";
         case LocKey::REDO:
-            return vi ? "Di tiep" : "Redo";
+            return vi ? "Đi tiếp" : "Redo";
         case LocKey::NEW_GAME:
-            return vi ? "Van moi" : "New Game";
+            return vi ? "Ván mới" : "New Game";
         case LocKey::DRAW_OFFER:
-            return vi ? "Xin hoa" : "Offer Draw";
+            return vi ? "Xin hòa" : "Offer Draw";
         case LocKey::SURRENDER:
-            return vi ? "Dau hang" : "Resign";
+            return vi ? "Đầu hàng" : "Resign";
         case LocKey::SAVE_GAME:
-            return vi ? "Luu game" : "Save Game";
+            return vi ? "Lưu ván đấu" : "Save Game";
         case LocKey::LOAD_GAME:
-            return vi ? "Tai game" : "Load Game";
+            return vi ? "Tải ván đấu" : "Load Game";
         case LocKey::BACK_MENU:
-            return vi ? "Ve Menu" : "Main Menu";
+            return vi ? "Về Menu" : "Main Menu";
 
         // In Game Pause Popup Menu
         case LocKey::PAUSE_MENU_TITLE:
-            return vi ? "MENU TRAN DAU" : "MATCH PAUSED";
+            return vi ? "MENU TRẬN ĐẤU" : "MATCH PAUSED";
         case LocKey::MATCH_PAUSED_SUBTITLE:
-            return vi ? "(Tran dau tam dung - Nhan [ESC] hoac bam de tiep tuc)" : "(Game Paused - Press [ESC] or click to resume)";
+            return vi ? "(Trận đấu tạm dừng - Nhấn [ESC] hoặc bấm để tiếp tục)" : "(Game Paused - Press [ESC] or click to resume)";
         case LocKey::RESUME:
-            return vi ? "Tiep tuc choi" : "Resume Game";
+            return vi ? "Tiếp tục chơi" : "Resume Game";
         case LocKey::BTN_GAME_MENU:
-            return vi ? "Menu tran dau [ESC]" : "Match Menu [ESC]";
+            return vi ? "Menu trận đấu [ESC]" : "Match Menu [ESC]";
 
         // End Game Popup
         case LocKey::GAME_OVER:
-            return vi ? "KET THUC VAN CO" : "GAME OVER";
+            return vi ? "KẾT THÚC VÁN CỜ" : "GAME OVER";
         case LocKey::RED_WINS:
-            return vi ? "QUAN DO CHIEN THANG!" : "RED WINS!";
+            return vi ? "QUÂN ĐỎ CHIẾN THẮNG!" : "RED WINS!";
         case LocKey::BLACK_WINS:
-            return vi ? "QUAN DEN CHIEN THANG!" : "BLACK WINS!";
+            return vi ? "QUÂN ĐEN CHIẾN THẮNG!" : "BLACK WINS!";
         case LocKey::DRAW_MATCH:
-            return vi ? "HAI BEN HOA CO!" : "GAME DRAW!";
+            return vi ? "HAI BÊN HÒA CỜ!" : "GAME DRAW!";
         case LocKey::PLAY_AGAIN:
-            return vi ? "Choi lai" : "Play Again";
+            return vi ? "Chơi lại" : "Play Again";
     }
 
     return "";
@@ -307,23 +307,23 @@ std::string Loc::get(LocKey key) {
 std::string Loc::getCharName(int index) {
     bool vi = (currentLang == Language::TIENG_VIET);
     switch (index % 5) {
-        case 0: return vi ? "Tuong Quan" : "General";
-        case 1: return vi ? "Quan Su" : "Strategist";
-        case 2: return vi ? "Ky Vuong" : "Grandmaster";
-        case 3: return vi ? "Hiep Khach" : "Knight";
-        case 4: return vi ? "Thu Sinh" : "Scholar";
-        default: return vi ? "Ky Thu" : "Player";
+        case 0: return vi ? "Tướng Quân" : "General";
+        case 1: return vi ? "Quân Sư" : "Strategist";
+        case 2: return vi ? "Kỳ Vương" : "Grandmaster";
+        case 3: return vi ? "Hiệp Khách" : "Knight";
+        case 4: return vi ? "Thư Sinh" : "Scholar";
+        default: return vi ? "Kỳ Thủ" : "Player";
     }
 }
 
 std::string Loc::getCharDesc(int index) {
     bool vi = (currentLang == Language::TIENG_VIET);
     switch (index % 5) {
-        case 0: return vi ? "Tien phong dung manh, phong cach cong pha" : "Brave vanguard, aggressive offensive style";
-        case 1: return vi ? "Muu luoc sau xa, tinh toan tung nuoc co" : "Deep tactical thinker, meticulous positional planner";
-        case 2: return vi ? "Ky nghe uyen tham, cong thu toan dien" : "Legendary master, perfectly balanced play";
-        case 3: return vi ? "Linh hoat bien hoa, phan cong bat ngo" : "Agile and flexible, swift counter-attacks";
-        case 4: return vi ? "Phong thai ung dung, can trong vung chac" : "Composed and wise, rock-solid defense";
+        case 0: return vi ? "Tiên phong dũng mãnh, phong cách công phá vũ bão" : "Brave vanguard, aggressive offensive style";
+        case 1: return vi ? "Mưu lược sâu xa, tính toán từng nước cờ chặt chẽ" : "Deep tactical thinker, meticulous positional planner";
+        case 2: return vi ? "Kỳ nghệ uyên thâm, công thủ toàn diện kỳ tài" : "Legendary master, perfectly balanced play";
+        case 3: return vi ? "Linh hoạt biến hóa, phản công bất ngờ xuất quỷ nhập thần" : "Agile and flexible, swift counter-attacks";
+        case 4: return vi ? "Phong thái ung dung, cẩn trọng phòng ngự vững như bàn thạch" : "Composed and wise, rock-solid defense";
         default: return "";
     }
 }
