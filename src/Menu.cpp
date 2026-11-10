@@ -1,16 +1,23 @@
 #include "Menu.h"
+#include "FantasyUI.h"
 #include <iostream>
 #include <vector>
 #include <cmath>
 #include <iomanip>
 #include <sstream>
 
-static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth = false) {
+static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth = false, bool maskWhite = true) {
     const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
     for (const auto& p : prefixes) {
-        if (tex.loadFromFile(p + path)) {
-            tex.setSmooth(smooth);
-            return true;
+        sf::Image img;
+        if (img.loadFromFile(p + path)) {
+            if (maskWhite) {
+                img.createMaskFromColor(sf::Color::White);
+            }
+            if (tex.loadFromImage(img)) {
+                tex.setSmooth(smooth);
+                return true;
+            }
         }
     }
     return false;
@@ -28,8 +35,9 @@ static bool loadFontSafe(sf::Font& font, const std::string& path) {
 
 MenuAssets::MenuAssets() {
     // Background
-    loadTexSafe(cleanBg, "assets/background.png", true) ||
-    loadTexSafe(cleanBg, "resources/textures/background.png", true);
+    loadTexSafe(cleanBg, "assets/xiangqi_background_pavilion.png", true, false) ||
+    loadTexSafe(cleanBg, "assets/background.png", true, false) ||
+    loadTexSafe(cleanBg, "resources/textures/background.png", true, false);
 
     // Book assets
     const std::string bookDir = "assets/Complete_UI_Book_Styles_Pack_Free/Complete_UI_Book_Styles_Pack_Free_v1.0/01_TravelBookLite/Sprites/";
@@ -70,8 +78,9 @@ MenuAssets::MenuAssets() {
     loadTexSafe(cursorNormal, bookDir + "UI_TravelBook_Cursor01c.png", false);
     loadTexSafe(cursorPressed, bookDir + "UI_TravelBook_Cursor01d.png", false);
     loadTexSafe(selectCorners, bookDir + "UI_TravelBook_Select01a.png", false);
-    loadTexSafe(playBg, "assets/background play.jpg", true) ||
-    loadTexSafe(playBg, "resources/textures/background play.jpg", true);
+    loadTexSafe(playBg, "assets/xiangqi_background_pavilion.png", true, false) ||
+    loadTexSafe(playBg, "assets/background play.jpg", true, false) ||
+    loadTexSafe(playBg, "resources/textures/background play.jpg", true, false);
 
     // Load fonts
     fontVnLoaded = loadFontSafe(fontVn, "assets/font/ViaodaLibre-Regular.ttf") ||
@@ -198,31 +207,25 @@ void Button::canGiuaText() {
     float posY = shape.getPosition().y;
 
     bool hasIcon = (texIcon && texIcon->getSize().x > 0);
-    float iconAreaW = 0.0f;
-    if (hasIcon) {
-        float targetH = btnH * 0.52f;
-        float iconScale = targetH / static_cast<float>(texIcon->getSize().y);
-        float iconW = static_cast<float>(texIcon->getSize().x) * iconScale;
-        iconAreaW = 12.0f + iconW + 8.0f; // 12px margin trái + icon width + 8px gap
-    }
+    float availW = hasIcon ? (btnW - 36.0f) : (btnW - 14.0f);
+    if (availW < 16.0f) availW = 16.0f;
 
-    float availW = btnW - iconAreaW - 12.0f; // 12px margin phải
-    if (availW < 20.0f) availW = 20.0f;
-
-    // Adjust font size
-    sf::FloatRect tb = text.getLocalBounds();
+    // Adjust font size if text exceeds button area
+    sf::FloatRect bounds = text.getLocalBounds();
     unsigned int curSize = text.getCharacterSize();
-    while (tb.width > availW && curSize > 10) {
+    while (bounds.width > availW && curSize > 10) {
         curSize--;
         text.setCharacterSize(curSize);
-        tb = text.getLocalBounds();
+        bounds = text.getLocalBounds();
     }
 
-    text.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-
-    float centerX = posX + iconAreaW + availW / 2.0f;
-    float centerY = posY + btnH / 2.0f + 1.0f;
-    text.setPosition(centerX, centerY);
+    // Exact geometric centering required by user
+    text.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
+    if (hasIcon) {
+        text.setPosition(posX + 18.0f + availW / 2.0f, posY + btnH / 2.0f);
+    } else {
+        text.setPosition(posX + btnW / 2.0f, posY + btnH / 2.0f);
+    }
 }
 
 Button::Button(float x, float y, float width, float height,
@@ -260,6 +263,12 @@ Button::Button(float x, float y, float width, float height,
 void Button::setPosition(float x, float y) {
     if (shape.getPosition().x == x && shape.getPosition().y == y) return;
     shape.setPosition(x, y);
+    canGiuaText();
+}
+
+void Button::setSize(float w, float h) {
+    if (shape.getSize().x == w && shape.getSize().y == h) return;
+    shape.setSize(sf::Vector2f(w, h));
     canGiuaText();
 }
 
@@ -326,71 +335,88 @@ void Button::handleClick(const sf::Vector2i& mousePos) {
 }
 
 void Button::draw(sf::RenderWindow& window) {
-    auto& assets = getMenuAssets();
     bool isHighlighted = (hovered || selected) && enabled;
-
-    const sf::Texture* activeTex = texNormal;
-    if (isHighlighted && texHover && texHover->getSize().x > 0) {
-        activeTex = texHover;
-    }
-
     sf::Vector2f pos = shape.getPosition();
     sf::Vector2f sz = shape.getSize();
 
-    // 1. Draw solid button background with highlighted frame
+    // 1. Draw rich dark rosewood plaque base
     sf::RectangleShape drawShape(sz);
     drawShape.setPosition(pos);
-    if (isHighlighted) {
-        drawShape.setFillColor(sf::Color(255, 245, 230, 255));
-        drawShape.setOutlineThickness(2.0f);
-        drawShape.setOutlineColor(sf::Color(210, 140, 50, 245));
-    } else {
-        drawShape.setFillColor(sf::Color(238, 226, 210, 230));
+
+    if (!enabled) {
+        drawShape.setFillColor(sf::Color(35, 28, 24, 210));
         drawShape.setOutlineThickness(1.2f);
-        drawShape.setOutlineColor(sf::Color(175, 140, 100, 180));
+        drawShape.setOutlineColor(sf::Color(90, 75, 65, 180));
+    } else if (isHighlighted) {
+        // Glowing warm gold finish on dark wood
+        drawShape.setFillColor(sf::Color(65, 42, 25, 255));
+        drawShape.setOutlineThickness(2.0f);
+        drawShape.setOutlineColor(sf::Color(235, 185, 75, 255));
+    } else {
+        // Deep carved dark rosewood
+        drawShape.setFillColor(sf::Color(42, 28, 20, 245));
+        drawShape.setOutlineThickness(1.5f);
+        drawShape.setOutlineColor(sf::Color(160, 115, 65, 220));
     }
     window.draw(drawShape);
 
-    // 2. Overlay texture frame if available
+    // 2. Overlay frame texture if available and scaled proportionally
+    const sf::Texture* activeTex = isHighlighted ? (texHover ? texHover : texNormal) : texNormal;
     if (activeTex && activeTex->getSize().x > 0 && enabled) {
         sf::Sprite sp(*activeTex);
         sf::Vector2u texSz = activeTex->getSize();
-        float hoverExpand = isHighlighted ? 2.0f : 0.0f;
+        float hoverExpand = isHighlighted ? 1.5f : 0.0f;
         sp.setPosition(pos.x - hoverExpand, pos.y - hoverExpand);
         sp.setScale((sz.x + hoverExpand * 2.0f) / static_cast<float>(texSz.x),
                     (sz.y + hoverExpand * 2.0f) / static_cast<float>(texSz.y));
         if (isHighlighted) {
-            sp.setColor(sf::Color(255, 245, 225));
+            sp.setColor(sf::Color(255, 240, 200));
+        } else {
+            sp.setColor(sf::Color(210, 180, 140, 230));
         }
         window.draw(sp);
     }
 
-    // 3. Draw icon
+    // 3. Draw icon if attached
     if (texIcon && texIcon->getSize().x > 0 && enabled) {
         sf::Sprite iconSp(*texIcon);
         sf::Vector2u iSz = texIcon->getSize();
-        float targetH = shape.getSize().y * 0.54f;
+        float targetH = sz.y * 0.52f;
         float iconScale = targetH / static_cast<float>(iSz.y);
         iconSp.setScale(iconScale, iconScale);
-        float iconW = static_cast<float>(iSz.x) * iconScale;
         float iconH = static_cast<float>(iSz.y) * iconScale;
 
-        iconSp.setPosition(shape.getPosition().x + 14.0f,
-                           shape.getPosition().y + (shape.getSize().y - iconH) / 2.0f);
+        iconSp.setPosition(pos.x + 12.0f, pos.y + (sz.y - iconH) / 2.0f);
         if (isHighlighted) {
-            iconSp.setColor(sf::Color(190, 35, 25));
+            iconSp.setColor(sf::Color(255, 235, 150));
         } else {
-            iconSp.setColor(sf::Color(85, 55, 30));
+            iconSp.setColor(sf::Color(210, 185, 140));
         }
         window.draw(iconSp);
     }
 
-    // 4. Draw text
-    window.draw(text);
+    // 4. Draw text with rich carved shadow underneath
+    sf::Text drawText = text;
+    if (!enabled) {
+        drawText.setFillColor(sf::Color(130, 120, 110));
+    } else if (isHighlighted) {
+        drawText.setFillColor(sf::Color(255, 245, 140)); // Golden glow
+        drawText.setStyle(sf::Text::Bold);
+    } else {
+        drawText.setFillColor(sf::Color(245, 230, 205)); // Warm ivory
+        drawText.setStyle(sf::Text::Bold);
+    }
 
-    // 5. 4 Corner brackets on hover or selected
+    // Carved shadow
+    sf::Text shadow = drawText;
+    shadow.setPosition(drawText.getPosition().x + 1.2f, drawText.getPosition().y + 1.2f);
+    shadow.setFillColor(sf::Color(12, 6, 3, 230));
+    window.draw(shadow);
+    window.draw(drawText);
+
+    // 5. Four brass corner cloud brackets on hover/selected
     if (isHighlighted) {
-        ve4GocLuaChon(window, shape.getPosition(), shape.getSize(), 2.0f, 1.8f);
+        ve4GocLuaChon(window, pos, sz, 2.0f, 1.8f);
     }
 }
 
@@ -1069,7 +1095,9 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     const float titleY = 55.0f;                     // Title position
 
     // Title frame
-    if (assets.frameNormal.getSize().x > 0) {
+    if (FantasyUI::get().isLoaded()) {
+        FantasyUI::get().drawPanel(window, sf::FloatRect(titleX, titleY, titleW, titleH), FantasyPanelStyle::ORNATE_WOOD);
+    } else if (assets.frameNormal.getSize().x > 0) {
         sf::Sprite tFrame(assets.frameNormal);
         sf::Vector2u fs = assets.frameNormal.getSize();
         tFrame.setPosition(titleX, titleY);
@@ -1131,6 +1159,9 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     shadow.setFillColor(sf::Color(0, 0, 0, 95));
     window.draw(shadow);
 
+    const sf::Color woodCoverCol(185, 140, 115); // Rich warm oriental rosewood tint
+    const sf::Color paperPageCol(255, 250, 242); // Antique parchment paper tint
+
     // Closed book
     if (isBookClosed && bookProgress <= 0.0f) {
         float coverW = 112.0f * scale; // 515.2px
@@ -1143,15 +1174,16 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             closedCover.setTextureRect(sf::IntRect(112, 0, 112, 160));
             closedCover.setPosition(cx, cy);
             closedCover.setScale(scale, scale);
+            closedCover.setColor(woodCoverCol);
             window.draw(closedCover);
         }
 
-        // Cover buttons
-        float btnW = 370.0f;
-        float btnH = 58.0f;
+        // Cover buttons (standard proportional ~ 220px x 48px)
+        float btnW = 220.0f;
+        float btnH = 48.0f;
         float btnX = cx + (coverW - btnW) / 2.0f;
-        float startBtnY = cy + 125.0f;
-        float btnSpacing = 76.0f;
+        float startBtnY = cy + 130.0f;
+        float btnSpacing = 72.0f;
 
         const std::vector<std::string> coverBtnLabels = {
             tiengViet ? "CHƠI MỚI" : "PLAY",
@@ -1162,6 +1194,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         };
 
         for (size_t i = 0; i < buttons.size() && i < 5; ++i) {
+            buttons[i].setSize(btnW, btnH);
             buttons[i].setPosition(btnX, startBtnY + i * btnSpacing);
             buttons[i].setLabel(coverBtnLabels[i]);
             buttons[i].setSelected(keyboardNavActive && static_cast<int>(i) == coverIndex);
@@ -1192,6 +1225,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             leftCover.setTextureRect(sf::IntRect(0, 0, 112, 160));
             leftCover.setPosition(cx - openHalfW, bookY);
             leftCover.setScale((openHalfW / 112.0f), scale);
+            leftCover.setColor(woodCoverCol);
             window.draw(leftCover);
         }
 
@@ -1201,6 +1235,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             rightCover.setTextureRect(sf::IntRect(112, 0, 112, 160));
             rightCover.setPosition(cx, bookY);
             rightCover.setScale((openHalfW / 112.0f), scale);
+            rightCover.setColor(woodCoverCol);
             window.draw(rightCover);
         }
 
@@ -1211,6 +1246,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 float pw = 104.0f * scale * t;
                 spLeft.setPosition(cx - pw, bookY + 6.5f * scale);
                 spLeft.setScale((pw / 104.0f), scale);
+                spLeft.setColor(paperPageCol);
                 window.draw(spLeft);
             }
             if (assets.bookPageRight.getSize().x > 0) {
@@ -1218,6 +1254,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 float pw = 104.0f * scale * t;
                 spRight.setPosition(cx, bookY + 6.5f * scale);
                 spRight.setScale((pw / 104.0f), scale);
+                spRight.setColor(paperPageCol);
                 window.draw(spRight);
             }
         }
@@ -1238,6 +1275,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             sf::Sprite spCover(assets.bookCover);
             spCover.setPosition(bookX, bookY);
             spCover.setScale(scale, scale);
+            spCover.setColor(woodCoverCol);
             window.draw(spCover);
         }
 
@@ -1246,6 +1284,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             sf::Sprite spLeft(assets.bookPageLeft);
             spLeft.setPosition(bookX + 8.0f * scale, bookY + 6.5f * scale); // (481.8, 219.9)
             spLeft.setScale(scale, scale);
+            spLeft.setColor(paperPageCol);
             window.draw(spLeft);
         }
 
@@ -1254,6 +1293,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             sf::Sprite spRight(assets.bookPageRight);
             spRight.setPosition(bookX + (8.0f + 104.0f + 8.0f) * scale, bookY + 6.5f * scale); // (997.8, 219.9)
             spRight.setScale(scale, scale);
+            spRight.setColor(paperPageCol);
             window.draw(spRight);
         }
 
@@ -1269,6 +1309,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             sf::Sprite spMarker(assets.marker);
             spMarker.setPosition(482.0f, 186.0f);
             spMarker.setScale(3.4f, 3.4f);
+            spMarker.setColor(sf::Color(210, 45, 35));
             window.draw(spMarker);
         }
 
@@ -1378,24 +1419,30 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
 
     // Left page
         // Left page title
-        if (assets.frameNormal.getSize().x > 0) {
-            sf::Sprite lHeader(assets.frameNormal);
-            lHeader.setPosition(535.0f, 235.0f);
-            lHeader.setScale(380.0f / static_cast<float>(assets.frameNormal.getSize().x),
-                             50.0f / static_cast<float>(assets.frameNormal.getSize().y));
-            window.draw(lHeader);
-        }
+        if (FantasyUI::get().isLoaded()) {
+            FantasyUI::get().drawRibbonTitle(window, 535.0f + 190.0f, 235.0f, 380.0f, 50.0f,
+                                             tiengViet ? "DANH MỤC CHÍNH" : "MAIN MENU",
+                                             fBold, 21, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+        } else {
+            if (assets.frameNormal.getSize().x > 0) {
+                sf::Sprite lHeader(assets.frameNormal);
+                lHeader.setPosition(535.0f, 235.0f);
+                lHeader.setScale(380.0f / static_cast<float>(assets.frameNormal.getSize().x),
+                                 50.0f / static_cast<float>(assets.frameNormal.getSize().y));
+                window.draw(lHeader);
+            }
 
-        sf::Text lTitle;
-        lTitle.setFont(fBold);
-        lTitle.setString(toUtf8(tiengViet ? "DANH MỤC CHÍNH" : "MAIN MENU"));
-        lTitle.setCharacterSize(21);
-        lTitle.setStyle(sf::Text::Bold);
-        lTitle.setFillColor(sf::Color(140, 25, 20));
-        sf::FloatRect ltb = lTitle.getLocalBounds();
-        lTitle.setOrigin(ltb.left + ltb.width / 2.0f, ltb.top + ltb.height / 2.0f);
-        lTitle.setPosition(535.0f + 190.0f, 260.0f);
-        window.draw(lTitle);
+            sf::Text lTitle;
+            lTitle.setFont(fBold);
+            lTitle.setString(toUtf8(tiengViet ? "DANH MỤC CHÍNH" : "MAIN MENU"));
+            lTitle.setCharacterSize(21);
+            lTitle.setStyle(sf::Text::Bold);
+            lTitle.setFillColor(sf::Color(140, 25, 20));
+            sf::FloatRect ltb = lTitle.getLocalBounds();
+            lTitle.setOrigin(ltb.left + ltb.width / 2.0f, ltb.top + ltb.height / 2.0f);
+            lTitle.setPosition(535.0f + 190.0f, 260.0f);
+            window.draw(lTitle);
+        }
 
         if (assets.decLine.getSize().x > 0) {
             sf::Sprite lineL(assets.decLine);
@@ -1413,9 +1460,9 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             tiengViet ? "Thoát Game" : "Exit"
         };
 
-        const float lBtnX = 535.0f;
-        const float lBtnW = 380.0f;
+        const float lBtnW = 220.0f;
         const float lBtnH = 48.0f;
+        const float lBtnX = 535.0f + (380.0f - lBtnW) / 2.0f;
         const float lStartBtnY = 310.0f;
         const float lSpacing = 66.0f;
 
@@ -1492,15 +1539,6 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         const float rHeaderX = 1042.0f;
         const float rHeaderW = 390.0f;
 
-        // Right page title
-        if (assets.frameNormal.getSize().x > 0) {
-            sf::Sprite rHeader(assets.frameNormal);
-            rHeader.setPosition(rHeaderX, 235.0f);
-            rHeader.setScale(rHeaderW / static_cast<float>(assets.frameNormal.getSize().x),
-                             50.0f / static_cast<float>(assets.frameNormal.getSize().y));
-            window.draw(rHeader);
-        }
-
         std::string rightTitleStr;
         if (activeSection == MenuSection::PLAY) rightTitleStr = tiengViet ? "CHỌN CHẾ ĐỘ CHƠI" : "SELECT GAME MODE";
         else if (activeSection == MenuSection::LOAD) rightTitleStr = tiengViet ? "CÁC VÁN ĐẤU ĐÃ LƯU" : "SAVED GAMES";
@@ -1508,16 +1546,30 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         else if (activeSection == MenuSection::INFO) rightTitleStr = tiengViet ? "THÔNG TIN & LUẬT CHƠI" : "INFORMATION & RULES";
         else if (activeSection == MenuSection::EXIT) rightTitleStr = tiengViet ? "XÁC NHẬN THOÁT GAME" : "CONFIRM EXIT";
 
-        sf::Text rTitle;
-        rTitle.setFont(fBold);
-        rTitle.setString(toUtf8(rightTitleStr));
-        rTitle.setCharacterSize(21);
-        rTitle.setStyle(sf::Text::Bold);
-        rTitle.setFillColor(sf::Color(140, 25, 20));
-        sf::FloatRect rtb = rTitle.getLocalBounds();
-        rTitle.setOrigin(rtb.left + rtb.width / 2.0f, rtb.top + rtb.height / 2.0f);
-        rTitle.setPosition(rHeaderX + rHeaderW / 2.0f, 260.0f);
-        window.draw(rTitle);
+        // Right page title
+        if (FantasyUI::get().isLoaded()) {
+            FantasyUI::get().drawRibbonTitle(window, rHeaderX + rHeaderW / 2.0f, 235.0f, rHeaderW, 50.0f,
+                                             rightTitleStr, fBold, 21, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+        } else {
+            if (assets.frameNormal.getSize().x > 0) {
+                sf::Sprite rHeader(assets.frameNormal);
+                rHeader.setPosition(rHeaderX, 235.0f);
+                rHeader.setScale(rHeaderW / static_cast<float>(assets.frameNormal.getSize().x),
+                                 50.0f / static_cast<float>(assets.frameNormal.getSize().y));
+                window.draw(rHeader);
+            }
+
+            sf::Text rTitle;
+            rTitle.setFont(fBold);
+            rTitle.setString(toUtf8(rightTitleStr));
+            rTitle.setCharacterSize(21);
+            rTitle.setStyle(sf::Text::Bold);
+            rTitle.setFillColor(sf::Color(140, 25, 20));
+            sf::FloatRect rtb = rTitle.getLocalBounds();
+            rTitle.setOrigin(rtb.left + rtb.width / 2.0f, rtb.top + rtb.height / 2.0f);
+            rTitle.setPosition(rHeaderX + rHeaderW / 2.0f, 260.0f);
+            window.draw(rTitle);
+        }
 
         if (assets.decLine.getSize().x > 0) {
             sf::Sprite lineR(assets.decLine);

@@ -112,6 +112,7 @@ public:
         std::function<void()> onClick);
 
     void setPosition(float x, float y);
+    void setSize(float w, float h);
     void setLabel(const std::string& label);
     void setCharacterSize(unsigned int size);
     void setFont(const sf::Font& f);
