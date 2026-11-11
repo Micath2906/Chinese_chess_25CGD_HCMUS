@@ -12,7 +12,19 @@ static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth =
         sf::Image img;
         if (img.loadFromFile(p + path)) {
             if (maskWhite) {
-                img.createMaskFromColor(sf::Color::White);
+                bool hasAlpha = false;
+                sf::Vector2u sz = img.getSize();
+                for (unsigned int y = 0; y < sz.y && !hasAlpha; ++y) {
+                    for (unsigned int x = 0; x < sz.x; ++x) {
+                        if (img.getPixel(x, y).a < 250) {
+                            hasAlpha = true;
+                            break;
+                        }
+                    }
+                }
+                if (!hasAlpha) {
+                    img.createMaskFromColor(sf::Color::White);
+                }
             }
             if (tex.loadFromImage(img)) {
                 tex.setSmooth(smooth);
@@ -201,31 +213,19 @@ void ve4GocLuaChon(sf::RenderWindow& window, sf::Vector2f pos, sf::Vector2f sz, 
 
 // Button
 void Button::canGiuaText() {
-    float btnW = shape.getSize().x;
-    float btnH = shape.getSize().y;
-    float posX = shape.getPosition().x;
-    float posY = shape.getPosition().y;
-
-    bool hasIcon = (texIcon && texIcon->getSize().x > 0);
-    float availW = hasIcon ? (btnW - 36.0f) : (btnW - 14.0f);
-    if (availW < 16.0f) availW = 16.0f;
-
-    // Adjust font size if text exceeds button area
     sf::FloatRect bounds = text.getLocalBounds();
     unsigned int curSize = text.getCharacterSize();
+    float availW = shape.getSize().x - 14.0f;
     while (bounds.width > availW && curSize > 10) {
         curSize--;
         text.setCharacterSize(curSize);
         bounds = text.getLocalBounds();
     }
 
-    // Exact geometric centering required by user
-    text.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
-    if (hasIcon) {
-        text.setPosition(posX + 18.0f + availW / 2.0f, posY + btnH / 2.0f);
-    } else {
-        text.setPosition(posX + btnW / 2.0f, posY + btnH / 2.0f);
-    }
+    text.setOrigin(std::round(bounds.left + bounds.width / 2.0f),
+                   std::round(bounds.top + bounds.height / 2.0f));
+    text.setPosition(std::round(shape.getPosition().x + shape.getSize().x / 2.0f),
+                     std::round(shape.getPosition().y + shape.getSize().y / 2.0f));
 }
 
 Button::Button(float x, float y, float width, float height,
@@ -339,42 +339,36 @@ void Button::draw(sf::RenderWindow& window) {
     sf::Vector2f pos = shape.getPosition();
     sf::Vector2f sz = shape.getSize();
 
-    // 1. Draw rich dark rosewood plaque base
-    sf::RectangleShape drawShape(sz);
-    drawShape.setPosition(pos);
-
-    if (!enabled) {
-        drawShape.setFillColor(sf::Color(35, 28, 24, 210));
-        drawShape.setOutlineThickness(1.2f);
-        drawShape.setOutlineColor(sf::Color(90, 75, 65, 180));
-    } else if (isHighlighted) {
-        // Glowing warm gold finish on dark wood
-        drawShape.setFillColor(sf::Color(65, 42, 25, 255));
-        drawShape.setOutlineThickness(2.0f);
-        drawShape.setOutlineColor(sf::Color(235, 185, 75, 255));
+    auto& fui = FantasyUI::get();
+    if (fui.isLoaded() && fui.texFantasy.getSize().x > 0) {
+        sf::IntRect srcRect = isHighlighted ? fui.rcBtnHover : fui.rcBtnNormal;
+        sf::FloatRect dstRect(pos.x, pos.y, sz.x, sz.y);
+        sf::Color tint = !enabled ? sf::Color(120, 120, 120, 200) : sf::Color::White;
+        fui.draw9Slice(window, fui.texFantasy, srcRect, 18, 10, 18, 10, dstRect, tint);
     } else {
-        // Deep carved dark rosewood
-        drawShape.setFillColor(sf::Color(42, 28, 20, 245));
-        drawShape.setOutlineThickness(1.5f);
-        drawShape.setOutlineColor(sf::Color(160, 115, 65, 220));
-    }
-    window.draw(drawShape);
+        // 1. Draw rich dark rosewood plaque base
+        sf::RectangleShape drawShape(sz);
+        drawShape.setPosition(pos);
 
-    // 2. Overlay frame texture if available and scaled proportionally
-    const sf::Texture* activeTex = isHighlighted ? (texHover ? texHover : texNormal) : texNormal;
-    if (activeTex && activeTex->getSize().x > 0 && enabled) {
-        sf::Sprite sp(*activeTex);
-        sf::Vector2u texSz = activeTex->getSize();
-        float hoverExpand = isHighlighted ? 1.5f : 0.0f;
-        sp.setPosition(pos.x - hoverExpand, pos.y - hoverExpand);
-        sp.setScale((sz.x + hoverExpand * 2.0f) / static_cast<float>(texSz.x),
-                    (sz.y + hoverExpand * 2.0f) / static_cast<float>(texSz.y));
-        if (isHighlighted) {
-            sp.setColor(sf::Color(255, 240, 200));
+        if (!enabled) {
+            drawShape.setFillColor(sf::Color(35, 28, 24, 210));
+            drawShape.setOutlineThickness(1.2f);
+            drawShape.setOutlineColor(sf::Color(90, 75, 65, 180));
+        } else if (isHighlighted) {
+            drawShape.setFillColor(sf::Color(65, 42, 25, 255));
+            drawShape.setOutlineThickness(2.0f);
+            drawShape.setOutlineColor(sf::Color(235, 185, 75, 255));
         } else {
-            sp.setColor(sf::Color(210, 180, 140, 230));
+            drawShape.setFillColor(sf::Color(42, 28, 20, 245));
+            drawShape.setOutlineThickness(1.5f);
+            drawShape.setOutlineColor(sf::Color(160, 115, 65, 220));
         }
-        window.draw(sp);
+        window.draw(drawShape);
+    }
+
+    // 2. Corner brackets on highlight
+    if (isHighlighted) {
+        ve4GocLuaChon(window, pos, sz, 2.0f, 1.8f);
     }
 
     // 3. Draw icon if attached
@@ -395,29 +389,30 @@ void Button::draw(sf::RenderWindow& window) {
         window.draw(iconSp);
     }
 
-    // 4. Draw text with rich carved shadow underneath
+    // 4. Draw text with geometric std::round centering
+    sf::FloatRect bounds = text.getLocalBounds();
+    text.setOrigin(std::round(bounds.left + bounds.width / 2.0f),
+                   std::round(bounds.top + bounds.height / 2.0f));
+    text.setPosition(std::round(pos.x + sz.x / 2.0f),
+                     std::round(pos.y + sz.y / 2.0f));
+
     sf::Text drawText = text;
     if (!enabled) {
         drawText.setFillColor(sf::Color(130, 120, 110));
     } else if (isHighlighted) {
-        drawText.setFillColor(sf::Color(255, 245, 140)); // Golden glow
+        drawText.setFillColor(sf::Color(255, 245, 140));
         drawText.setStyle(sf::Text::Bold);
     } else {
-        drawText.setFillColor(sf::Color(245, 230, 205)); // Warm ivory
+        drawText.setFillColor(sf::Color(245, 230, 205));
         drawText.setStyle(sf::Text::Bold);
     }
 
     // Carved shadow
     sf::Text shadow = drawText;
-    shadow.setPosition(drawText.getPosition().x + 1.2f, drawText.getPosition().y + 1.2f);
+    shadow.setPosition(std::round(drawText.getPosition().x + 1.2f), std::round(drawText.getPosition().y + 1.2f));
     shadow.setFillColor(sf::Color(12, 6, 3, 230));
     window.draw(shadow);
     window.draw(drawText);
-
-    // 5. Four brass corner cloud brackets on hover/selected
-    if (isHighlighted) {
-        ve4GocLuaChon(window, pos, sz, 2.0f, 1.8f);
-    }
 }
 
 bool Button::contains(const sf::Vector2i& point) const {
@@ -1180,7 +1175,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
 
         // Cover buttons (standard proportional ~ 220px x 48px)
         float btnW = 220.0f;
-        float btnH = 48.0f;
+        float btnH = 44.0f;
         float btnX = cx + (coverW - btnW) / 2.0f;
         float startBtnY = cy + 130.0f;
         float btnSpacing = 72.0f;
@@ -1461,7 +1456,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         };
 
         const float lBtnW = 220.0f;
-        const float lBtnH = 48.0f;
+        const float lBtnH = 44.0f;
         const float lBtnX = 535.0f + (380.0f - lBtnW) / 2.0f;
         const float lStartBtnY = 310.0f;
         const float lSpacing = 66.0f;

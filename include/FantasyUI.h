@@ -2,13 +2,20 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
-enum class FantasyPanelStyle {
-    ORNATE_WOOD,      // Rich carved dark wood with bronze rivets & metal corners
-    WOOD_SLOT,        // Deep beveled dark oak recessed panel / card
-    SQUARE_FRAME,     // Ornate square frame (for avatars, badges)
-    PARCHMENT_CARD,   // Warm aged parchment with delicate gold border
-    PARCHMENT_RIBBON  // Carved scroll ribbon for section banners
+enum class OrientalPanelStyle {
+    EBONY_WOOD,       // Gỗ mun viền đồng mây (thay cho ORNATE_WOOD)
+    PARCHMENT_SCROLL, // Giấy ngà vân mây (thay cho PARCHMENT_CARD)
+    JADE_INSET,       // Khảm ngọc bích chìm
+
+    // Backward compatibility aliases
+    ORNATE_WOOD = EBONY_WOOD,
+    PARCHMENT_CARD = PARCHMENT_SCROLL,
+    WOOD_SLOT = JADE_INSET,
+    SQUARE_FRAME = EBONY_WOOD,
+    PARCHMENT_RIBBON = PARCHMENT_SCROLL
 };
+
+using FantasyPanelStyle = OrientalPanelStyle;
 
 enum class FantasyButtonStyle {
     DEFAULT,          // Large carved wood button (118x48 slice)
@@ -34,7 +41,7 @@ public:
     // High-level UI Components
     void drawPanel(sf::RenderWindow& window,
                    const sf::FloatRect& dstRect,
-                   FantasyPanelStyle style = FantasyPanelStyle::ORNATE_WOOD,
+                   OrientalPanelStyle style = OrientalPanelStyle::EBONY_WOOD,
                    const sf::Color& tint = sf::Color::White);
 
     void drawButton(sf::RenderWindow& window,
@@ -48,13 +55,21 @@ public:
                     const sf::Texture* icon = nullptr,
                     FantasyButtonStyle style = FantasyButtonStyle::DEFAULT);
 
-    // Incense stick countdown timer (replaces drawDragonTimer)
+    // Incense stick countdown timer (Stage 2.3)
+    void drawIncenseTimer(sf::RenderWindow& window,
+                          const sf::FloatRect& rect,
+                          float remainingSeconds,
+                          float totalSeconds);
+
     void drawDragonTimer(sf::RenderWindow& window,
-                         const sf::FloatRect& dstRect,
+                         const sf::FloatRect& rect,
                          float remainingSeconds,
                          float totalSeconds,
                          const sf::Font& font,
-                         bool isLowTime = false);
+                         bool isLowTime = false) {
+        (void)font; (void)isLowTime;
+        drawIncenseTimer(window, rect, remainingSeconds, totalSeconds);
+    }
 
     void drawRibbonTitle(sf::RenderWindow& window,
                          float centerX, float topY, float width, float height,
@@ -65,10 +80,22 @@ public:
                          const sf::Color& tint = sf::Color::White);
 
     // Textures
-    sf::Texture texMasterSpritesheet; // assets/xiangqi_master_spritesheet.png
+    sf::Texture texMasterSpritesheet; // assets/xiangqi_oriental_sheet.png
     sf::Texture texMedieval;          // Alias for backward compatibility
     sf::Texture texFantasy;
-    sf::Texture texDragonHpBar;
+
+    // Oriental Texture Atlas Rects (Stage 1.1)
+    sf::IntRect rcPanelEbony;
+    sf::IntRect rcParchment;
+    sf::IntRect rcRibbonHeader;
+    sf::IntRect rcBtnNormal;
+    sf::IntRect rcBtnHover;
+    sf::IntRect rcBtnPressed;
+    sf::IntRect rcIncenseStick;
+    sf::IntRect rcIconUndo;
+    sf::IntRect rcIconRedo;
+    sf::IntRect rcIconDraw;
+    sf::IntRect rcIconResign;
 
 private:
     FantasyUI();

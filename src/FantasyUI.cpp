@@ -8,15 +8,18 @@ static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth =
     for (const auto& p : prefixes) {
         sf::Image img;
         if (img.loadFromFile(p + path)) {
-            img.createMaskFromColor(sf::Color::White);
+            bool hasAlpha = false;
             sf::Vector2u sz = img.getSize();
-            for (unsigned int y = 0; y < sz.y; ++y) {
+            for (unsigned int y = 0; y < sz.y && !hasAlpha; ++y) {
                 for (unsigned int x = 0; x < sz.x; ++x) {
-                    sf::Color c = img.getPixel(x, y);
-                    if (c.r >= 250 && c.g >= 250 && c.b >= 250) {
-                        img.setPixel(x, y, sf::Color(c.r, c.g, c.b, 0));
+                    if (img.getPixel(x, y).a < 250) {
+                        hasAlpha = true;
+                        break;
                     }
                 }
+            }
+            if (!hasAlpha) {
+                img.createMaskFromColor(sf::Color::White);
             }
             tex.loadFromImage(img);
             tex.setSmooth(smooth);
@@ -48,45 +51,60 @@ FantasyUI::FantasyUI() {
 }
 
 bool FantasyUI::init() {
-    const std::vector<std::string> prefixes = { "", "../", "../../" };
+    sf::Image masterImg;
+    const std::vector<std::string> prefixes = { "", "../", "../../", "resources/", "../resources/" };
     bool ok = false;
+
+    // Load xiangqi_oriental_sheet.png first
     for (const auto& p : prefixes) {
-        sf::Image img;
-        if (img.loadFromFile(p + "assets/xiangqi_master_spritesheet.png") ||
-            img.loadFromFile(p + "assets/xiangqi_ui_spritesheet.png")) {
-            img.createMaskFromColor(sf::Color::White);
-            sf::Vector2u sz = img.getSize();
-            for (unsigned int y = 0; y < sz.y; ++y) {
-                for (unsigned int x = 0; x < sz.x; ++x) {
-                    sf::Color c = img.getPixel(x, y);
-                    if (c.r >= 250 && c.g >= 250 && c.b >= 250) {
-                        img.setPixel(x, y, sf::Color(c.r, c.g, c.b, 0));
-                    }
-                }
-            }
-            texMasterSpritesheet.loadFromImage(img);
-            texMasterSpritesheet.setSmooth(false);
+        if (masterImg.loadFromFile(p + "assets/xiangqi_oriental_sheet.png")) {
             ok = true;
             break;
         }
     }
-
     if (!ok) {
-        const std::string dir = "assets/Fantasy/MedievalFantasyPaid/";
         for (const auto& p : prefixes) {
-            sf::Image img;
-            if (img.loadFromFile(p + dir + "medieval.png") ||
-                img.loadFromFile(p + "resources/Fantasy/medieval.png")) {
-                img.createMaskFromColor(sf::Color::White);
-                texMasterSpritesheet.loadFromImage(img);
-                texMasterSpritesheet.setSmooth(true);
+            if (masterImg.loadFromFile(p + "assets/xiangqi_master_spritesheet.png") ||
+                masterImg.loadFromFile(p + "assets/xiangqi_ui_spritesheet.png")) {
                 ok = true;
                 break;
             }
         }
     }
 
-    texMedieval = texMasterSpritesheet;
+    if (ok) {
+        // Zero-white-box: mask pure white backgrounds if any
+        masterImg.createMaskFromColor(sf::Color(255, 255, 255));
+        texFantasy.loadFromImage(masterImg);
+        texFantasy.setSmooth(false); // Sharp pixel art
+        texMasterSpritesheet = texFantasy;
+        texMedieval = texFantasy;
+    }
+
+    // Initialize Atlas Rects (Stage 1.1)
+    rcPanelEbony   = sf::IntRect(0, 0, 192, 192);
+    rcParchment    = sf::IntRect(200, 0, 160, 160);
+    rcRibbonHeader = sf::IntRect(370, 0, 260, 54);
+    rcBtnNormal    = sf::IntRect(0, 200, 220, 50);
+    rcBtnHover     = sf::IntRect(0, 260, 220, 50);
+    rcBtnPressed   = sf::IntRect(0, 320, 220, 50);
+    rcIconUndo     = sf::IntRect(230, 200, 48, 48);
+    rcIconRedo     = sf::IntRect(285, 200, 48, 48);
+    rcIconDraw     = sf::IntRect(340, 200, 48, 48);
+    rcIconResign   = sf::IntRect(395, 200, 48, 48);
+    rcIncenseStick = sf::IntRect(0, 380, 320, 24);
+
+    // Backward compatible rect aliases
+    rcBtnNorm     = rcBtnNormal;
+    rcBtnHov      = rcBtnHover;
+    rcBtnSlimNorm = rcBtnNormal;
+    rcBtnSlimHov  = rcBtnHover;
+    rcSqNorm      = rcIconUndo;
+    rcSqHov       = rcIconUndo;
+    rcPanelOrnate = rcPanelEbony;
+    rcSlotWood    = rcParchment;
+    rcRibbon      = rcRibbonHeader;
+
     loaded = ok;
     return loaded;
 }
@@ -165,19 +183,40 @@ void FantasyUI::draw9Slice(sf::RenderWindow& window,
 
 void FantasyUI::drawPanel(sf::RenderWindow& window,
                           const sf::FloatRect& dstRect,
-                          FantasyPanelStyle style,
+                          OrientalPanelStyle style,
                           const sf::Color& tint) {
+    if (dstRect.width <= 0.0f || dstRect.height <= 0.0f) return;
+
+    if (loaded && texFantasy.getSize().x > 0) {
+        switch (style) {
+            case OrientalPanelStyle::EBONY_WOOD:
+                draw9Slice(window, texFantasy, rcPanelEbony, 24, 24, 24, 24, dstRect, tint);
+                return;
+            case OrientalPanelStyle::PARCHMENT_SCROLL:
+                draw9Slice(window, texFantasy, rcParchment, 20, 20, 20, 20, dstRect, tint);
+                return;
+            case OrientalPanelStyle::JADE_INSET: {
+                sf::RectangleShape slotBg(sf::Vector2f(dstRect.width, dstRect.height));
+                slotBg.setPosition(dstRect.left, dstRect.top);
+                slotBg.setFillColor(sf::Color(20, 36, 30, 235));
+                slotBg.setOutlineThickness(1.2f);
+                slotBg.setOutlineColor(sf::Color(46, 230, 166, 180));
+                window.draw(slotBg);
+                return;
+            }
+        }
+    }
+
+    // Fallback procedural drawing
     switch (style) {
-        case FantasyPanelStyle::ORNATE_WOOD: {
-            // Dark rosewood panel with brass corner cloud brackets (Player card, Pause modal)
+        case OrientalPanelStyle::EBONY_WOOD: {
             sf::RectangleShape panelBg(sf::Vector2f(dstRect.width, dstRect.height));
             panelBg.setPosition(dstRect.left, dstRect.top);
             panelBg.setFillColor(sf::Color(28, 20, 16, 245));
             panelBg.setOutlineThickness(1.8f);
-            panelBg.setOutlineColor(sf::Color(145, 105, 55, 230));
+            panelBg.setOutlineColor(sf::Color(201, 154, 62, 230));
             window.draw(panelBg);
 
-            // Subtle inner inset border
             if (dstRect.width > 20.0f && dstRect.height > 20.0f) {
                 sf::RectangleShape inner(sf::Vector2f(dstRect.width - 8.0f, dstRect.height - 8.0f));
                 inner.setPosition(dstRect.left + 4.0f, dstRect.top + 4.0f);
@@ -186,52 +225,26 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
                 inner.setOutlineColor(sf::Color(75, 50, 30, 160));
                 window.draw(inner);
             }
-
-            // 4 Brass cloud brackets
             ve4GocLuaChon(window, sf::Vector2f(dstRect.left, dstRect.top),
                           sf::Vector2f(dstRect.width, dstRect.height), 2.0f, 1.6f);
             break;
         }
-        case FantasyPanelStyle::WOOD_SLOT: {
-            // Recessed flat dark wood tray (clean, zero dragon artifacts)
-            sf::RectangleShape slotBg(sf::Vector2f(dstRect.width, dstRect.height));
-            slotBg.setPosition(dstRect.left, dstRect.top);
-            slotBg.setFillColor(sf::Color(22, 16, 13, 235));
-            slotBg.setOutlineThickness(1.2f);
-            slotBg.setOutlineColor(sf::Color(105, 75, 45, 200));
-            window.draw(slotBg);
-            break;
-        }
-        case FantasyPanelStyle::SQUARE_FRAME: {
-            // Frame for avatar badges
-            sf::RectangleShape frameBg(sf::Vector2f(dstRect.width, dstRect.height));
-            frameBg.setPosition(dstRect.left, dstRect.top);
-            frameBg.setFillColor(sf::Color(26, 20, 16, 240));
-            frameBg.setOutlineThickness(2.0f);
-            frameBg.setOutlineColor(tint);
-            window.draw(frameBg);
-            break;
-        }
-        case FantasyPanelStyle::PARCHMENT_CARD: {
-            // Warm aged parchment card
+        case OrientalPanelStyle::PARCHMENT_SCROLL: {
             sf::RectangleShape cardBg(sf::Vector2f(dstRect.width, dstRect.height));
             cardBg.setPosition(dstRect.left, dstRect.top);
-            cardBg.setFillColor(sf::Color(245, 232, 212, 240));
+            cardBg.setFillColor(sf::Color(232, 216, 184, 240));
             cardBg.setOutlineThickness(1.2f);
             cardBg.setOutlineColor(sf::Color(165, 130, 85, 220));
             window.draw(cardBg);
             break;
         }
-        case FantasyPanelStyle::PARCHMENT_RIBBON: {
-            // Parchment scroll ribbon
-            sf::RectangleShape ribBg(sf::Vector2f(dstRect.width, dstRect.height));
-            ribBg.setPosition(dstRect.left, dstRect.top);
-            ribBg.setFillColor(sf::Color(44, 28, 18, 240));
-            ribBg.setOutlineThickness(1.5f);
-            ribBg.setOutlineColor(tint);
-            window.draw(ribBg);
-            ve4GocLuaChon(window, sf::Vector2f(dstRect.left, dstRect.top),
-                          sf::Vector2f(dstRect.width, dstRect.height), 1.0f, 1.4f);
+        case OrientalPanelStyle::JADE_INSET: {
+            sf::RectangleShape slotBg(sf::Vector2f(dstRect.width, dstRect.height));
+            slotBg.setPosition(dstRect.left, dstRect.top);
+            slotBg.setFillColor(sf::Color(26, 61, 52, 235));
+            slotBg.setOutlineThickness(1.2f);
+            slotBg.setOutlineColor(sf::Color(46, 230, 166, 180));
+            window.draw(slotBg);
             break;
         }
     }
@@ -250,28 +263,30 @@ void FantasyUI::drawButton(sf::RenderWindow& window,
     (void)style;
     bool highlighted = (isHovered || isSelected) && isEnabled;
 
-    // 1. Draw rich wood plaque base with warm bevel outline (Never stretch vertical sprites)
-    sf::RectangleShape drawShape(sf::Vector2f(dstRect.width, dstRect.height));
-    drawShape.setPosition(dstRect.left, dstRect.top);
-
-    if (!isEnabled) {
-        drawShape.setFillColor(sf::Color(35, 28, 24, 210));
-        drawShape.setOutlineThickness(1.2f);
-        drawShape.setOutlineColor(sf::Color(90, 75, 65, 180));
-    } else if (highlighted) {
-        // Glowing warm gold finish on dark wood
-        drawShape.setFillColor(sf::Color(65, 42, 25, 255));
-        drawShape.setOutlineThickness(2.0f);
-        drawShape.setOutlineColor(sf::Color(235, 185, 75, 255));
+    if (loaded && texFantasy.getSize().x > 0) {
+        sf::IntRect srcRect = highlighted ? rcBtnHover : rcBtnNormal;
+        sf::Color tint = !isEnabled ? sf::Color(120, 120, 120, 200) : sf::Color::White;
+        draw9Slice(window, texFantasy, srcRect, 18, 10, 18, 10, dstRect, tint);
     } else {
-        // Deep carved dark rosewood
-        drawShape.setFillColor(sf::Color(42, 28, 20, 245));
-        drawShape.setOutlineThickness(1.5f);
-        drawShape.setOutlineColor(sf::Color(160, 115, 65, 220));
-    }
-    window.draw(drawShape);
+        sf::RectangleShape drawShape(sf::Vector2f(dstRect.width, dstRect.height));
+        drawShape.setPosition(dstRect.left, dstRect.top);
 
-    // 2. Corner brackets on highlight
+        if (!isEnabled) {
+            drawShape.setFillColor(sf::Color(35, 28, 24, 210));
+            drawShape.setOutlineThickness(1.2f);
+            drawShape.setOutlineColor(sf::Color(90, 75, 65, 180));
+        } else if (highlighted) {
+            drawShape.setFillColor(sf::Color(65, 42, 25, 255));
+            drawShape.setOutlineThickness(2.0f);
+            drawShape.setOutlineColor(sf::Color(235, 185, 75, 255));
+        } else {
+            drawShape.setFillColor(sf::Color(42, 28, 20, 245));
+            drawShape.setOutlineThickness(1.5f);
+            drawShape.setOutlineColor(sf::Color(160, 115, 65, 220));
+        }
+        window.draw(drawShape);
+    }
+
     if (highlighted) {
         ve4GocLuaChon(window, sf::Vector2f(dstRect.left, dstRect.top),
                       sf::Vector2f(dstRect.width, dstRect.height), 2.0f, 1.8f);
@@ -308,12 +323,12 @@ void FantasyUI::drawButton(sf::RenderWindow& window,
         float tx = dstRect.left + textOffsetLeft + (dstRect.width - textOffsetLeft) / 2.0f;
         float ty = dstRect.top + dstRect.height / 2.0f;
 
-        txt.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-        txt.setPosition(tx, ty);
+        txt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+        txt.setPosition(std::round(tx), std::round(ty));
 
         // Soft carved shadow
         sf::Text shadow = txt;
-        shadow.setPosition(tx + 1.2f, ty + 1.2f);
+        shadow.setPosition(std::round(tx + 1.2f), std::round(ty + 1.2f));
         shadow.setFillColor(sf::Color(12, 6, 3, 230));
         window.draw(shadow);
 
@@ -328,107 +343,53 @@ void FantasyUI::drawButton(sf::RenderWindow& window,
     }
 }
 
-void FantasyUI::drawDragonTimer(sf::RenderWindow& window,
-                                const sf::FloatRect& dstRect,
+void FantasyUI::drawIncenseTimer(sf::RenderWindow& window,
+                                const sf::FloatRect& rect,
                                 float remainingSeconds,
-                                float totalSeconds,
-                                const sf::Font& font,
-                                bool isLowTime) {
-    // 1. Recessed wood slot tray
-    drawPanel(window, dstRect, FantasyPanelStyle::WOOD_SLOT);
+                                float totalSeconds) {
+    if (rect.width <= 0.0f || rect.height <= 0.0f) return;
+    if (totalSeconds <= 0.0f) totalSeconds = 1.0f;
+    float ratio = std::clamp(remainingSeconds / totalSeconds, 0.0f, 1.0f);
 
-    // 2. Burning Incense Stick layout
-    float clockW = 75.0f;
-    float stickMarginL = 12.0f;
-    float incenseW = std::max(20.0f, dstRect.width - clockW - stickMarginL - 10.0f);
-    float incenseH = 4.0f;
-    float ix = dstRect.left + stickMarginL;
-    float iy = dstRect.top + (dstRect.height - incenseH) / 2.0f;
+    // 1. Đế cắm nhang / Rãnh đồng đỡ tàn nhang
+    sf::RectangleShape tray(sf::Vector2f(rect.width, 6.0f));
+    tray.setPosition(rect.left, rect.top + rect.height / 2.0f - 3.0f);
+    tray.setFillColor(sf::Color(45, 30, 20));
+    tray.setOutlineThickness(1.0f);
+    tray.setOutlineColor(sf::Color(140, 100, 50));
+    window.draw(tray);
 
-    float r = (totalSeconds > 0.0f) ? std::clamp(remainingSeconds / totalSeconds, 0.0f, 1.0f) : 1.0f;
+    // 2. Thân que nhang đang cháy dần (ngắn lại theo tỉ lệ ratio)
+    float currentLength = rect.width * ratio;
+    if (currentLength > 0.0f) {
+        sf::RectangleShape incense(sf::Vector2f(currentLength, 4.0f));
+        incense.setPosition(rect.left, rect.top + rect.height / 2.0f - 2.0f);
+        incense.setFillColor(sf::Color(180, 80, 50)); // Màu bột nhang truyền thống
+        window.draw(incense);
 
-    // Ceramic / bronze burner trough
-    sf::RectangleShape burnerTray(sf::Vector2f(incenseW + 8.0f, 6.0f));
-    burnerTray.setPosition(ix - 4.0f, iy - 1.0f);
-    burnerTray.setFillColor(sf::Color(24, 18, 14, 210));
-    burnerTray.setOutlineThickness(1.0f);
-    burnerTray.setOutlineColor(sf::Color(120, 85, 45));
-    window.draw(burnerTray);
+        // 3. Đốm than đỏ rực ở đầu ngọn nhang
+        static float emberTick = 0.0f;
+        emberTick += 0.08f;
+        float pulse = 0.85f + 0.15f * std::sin(emberTick);
+        sf::CircleShape ember(3.5f * pulse);
+        ember.setOrigin(3.5f * pulse, 3.5f * pulse);
+        ember.setPosition(rect.left + currentLength, rect.top + rect.height / 2.0f);
+        ember.setFillColor(sf::Color(255, 80, 20));
+        window.draw(ember);
 
-    // Ash remaining on left (burnt stick portion)
-    float ashW = incenseW * (1.0f - r);
-    sf::RectangleShape ashStick(sf::Vector2f(ashW, incenseH));
-    ashStick.setPosition(ix, iy);
-    ashStick.setFillColor(sf::Color(90, 85, 80, 180));
-    window.draw(ashStick);
-
-    // Unburnt fragrant sandalwood incense stick on right
-    float burnPointX = ix + ashW;
-    float unburntW = incenseW * r;
-    sf::RectangleShape activeStick(sf::Vector2f(unburntW, incenseH));
-    activeStick.setPosition(burnPointX, iy);
-    activeStick.setFillColor(sf::Color(175, 75, 50));
-    window.draw(activeStick);
-
-    // Glowing burning ember at burnPointX
-    static float emberFlicker = 0.0f;
-    emberFlicker += 0.08f;
-    float pulse = 0.8f + 0.2f * std::sin(emberFlicker);
-    sf::CircleShape ember(3.0f * pulse);
-    ember.setOrigin(3.0f * pulse, 3.0f * pulse);
-    ember.setPosition(burnPointX, iy + incenseH / 2.0f);
-    ember.setFillColor(isLowTime ? sf::Color(255, 60, 40)
-                                : sf::Color(255, 160 + static_cast<int>(50.0f * pulse), 40));
-    window.draw(ember);
-
-    // Faint curling smoke wisps rising from the ember
-    for (int p = 0; p < 3; ++p) {
-        float smokeAge = std::fmod(emberFlicker * 10.0f + p * 20.0f, 50.0f);
-        float smokeY = (iy + incenseH / 2.0f) - smokeAge * 0.4f;
-        float smokeX = burnPointX + std::sin(smokeAge * 0.15f + p) * (smokeAge * 0.15f);
-        float smokeAlpha = std::clamp(255.0f * (1.0f - smokeAge / 50.0f) * 0.5f, 0.0f, 255.0f);
-        sf::CircleShape smokePuff(1.2f + smokeAge * 0.04f);
-        smokePuff.setOrigin(smokePuff.getRadius(), smokePuff.getRadius());
-        smokePuff.setPosition(smokeX, smokeY);
-        smokePuff.setFillColor(sf::Color(220, 220, 225, static_cast<sf::Uint8>(smokeAlpha)));
-        window.draw(smokePuff);
+        // Khói mờ bốc lên
+        for (int p = 0; p < 3; ++p) {
+            float age = std::fmod(emberTick * 8.0f + p * 15.0f, 30.0f);
+            float smokeY = (rect.top + rect.height / 2.0f) - age * 0.45f;
+            float smokeX = (rect.left + currentLength) + std::sin(age * 0.18f + p * 1.5f) * (age * 0.2f);
+            float alpha = std::clamp(100.0f * (1.0f - age / 30.0f), 0.0f, 100.0f);
+            sf::CircleShape puff(1.2f + age * 0.05f);
+            puff.setOrigin(puff.getRadius(), puff.getRadius());
+            puff.setPosition(smokeX, smokeY);
+            puff.setFillColor(sf::Color(200, 200, 200, static_cast<sf::Uint8>(alpha)));
+            window.draw(puff);
+        }
     }
-
-    // 3. Digital clock on the right
-    auto formatTime = [](float t) {
-        if (t <= 0.0f) return std::string("00:00");
-        int m = static_cast<int>(t / 60.0f);
-        int s = static_cast<int>(t) % 60;
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%02d:%02d", m, s);
-        return std::string(buf);
-    };
-
-    std::string timeStr = formatTime(remainingSeconds);
-    sf::Text tVal;
-    tVal.setFont(font);
-    tVal.setCharacterSize(18);
-    tVal.setStyle(sf::Text::Bold);
-    tVal.setString(timeStr);
-
-    sf::FloatRect tvb = tVal.getLocalBounds();
-    float tx = dstRect.left + dstRect.width - 12.0f;
-    float ty = dstRect.top + dstRect.height / 2.0f;
-    tVal.setOrigin(tvb.left + tvb.width, tvb.top + tvb.height / 2.0f);
-    tVal.setPosition(tx, ty);
-
-    // Carved shadow
-    sf::Text shadow = tVal;
-    shadow.setPosition(tx + 1.2f, ty + 1.2f);
-    shadow.setFillColor(sf::Color(10, 6, 4, 240));
-    window.draw(shadow);
-
-    if (isLowTime) {
-        tVal.setFillColor(sf::Color(255, 80, 70));
-    } else {
-        tVal.setFillColor(sf::Color(255, 225, 110));
-    }
-    window.draw(tVal);
 }
 
 void FantasyUI::drawRibbonTitle(sf::RenderWindow& window,
@@ -439,31 +400,37 @@ void FantasyUI::drawRibbonTitle(sf::RenderWindow& window,
                                 const sf::Color& textColor,
                                 const sf::Color& tint) {
     float left = centerX - width / 2.0f;
-    sf::RectangleShape ribbon(sf::Vector2f(width, height));
-    ribbon.setPosition(left, topY);
-    ribbon.setFillColor(sf::Color(42, 28, 18, 240));
-    ribbon.setOutlineThickness(1.5f);
-    ribbon.setOutlineColor(tint);
-    window.draw(ribbon);
+    sf::FloatRect dstRect(left, topY, width, height);
 
-    ve4GocLuaChon(window, sf::Vector2f(left, topY), sf::Vector2f(width, height), 1.0f, 1.4f);
+    if (loaded && texFantasy.getSize().x > 0 && rcRibbonHeader.width > 0) {
+        draw9Slice(window, texFantasy, rcRibbonHeader, 30, 10, 30, 10, dstRect, tint);
+    } else {
+        sf::RectangleShape ribbon(sf::Vector2f(width, height));
+        ribbon.setPosition(left, topY);
+        ribbon.setFillColor(sf::Color(42, 28, 18, 240));
+        ribbon.setOutlineThickness(1.5f);
+        ribbon.setOutlineColor(tint);
+        window.draw(ribbon);
+        ve4GocLuaChon(window, sf::Vector2f(left, topY), sf::Vector2f(width, height), 1.0f, 1.4f);
+    }
 
-    sf::Text txt;
-    txt.setFont(font);
-    txt.setString(sf::String::fromUtf8(title.begin(), title.end()));
-    txt.setCharacterSize(charSize);
-    txt.setStyle(sf::Text::Bold);
+    if (!title.empty()) {
+        sf::Text txt;
+        txt.setFont(font);
+        txt.setString(sf::String::fromUtf8(title.begin(), title.end()));
+        txt.setCharacterSize(charSize);
+        txt.setStyle(sf::Text::Bold);
 
-    sf::FloatRect tb = txt.getLocalBounds();
-    txt.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    txt.setPosition(centerX, topY + height / 2.0f - 1.0f);
+        sf::FloatRect tb = txt.getLocalBounds();
+        txt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+        txt.setPosition(std::round(centerX), std::round(topY + height / 2.0f - 1.0f));
 
-    // Shadow
-    sf::Text shadow = txt;
-    shadow.setPosition(centerX + 1.2f, topY + height / 2.0f + 0.5f);
-    shadow.setFillColor(sf::Color(12, 6, 3, 230));
-    window.draw(shadow);
+        sf::Text shadow = txt;
+        shadow.setPosition(std::round(centerX + 1.2f), std::round(topY + height / 2.0f + 0.5f));
+        shadow.setFillColor(sf::Color(12, 6, 3, 230));
+        window.draw(shadow);
 
-    txt.setFillColor(textColor);
-    window.draw(txt);
+        txt.setFillColor(textColor);
+        window.draw(txt);
+    }
 }
