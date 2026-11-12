@@ -80,6 +80,7 @@ private:
     sf::Font fontEnBold;
     sf::Font fontVn;
     sf::Font fontVnBold;
+    sf::Font fontHan;
     
     TrangThai trangThai;
     CheDoChoi cheDoChoi;

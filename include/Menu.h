@@ -22,9 +22,6 @@ enum class MenuSection {
 
 struct MenuAssets {
     sf::Texture cleanBg;          // assets/background.png
-    sf::Texture bookCover;        // UI_TravelBook_BookCover01a.png
-    sf::Texture bookPageLeft;     // UI_TravelBook_BookPageLeft01a.png
-    sf::Texture bookPageRight;    // UI_TravelBook_BookPageRight01a.png
     sf::Texture frameNormal;      // UI_TravelBook_Frame01a.png
     sf::Texture frameHover;       // UI_TravelBook_FrameSelect01a.png
     sf::Texture framePressed;     // UI_TravelBook_FrameSelect01b.png
@@ -74,7 +71,6 @@ struct MenuAssets {
     bool vnFontLoaded = false;
     bool fontLoaded = false;
     bool fontBoldLoaded = false;
-    bool bookLoaded = false;
 
     MenuAssets();
 };
@@ -162,10 +158,10 @@ private:
     sf::Text title;
     std::vector<Button> buttons;
 
-    // Book animation
+    // Twin-panel scroll expansion animation
     MenuSection activeSection;
     MenuSection pendingSection;
-    float bookProgress; // 0.0f (closed) to 1.0f (fully open)
+    float bookProgress; // 0.0f (single center panel) to 1.0f (twin symmetrical panels)
     bool isBookOpening;
     bool isBookClosing;
     bool isBookClosed;

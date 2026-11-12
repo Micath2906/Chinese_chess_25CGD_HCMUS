@@ -5,12 +5,18 @@
 #include <cmath>
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
 
 static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth = false, bool maskWhite = true) {
     const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
+    std::error_code ec;
     for (const auto& p : prefixes) {
+        std::string fullPath = p + path;
+        if (!std::filesystem::exists(std::filesystem::u8path(fullPath), ec)) {
+            continue;
+        }
         sf::Image img;
-        if (img.loadFromFile(p + path)) {
+        if (img.loadFromFile(fullPath)) {
             if (maskWhite) {
                 bool hasAlpha = false;
                 sf::Vector2u sz = img.getSize();
@@ -37,8 +43,11 @@ static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth =
 
 static bool loadFontSafe(sf::Font& font, const std::string& path) {
     const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
+    std::error_code ec;
     for (const auto& p : prefixes) {
-        if (font.loadFromFile(p + path)) {
+        std::string fullPath = p + path;
+        if (std::filesystem::exists(std::filesystem::u8path(fullPath), ec) &&
+            font.loadFromFile(fullPath)) {
             return true;
         }
     }
@@ -48,15 +57,11 @@ static bool loadFontSafe(sf::Font& font, const std::string& path) {
 MenuAssets::MenuAssets() {
     // Background
     loadTexSafe(cleanBg, "assets/xiangqi_background_pavilion.png", true, false) ||
-    loadTexSafe(cleanBg, "assets/background.png", true, false) ||
     loadTexSafe(cleanBg, "resources/textures/background.png", true, false);
 
-    // Book assets
+    // Legacy TravelBook cover/page textures removed; scroll/ebony 9-slice panels are drawn via FantasyUI.
+    // Remaining UI icons/toggles still load from the sprite pack directory.
     const std::string bookDir = "assets/Complete_UI_Book_Styles_Pack_Free/Complete_UI_Book_Styles_Pack_Free_v1.0/01_TravelBookLite/Sprites/";
-    
-    bookLoaded = loadTexSafe(bookCover, bookDir + "UI_TravelBook_BookCover01a.png", false) &&
-                 loadTexSafe(bookPageLeft, bookDir + "UI_TravelBook_BookPageLeft01a.png", false) &&
-                 loadTexSafe(bookPageRight, bookDir + "UI_TravelBook_BookPageRight01a.png", false);
 
     loadTexSafe(frameNormal, bookDir + "UI_TravelBook_Frame01a.png", false);
     loadTexSafe(frameHover, bookDir + "UI_TravelBook_FrameSelect01a.png", false);
@@ -91,7 +96,6 @@ MenuAssets::MenuAssets() {
     loadTexSafe(cursorPressed, bookDir + "UI_TravelBook_Cursor01d.png", false);
     loadTexSafe(selectCorners, bookDir + "UI_TravelBook_Select01a.png", false);
     loadTexSafe(playBg, "assets/xiangqi_background_pavilion.png", true, false) ||
-    loadTexSafe(playBg, "assets/background play.jpg", true, false) ||
     loadTexSafe(playBg, "resources/textures/background play.jpg", true, false);
 
     // Load fonts
@@ -154,8 +158,11 @@ void veNenMenuGiaoDien(sf::RenderWindow& window) {
         sf::Sprite sp(assets.cleanBg);
         sf::Vector2f viewSz = window.getView().getSize();
         sf::Vector2u texSz = assets.cleanBg.getSize();
-        sp.setPosition(0.0f, 0.0f);
-        sp.setScale(viewSz.x / static_cast<float>(texSz.x), viewSz.y / static_cast<float>(texSz.y));
+        float coverScale = std::max(viewSz.x / static_cast<float>(texSz.x),
+                                    viewSz.y / static_cast<float>(texSz.y));
+        sp.setOrigin(static_cast<float>(texSz.x) / 2.0f, static_cast<float>(texSz.y) / 2.0f);
+        sp.setPosition(viewSz.x / 2.0f, viewSz.y / 2.0f);
+        sp.setScale(coverScale, coverScale);
         window.draw(sp);
     }
 }
@@ -631,38 +638,44 @@ void Menu::capNhatNutTrangPhai() {
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Font& f = getMenuFont(tiengViet, true);
 
-    const float rx = 1042.0f;
-    const float rw = 390.0f;
+    // Symmetrical Right Panel at (640, 160, 300, 480) -> inner (rx = 665, rw = 250)
+    const float rx = 665.0f;
+    const float rw = 250.0f;
 
     // Play section
     if (activeSection == MenuSection::PLAY) {
-        // PvP button
-        rightPageButtons.emplace_back(rx, 320.0f, rw, 64.0f, tiengViet ? "Đấu hai người (PvP)" : "Two Players (PvP)", f, [this]() {
+        const float playX = 670.0f;
+        const float playW = 240.0f;
+        const float playH = 44.0f;
+        const float playY = 266.0f;
+        const float stepY = 56.0f;
+
+        rightPageButtons.emplace_back(playX, playY, playW, playH,
+            tiengViet ? "Đấu 2 Người (PvP)" : "Two Players (PvP)", f, [this]() {
             if (onPlayPvp) onPlayPvp();
         });
         rightPageButtons.back().setIcon(&assets.iconPlay);
-        rightPageButtons.back().setCharacterSize(19);
+        rightPageButtons.back().setCharacterSize(15);
 
-        // PvAI button
-        rightPageButtons.emplace_back(rx, 410.0f, rw, 64.0f, tiengViet ? "Đấu với máy (PvAI)" : "Play vs AI (PvAI)", f, [this]() {
+        rightPageButtons.emplace_back(playX, playY + stepY, playW, playH,
+            tiengViet ? "Đấu Với Máy (PvAI)" : "Player vs AI", f, [this]() {
             if (onPlayPvai) onPlayPvai();
         });
         rightPageButtons.back().setIcon(&assets.iconLoad);
-        rightPageButtons.back().setCharacterSize(19);
+        rightPageButtons.back().setCharacterSize(15);
 
-        // Demo button
-        rightPageButtons.emplace_back(rx, 500.0f, rw, 64.0f, tiengViet ? "Xem máy đánh (Demo)" : "Bot vs Bot (Demo)", f, [this]() {
+        rightPageButtons.emplace_back(playX, playY + stepY * 2.0f, playW, playH,
+            tiengViet ? "Xem Máy Đấu (Demo)" : "Demo Match", f, [this]() {
             if (onPlayDemo) onPlayDemo();
         });
         rightPageButtons.back().setIcon(&assets.iconInfo);
-        rightPageButtons.back().setCharacterSize(19);
+        rightPageButtons.back().setCharacterSize(15);
     }
     // Load section
     else if (activeSection == MenuSection::LOAD) {
-        // Save slots
         for (int i = 0; i < 3; ++i) {
-            float slotY = 315.0f + i * 90.0f;
-            rightPageButtons.emplace_back(rx, slotY, rw, 78.0f, "", f, [this, i]() {
+            float slotY = 252.0f + static_cast<float>(i) * 74.0f;
+            rightPageButtons.emplace_back(rx, slotY, rw, 66.0f, "", f, [this, i]() {
                 currentSlot = i;
                 if (onSelectSlot) onSelectSlot(i);
                 capNhatNutTrangPhai();
@@ -672,148 +685,138 @@ void Menu::capNhatNutTrangPhai() {
             }
         }
 
-        // Load game button
-        rightPageButtons.emplace_back(rx, 595.0f, 188.0f, 48.0f, tiengViet ? "Vào ván đấu" : "Load Game", f, [this]() {
+        rightPageButtons.emplace_back(rx, 496.0f, 120.0f, 44.0f, tiengViet ? "Vào Ván" : "Load Game", f, [this]() {
             if (onLoadSlot) onLoadSlot(currentSlot);
         });
-        rightPageButtons.back().setIcon(&assets.iconPlay);
-        rightPageButtons.back().setCharacterSize(16);
+        rightPageButtons.back().setCharacterSize(14);
 
-        // Delete save button
-        rightPageButtons.emplace_back(rx + 202.0f, 595.0f, 188.0f, 48.0f, tiengViet ? "Xóa bản lưu" : "Delete Save", f, [this]() {
+        rightPageButtons.emplace_back(rx + 130.0f, 496.0f, 120.0f, 44.0f, tiengViet ? "Xóa Lưu" : "Delete", f, [this]() {
             if (onDeleteSlot) onDeleteSlot(currentSlot);
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setIcon(&assets.iconExit);
-        rightPageButtons.back().setCharacterSize(16);
+        rightPageButtons.back().setCharacterSize(14);
     }
     // Settings section
     else if (activeSection == MenuSection::SETTINGS) {
-        // Sub-tabs
         const std::vector<std::string> tabNames = tiengViet
             ? std::vector<std::string>{ "Âm thanh", "Đồ họa", "Trò chơi", "Phím" }
-            : std::vector<std::string>{ "Audio", "Graphics", "Gameplay", "Controls" };
+            : std::vector<std::string>{ "Audio", "Graphics", "Game", "Keys" };
         for (int i = 0; i < 4; ++i) {
-            float tx = rx + i * 98.0f;
-            rightPageButtons.emplace_back(tx, 292.0f, 94.0f, 32.0f, tabNames[i], f, [this, i]() {
+            float tx = 660.0f + static_cast<float>(i) * 66.0f;
+            rightPageButtons.emplace_back(tx, 248.0f, 62.0f, 32.0f, tabNames[i], f, [this, i]() {
                 settingsSubTab = i;
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(15);
+            rightPageButtons.back().setCharacterSize(12);
             if (settingsSubTab == i) {
                 rightPageButtons.back().setSelected(true);
             }
         }
 
-        // Tab content
-        if (settingsSubTab == 0) { // Âm thanh (Audio)
-            // Test sound
-            rightPageButtons.emplace_back(rx, 570.0f, rw, 40.0f, tiengViet ? "Nghe thử tiếng gõ cờ" : "Test Chess Click Sound", f, [this]() {
+        if (settingsSubTab == 0) { // Audio
+            rightPageButtons.emplace_back(670.0f, 492.0f, 240.0f, 38.0f,
+                tiengViet ? "Nghe Thử Tiếng Cờ" : "Test Chess Sound", f, [this]() {
                 if (onTestSound) onTestSound();
             });
-        }
-        else if (settingsSubTab == 1) { // Đồ họa
-            // Board theme
-            std::string themeStr = getSettingStatusStr ? getSettingStatusStr(3) : (tiengViet ? "Gỗ Cổ Điển" : "Classic Wood");
-            rightPageButtons.emplace_back(rx, 340.0f, rw, 44.0f, (tiengViet ? "Bàn cờ: " : "Board: ") + themeStr, f, [this]() {
+            rightPageButtons.back().setCharacterSize(13);
+        } else if (settingsSubTab == 1) { // Graphics
+            std::string themeStr = getSettingStatusStr ? getSettingStatusStr(3) : (tiengViet ? "Gỗ Cổ" : "Classic");
+            rightPageButtons.emplace_back(670.0f, 304.0f, 240.0f, 42.0f,
+                (tiengViet ? "Bàn: " : "Board: ") + themeStr, f, [this]() {
                 if (onToggleBoardTheme) onToggleBoardTheme();
                 capNhatNutTrangPhai();
             });
+            rightPageButtons.back().setCharacterSize(13);
 
-            // Atmosphere
-            std::string atmStr = getSettingStatusStr ? getSettingStatusStr(5) : (tiengViet ? "Lá Trúc Xanh" : "Bamboo Leaves");
-            rightPageButtons.emplace_back(rx, 410.0f, rw, 44.0f, (tiengViet ? "Khí quyển: " : "Atmosphere: ") + atmStr, f, [this]() {
+            std::string atmStr = getSettingStatusStr ? getSettingStatusStr(5) : (tiengViet ? "Lá Trúc" : "Bamboo");
+            rightPageButtons.emplace_back(670.0f, 360.0f, 240.0f, 42.0f,
+                (tiengViet ? "Hiệu ứng: " : "FX: ") + atmStr, f, [this]() {
                 if (onToggleAtmosphere) onToggleAtmosphere();
                 capNhatNutTrangPhai();
             });
+            rightPageButtons.back().setCharacterSize(13);
 
-            // Window mode
-            std::string winStr = getSettingStatusStr ? getSettingStatusStr(6) : (tiengViet ? "Toàn màn hình" : "Fullscreen");
-            rightPageButtons.emplace_back(rx, 480.0f, rw, 44.0f, (tiengViet ? "Màn hình: " : "Display: ") + winStr, f, [this]() {
+            std::string winStr = getSettingStatusStr ? getSettingStatusStr(6) : (tiengViet ? "Toàn MH" : "Full");
+            rightPageButtons.emplace_back(670.0f, 416.0f, 240.0f, 42.0f,
+                (tiengViet ? "Màn hình: " : "Mode: ") + winStr, f, [this]() {
                 if (onToggleWindowMode) onToggleWindowMode();
                 capNhatNutTrangPhai();
             });
-        }
-        else if (settingsSubTab == 2) { // Trò chơi
-            // Language
+            rightPageButtons.back().setCharacterSize(13);
+        } else if (settingsSubTab == 2) { // Gameplay
             std::string langStr = getSettingStatusStr ? getSettingStatusStr(7) : (tiengViet ? "Tiếng Việt" : "English");
-            rightPageButtons.emplace_back(rx, 340.0f, rw, 42.0f, (tiengViet ? "Ngôn ngữ: " : "Language: ") + langStr, f, [this]() {
+            rightPageButtons.emplace_back(670.0f, 304.0f, 240.0f, 42.0f,
+                (tiengViet ? "Ngôn ngữ: " : "Lang: ") + langStr, f, [this]() {
                 if (onToggleLang) onToggleLang();
                 capNhatNutTrangPhai();
             });
-            // AI delay
-            std::string aiStr = getSettingStatusStr ? getSettingStatusStr(8) : (tiengViet ? "Chân thực (450ms)" : "Realistic (450ms)");
-            rightPageButtons.emplace_back(rx, 395.0f, rw, 42.0f, (tiengViet ? "Mô phỏng AI: " : "AI Thinking: ") + aiStr, f, [this]() {
+            rightPageButtons.back().setCharacterSize(13);
+
+            std::string aiStr = getSettingStatusStr ? getSettingStatusStr(8) : (tiengViet ? "450ms" : "450ms");
+            rightPageButtons.emplace_back(670.0f, 360.0f, 240.0f, 42.0f,
+                (tiengViet ? "Độ trễ AI: " : "AI Delay: ") + aiStr, f, [this]() {
                 if (onToggleAiDelay) onToggleAiDelay();
                 capNhatNutTrangPhai();
             });
-            // Check alarm
+            rightPageButtons.back().setCharacterSize(13);
+
             std::string chkStr = getSettingStatusStr ? getSettingStatusStr(9) : (tiengViet ? "BẬT" : "ON");
-            rightPageButtons.emplace_back(rx, 450.0f, rw, 42.0f, (tiengViet ? "Báo chiếu tướng: " : "Check Alarm: ") + chkStr, f, [this]() {
+            rightPageButtons.emplace_back(670.0f, 416.0f, 240.0f, 42.0f,
+                (tiengViet ? "Báo chiếu: " : "Check: ") + chkStr, f, [this]() {
                 if (onToggleCheckAlarm) onToggleCheckAlarm();
                 capNhatNutTrangPhai();
             });
-        }
-        else if (settingsSubTab == 3) { // Phím
-            rightPageButtons.emplace_back(rx, 540.0f, 190.0f, 44.0f, tiengViet ? "Bộ phím WASD" : "WASD Preset", f, [this]() {
+            rightPageButtons.back().setCharacterSize(13);
+        } else if (settingsSubTab == 3) { // Controls
+            rightPageButtons.emplace_back(668.0f, 492.0f, 118.0f, 38.0f, tiengViet ? "Phím WASD" : "WASD Keys", f, [this]() {
                 if (onPresetWasd) onPresetWasd();
             });
-            rightPageButtons.emplace_back(rx + 200.0f, 540.0f, 190.0f, 44.0f, tiengViet ? "Bộ phím Mũi tên" : "Arrow Keys Preset", f, [this]() {
+            rightPageButtons.back().setCharacterSize(12);
+            rightPageButtons.emplace_back(794.0f, 492.0f, 118.0f, 38.0f, tiengViet ? "Mũi tên" : "Arrow Keys", f, [this]() {
                 if (onPresetArrows) onPresetArrows();
             });
+            rightPageButtons.back().setCharacterSize(12);
         }
 
-        // Action buttons
-        rightPageButtons.emplace_back(rx, 624.0f, 188.0f, 44.0f, tiengViet ? "Áp dụng & Lưu" : "Apply & Save", f, [this]() {
+        rightPageButtons.emplace_back(rx, 552.0f, 120.0f, 44.0f, tiengViet ? "Áp dụng" : "Apply", f, [this]() {
             if (onApplySettings) onApplySettings();
         });
-        rightPageButtons.back().setCharacterSize(16);
-        rightPageButtons.emplace_back(rx + 202.0f, 624.0f, 188.0f, 44.0f, tiengViet ? "Khôi phục" : "Restore", f, [this]() {
+        rightPageButtons.back().setCharacterSize(13);
+
+        rightPageButtons.emplace_back(rx + 130.0f, 552.0f, 120.0f, 44.0f, tiengViet ? "Mặc định" : "Restore", f, [this]() {
             if (onRestoreDefaults) onRestoreDefaults();
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setCharacterSize(16);
-
-        // Button styling
-        for (auto& btn : rightPageButtons) {
-            btn.setColors(sf::Color(65, 38, 20), sf::Color(190, 35, 25), sf::Color(120, 20, 15));
-            btn.setShapeColor(sf::Color(248, 238, 224, 230));
-            btn.setOutline(1.0f, sf::Color(175, 140, 100));
-        }
+        rightPageButtons.back().setCharacterSize(13);
     }
     // Info section
     else if (activeSection == MenuSection::INFO) {
-        // Info tabs
-        rightPageButtons.emplace_back(rx, 292.0f, 188.0f, 32.0f, tiengViet ? "Kiến trúc OOP" : "OOP Architecture", f, [this]() {
+        rightPageButtons.emplace_back(rx, 248.0f, 120.0f, 34.0f, tiengViet ? "Kiến trúc" : "OOP Design", f, [this]() {
             infoSubTab = 0;
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setCharacterSize(15);
+        rightPageButtons.back().setCharacterSize(13);
         if (infoSubTab == 0) rightPageButtons.back().setSelected(true);
 
-        rightPageButtons.emplace_back(rx + 202.0f, 292.0f, 188.0f, 32.0f, tiengViet ? "Luật 7 Quân Cờ" : "7 Pieces Rules", f, [this]() {
+        rightPageButtons.emplace_back(rx + 130.0f, 248.0f, 120.0f, 34.0f, tiengViet ? "Luật 7 Quân" : "Piece Rules", f, [this]() {
             infoSubTab = 1;
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setCharacterSize(15);
+        rightPageButtons.back().setCharacterSize(13);
         if (infoSubTab == 1) rightPageButtons.back().setSelected(true);
     }
     // Exit section
     else if (activeSection == MenuSection::EXIT) {
-        // Confirm exit
-        rightPageButtons.emplace_back(rx, 520.0f, 188.0f, 48.0f, tiengViet ? "Thoát Game" : "Exit Game", f, [this]() {
+        rightPageButtons.emplace_back(rx, 500.0f, 120.0f, 44.0f, tiengViet ? "Thoát" : "Exit", f, [this]() {
             if (onConfirmExit) onConfirmExit();
         });
-        rightPageButtons.back().setIcon(&assets.iconExit);
-        rightPageButtons.back().setCharacterSize(16);
+        rightPageButtons.back().setCharacterSize(14);
 
-        // Cancel exit
-        rightPageButtons.emplace_back(rx + 202.0f, 520.0f, 188.0f, 48.0f, tiengViet ? "Ở lại chơi" : "Stay & Play", f, [this]() {
+        rightPageButtons.emplace_back(rx + 130.0f, 500.0f, 120.0f, 44.0f, tiengViet ? "Ở Lại" : "Stay", f, [this]() {
             if (onReturnToGame) onReturnToGame();
             else setSection(MenuSection::PLAY);
         });
-        rightPageButtons.back().setIcon(&assets.iconPlay);
-        rightPageButtons.back().setCharacterSize(16);
+        rightPageButtons.back().setCharacterSize(14);
     }
 }
 
@@ -821,9 +824,9 @@ void Menu::update(const sf::Vector2i& mousePos) {
     bool mouseMoved = (mousePos != mousePosCache);
     mousePosCache = mousePos;
 
-    // Drag slider
+    // Drag slider inside 1200x800 right panel (barX = 666, barW = 148)
     if (draggingSlider != -1 && isFullyOpen() && activeSection == MenuSection::SETTINGS && settingsSubTab == 0) {
-        float val = std::clamp((static_cast<float>(mousePos.x) - 1202.0f) / 135.0f * 100.0f, 0.0f, 100.0f);
+        float val = std::clamp((static_cast<float>(mousePos.x) - 666.0f) / 148.0f * 100.0f, 0.0f, 100.0f);
         if (draggingSlider == 0 && onSetMasterVolume) onSetMasterVolume(val);
         else if (draggingSlider == 1 && onSetBgmVolume) onSetBgmVolume(val);
         else if (draggingSlider == 2 && onSetSfxVolume) onSetSfxVolume(val);
@@ -834,14 +837,14 @@ void Menu::update(const sf::Vector2i& mousePos) {
         if (dt > 0.1f) dt = 0.1f;
 
         if (isBookOpening) {
-            bookProgress += dt * 2.5f; // Open animation
+            bookProgress += dt * 3.2f; // Smooth twin-panel unfold animation
             if (bookProgress >= 1.0f) {
                 bookProgress = 1.0f;
                 isBookOpening = false;
                 isBookClosed = false;
             }
         } else if (isBookClosing) {
-            bookProgress -= dt * 2.5f; // Close animation
+            bookProgress -= dt * 3.2f; // Smooth twin-panel collapse animation
             if (bookProgress <= 0.0f) {
                 bookProgress = 0.0f;
                 isBookClosing = false;
@@ -855,7 +858,7 @@ void Menu::update(const sf::Vector2i& mousePos) {
         return;
     }
 
-    // Update cover buttons
+    // Update centered panel buttons
     if (isBookClosed) {
         for (size_t i = 0; i < buttons.size() && i < 5; ++i) {
             buttons[i].update(mousePos);
@@ -866,15 +869,16 @@ void Menu::update(const sf::Vector2i& mousePos) {
             buttons[i].setSelected(keyboardNavActive && static_cast<int>(i) == coverIndex);
         }
     }
-    // Update page buttons
+    // Update twin open panels
     else if (bookProgress >= 0.7f) {
-        for (size_t i = 0; i < buttons.size(); ++i) {
+        for (size_t i = 0; i < buttons.size() && i < 5; ++i) {
             buttons[i].update(mousePos);
             if (buttons[i].isHovered()) {
                 currentFocus = MenuFocus::MAIN_MENU;
                 keyboardNavActive = false;
             }
-            buttons[i].setSelected(currentFocus == MenuFocus::MAIN_MENU && static_cast<int>(activeSection) == static_cast<int>(i));
+            bool isActiveSec = (static_cast<int>(activeSection) == static_cast<int>(i));
+            buttons[i].setSelected(isActiveSec && (currentFocus == MenuFocus::MAIN_MENU || keyboardNavActive));
         }
 
         int hoveredSubIdx = -1;
@@ -890,13 +894,16 @@ void Menu::update(const sf::Vector2i& mousePos) {
             rightPageIndex = hoveredSubIdx;
             keyboardNavActive = false;
         } else if (mouseMoved) {
-            // Clear hover
             keyboardNavActive = false;
         }
 
         for (size_t i = 0; i < rightPageButtons.size(); ++i) {
+            bool isTabSelected =
+                (activeSection == MenuSection::SETTINGS && static_cast<int>(i) == settingsSubTab) ||
+                (activeSection == MenuSection::INFO && static_cast<int>(i) == infoSubTab) ||
+                (activeSection == MenuSection::LOAD && static_cast<int>(i) == currentSlot);
             bool isKbd = (keyboardNavActive && currentFocus == MenuFocus::SUB_MENU && static_cast<int>(i) == rightPageIndex);
-            rightPageButtons[i].setSelected(isKbd);
+            rightPageButtons[i].setSelected(isTabSelected || isKbd);
         }
     }
 }
@@ -904,26 +911,18 @@ void Menu::update(const sf::Vector2i& mousePos) {
 void Menu::handleMouseDown(const sf::Vector2i& mousePos) {
     if (!isFullyOpen()) return;
     if (activeSection == MenuSection::SETTINGS && settingsSubTab == 0) {
-        // Master slider
-        if (mousePos.x >= 1192 && mousePos.x <= 1347 && mousePos.y >= 344 && mousePos.y <= 370) {
-            draggingSlider = 0;
-            float val = std::clamp((static_cast<float>(mousePos.x) - 1202.0f) / 135.0f * 100.0f, 0.0f, 100.0f);
-            if (onSetMasterVolume) onSetMasterVolume(val);
-            return;
-        }
-        // BGM slider
-        if (mousePos.x >= 1192 && mousePos.x <= 1347 && mousePos.y >= 404 && mousePos.y <= 430) {
-            draggingSlider = 1;
-            float val = std::clamp((static_cast<float>(mousePos.x) - 1202.0f) / 135.0f * 100.0f, 0.0f, 100.0f);
-            if (onSetBgmVolume) onSetBgmVolume(val);
-            return;
-        }
-        // SFX slider
-        if (mousePos.x >= 1192 && mousePos.x <= 1347 && mousePos.y >= 464 && mousePos.y <= 490) {
-            draggingSlider = 2;
-            float val = std::clamp((static_cast<float>(mousePos.x) - 1202.0f) / 135.0f * 100.0f, 0.0f, 100.0f);
-            if (onSetSfxVolume) onSetSfxVolume(val);
-            return;
+        for (int i = 0; i < 3; ++i) {
+            float rowY = 298.0f + static_cast<float>(i) * 52.0f;
+            if (mousePos.x >= 660 && mousePos.x <= 820 &&
+                mousePos.y >= static_cast<int>(rowY + 18.0f) &&
+                mousePos.y <= static_cast<int>(rowY + 42.0f)) {
+                draggingSlider = i;
+                float val = std::clamp((static_cast<float>(mousePos.x) - 666.0f) / 148.0f * 100.0f, 0.0f, 100.0f);
+                if (i == 0 && onSetMasterVolume) onSetMasterVolume(val);
+                else if (i == 1 && onSetBgmVolume) onSetBgmVolume(val);
+                else if (i == 2 && onSetSfxVolume) onSetSfxVolume(val);
+                return;
+            }
         }
     }
 }
@@ -948,7 +947,7 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
             return;
         }
 
-        // Closed book click
+        // Single centered panel click (450, 160, 300, 480)
         if (isBookClosed) {
             for (size_t i = 0; i < buttons.size() && i < 5; ++i) {
                 if (buttons[i].contains(mousePos)) {
@@ -957,10 +956,7 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
                 }
             }
 
-            // Open book
-            float coverW = 112.0f * 4.6f;
-            float cx = (1920.0f - coverW) / 2.0f;
-            sf::FloatRect closedRect(cx, 190.0f, coverW, 736.0f);
+            sf::FloatRect closedRect(450.0f, 160.0f, 300.0f, 480.0f);
             if (closedRect.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
                 triggerOpenAnimation(MenuSection::PLAY);
                 return;
@@ -968,10 +964,9 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
             return;
         }
 
-        // Open book
-        // Back tab
-        sf::FloatRect backTabRect(482.0f, 186.0f, 68.0f, 48.0f);
-        if (backTabRect.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+        // Twin panels open: collapse/back button top-left of left panel (260, 160, 300, 480)
+        sf::FloatRect backBtnRect(272.0f, 174.0f, 28.0f, 28.0f);
+        if (backBtnRect.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
             if (onReturnToGame) {
                 onReturnToGame();
                 return;
@@ -980,70 +975,41 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
             return;
         }
 
-        // Top tabs
-        for (int i = 0; i < 5; ++i) {
-            float tabX = 560.0f + i * 55.0f;
-            if (sf::FloatRect(tabX, 185.0f, 48.0f, 40.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+        // Left panel menu buttons
+        for (size_t i = 0; i < buttons.size() && i < 5; ++i) {
+            if (buttons[i].contains(mousePos)) {
                 currentFocus = MenuFocus::MAIN_MENU;
                 setSection(static_cast<MenuSection>(i));
                 return;
             }
         }
 
-        // Left page buttons
-        for (int i = 0; i < 5; ++i) {
-            float by = 310.0f + i * 66.0f;
-            if (sf::FloatRect(535.0f, by, 380.0f, 50.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                currentFocus = MenuFocus::MAIN_MENU;
-                setSection(static_cast<MenuSection>(i));
-                return;
-            }
-        }
-
-        // Audio controls
+        // Audio controls inside right panel
         if (activeSection == MenuSection::SETTINGS && settingsSubTab == 0) {
             currentFocus = MenuFocus::SUB_MENU;
-            // Master Toggle Switch
-            if (sf::FloatRect(1392.0f, 340.0f, 54.0f, 34.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                if (onToggleMasterSound) onToggleMasterSound();
-                return;
+            for (int i = 0; i < 3; ++i) {
+                float rowY = 298.0f + static_cast<float>(i) * 52.0f;
+                if (sf::FloatRect(866.0f, rowY - 2.0f, 48.0f, 28.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                    if (i == 0 && onToggleMasterSound) onToggleMasterSound();
+                    else if (i == 1 && onToggleBgm) onToggleBgm();
+                    else if (i == 2 && onToggleSfx) onToggleSfx();
+                    return;
+                }
+                if (sf::FloatRect(660.0f, rowY + 18.0f, 160.0f, 24.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                    float val = std::clamp((static_cast<float>(mousePos.x) - 666.0f) / 148.0f * 100.0f, 0.0f, 100.0f);
+                    if (i == 0 && onSetMasterVolume) onSetMasterVolume(val);
+                    else if (i == 1 && onSetBgmVolume) onSetBgmVolume(val);
+                    else if (i == 2 && onSetSfxVolume) onSetSfxVolume(val);
+                    return;
+                }
             }
-            // BGM Toggle Switch
-            if (sf::FloatRect(1392.0f, 400.0f, 54.0f, 34.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                if (onToggleBgm) onToggleBgm();
-                return;
-            }
-            // SFX Toggle Switch
-            if (sf::FloatRect(1392.0f, 460.0f, 54.0f, 34.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                if (onToggleSfx) onToggleSfx();
-                return;
-            }
-            // Check alarm Toggle Switch
-            if (sf::FloatRect(1392.0f, 520.0f, 54.0f, 34.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+            if (sf::FloatRect(866.0f, 454.0f, 48.0f, 28.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
                 if (onToggleCheckAlarm) onToggleCheckAlarm();
                 return;
             }
-            // Click trực tiếp trên Slider Master
-            if (sf::FloatRect(1192.0f, 344.0f, 150.0f, 26.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                float val = std::clamp((static_cast<float>(mousePos.x) - 1202.0f) / 135.0f * 100.0f, 0.0f, 100.0f);
-                if (onSetMasterVolume) onSetMasterVolume(val);
-                return;
-            }
-            // Click trực tiếp trên Slider BGM
-            if (sf::FloatRect(1192.0f, 404.0f, 150.0f, 26.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                float val = std::clamp((static_cast<float>(mousePos.x) - 1202.0f) / 135.0f * 100.0f, 0.0f, 100.0f);
-                if (onSetBgmVolume) onSetBgmVolume(val);
-                return;
-            }
-            // Click trực tiếp trên Slider SFX
-            if (sf::FloatRect(1192.0f, 464.0f, 150.0f, 26.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                float val = std::clamp((static_cast<float>(mousePos.x) - 1202.0f) / 135.0f * 100.0f, 0.0f, 100.0f);
-                if (onSetSfxVolume) onSetSfxVolume(val);
-                return;
-            }
         }
 
-        // Right page buttons
+        // Right panel buttons
         for (size_t i = 0; i < rightPageButtons.size(); ++i) {
             if (rightPageButtons[i].contains(mousePos)) {
                 currentFocus = MenuFocus::SUB_MENU;
@@ -1063,11 +1029,8 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
 void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     auto& assets = getMenuAssets();
     sf::Font& f = getMenuFont(tiengViet, true);
-    sf::Font& fRegular = getMenuFont(tiengViet, false);
     sf::Font& fBold = f;
-
-    // Background toàn màn hình
-    veNenMenuGiaoDien(window);
+    auto& fui = FantasyUI::get();
 
     if (!laMenuChinh) {
         for (auto& button : buttons) {
@@ -1076,548 +1039,457 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         return;
     }
 
-    // Book menu
+    // Dusk atmospheric vignette covering 100% of physical window pixels
+    fui.drawFullDimOverlay(window, sf::Color(10, 8, 14, 48));
 
-    // Dark overlay
-    sf::RectangleShape darkVignette(sf::Vector2f(1920.0f, 1080.0f));
-    darkVignette.setFillColor(sf::Color(10, 8, 15, 65));
-    window.draw(darkVignette);
+    // 1. Hanging Oriental Signboard Header: X = 400, Y = 60, W = 400, H = 60
+    const float titleX = 400.0f;
+    const float titleY = 60.0f;
+    const float titleW = 400.0f;
+    const float titleH = 60.0f;
 
-    // Title above book
-    const float titleW = 720.0f;
-    const float titleH = 88.0f;
-    const float titleX = (1920.0f - titleW) / 2.0f; // 600px
-    const float titleY = 55.0f;                     // Title position
+    // Brass hanging chains suspending signboard from top beam
+    const sf::Color brassChainCol(175, 138, 62, 225);
+    const sf::Color chainShadowCol(20, 12, 6, 180);
+    for (float cxChain : { 446.0f, 754.0f }) {
+        sf::RectangleShape chainShadow(sf::Vector2f(4.0f, titleY + 4.0f));
+        chainShadow.setPosition(cxChain - 1.0f, 0.0f);
+        chainShadow.setFillColor(chainShadowCol);
+        window.draw(chainShadow);
 
-    // Title frame
-    if (FantasyUI::get().isLoaded()) {
-        FantasyUI::get().drawPanel(window, sf::FloatRect(titleX, titleY, titleW, titleH), FantasyPanelStyle::ORNATE_WOOD);
-    } else if (assets.frameNormal.getSize().x > 0) {
-        sf::Sprite tFrame(assets.frameNormal);
-        sf::Vector2u fs = assets.frameNormal.getSize();
-        tFrame.setPosition(titleX, titleY);
-        tFrame.setScale(titleW / static_cast<float>(fs.x), titleH / static_cast<float>(fs.y));
-        window.draw(tFrame);
+        sf::RectangleShape chain(sf::Vector2f(2.5f, titleY + 4.0f));
+        chain.setPosition(cxChain, 0.0f);
+        chain.setFillColor(brassChainCol);
+        window.draw(chain);
+
+        sf::CircleShape stud(4.0f);
+        stud.setOrigin(4.0f, 4.0f);
+        stud.setPosition(cxChain + 1.25f, titleY + 6.0f);
+        stud.setFillColor(sf::Color(225, 185, 95));
+        window.draw(stud);
+    }
+
+    // Signboard shadow + frame
+    sf::RectangleShape signShadow(sf::Vector2f(titleW, titleH));
+    signShadow.setPosition(titleX + 6.0f, titleY + 6.0f);
+    signShadow.setFillColor(sf::Color(0, 0, 0, 115));
+    window.draw(signShadow);
+
+    if (fui.isLoaded()) {
+        fui.drawPanel(window, sf::FloatRect(titleX, titleY, titleW, titleH), OrientalPanelStyle::EBONY_WOOD);
     } else {
         sf::RectangleShape tPlate(sf::Vector2f(titleW, titleH));
         tPlate.setPosition(titleX, titleY);
-        tPlate.setFillColor(sf::Color(25, 18, 14, 235));
-        tPlate.setOutlineThickness(2.5f);
-        tPlate.setOutlineColor(sf::Color(230, 185, 75));
+        tPlate.setFillColor(sf::Color(28, 20, 14, 240));
+        tPlate.setOutlineThickness(2.0f);
+        tPlate.setOutlineColor(sf::Color(201, 154, 62));
         window.draw(tPlate);
     }
 
-    // Title text
+    // Signboard centered gold calligraphy title
+    std::string mainTitleStr = tiengViet ? "CỜ TƯỚNG" : "CHINESE CHESS";
     sf::Text gameTitleShadow;
     gameTitleShadow.setFont(fBold);
-    gameTitleShadow.setString(toUtf8(tiengViet ? "CỜ TƯỚNG" : "CHINESE CHESS"));
-    gameTitleShadow.setCharacterSize(42);
+    gameTitleShadow.setString(toUtf8(mainTitleStr));
+    gameTitleShadow.setCharacterSize(30);
     gameTitleShadow.setStyle(sf::Text::Bold);
-    gameTitleShadow.setFillColor(sf::Color(15, 8, 5, 200));
+    gameTitleShadow.setFillColor(sf::Color(12, 6, 4, 230));
     sf::FloatRect gtsb = gameTitleShadow.getLocalBounds();
-    gameTitleShadow.setOrigin(gtsb.left + gtsb.width / 2.0f, gtsb.top + gtsb.height / 2.0f);
-    gameTitleShadow.setPosition(962.0f, titleY + 34.0f);
+    gameTitleShadow.setOrigin(std::round(gtsb.left + gtsb.width / 2.0f), std::round(gtsb.top + gtsb.height / 2.0f));
+    gameTitleShadow.setPosition(std::round(titleX + titleW / 2.0f + 1.5f), std::round(titleY + titleH / 2.0f + 1.5f));
     window.draw(gameTitleShadow);
 
     sf::Text gameTitle;
     gameTitle.setFont(fBold);
-    gameTitle.setString(toUtf8(tiengViet ? "CỜ TƯỚNG" : "CHINESE CHESS"));
-    gameTitle.setCharacterSize(42);
+    gameTitle.setString(toUtf8(mainTitleStr));
+    gameTitle.setCharacterSize(30);
     gameTitle.setStyle(sf::Text::Bold);
-    gameTitle.setFillColor(sf::Color(255, 220, 100)); // Màu vàng hoàng gia
+    gameTitle.setFillColor(sf::Color(255, 222, 105));
     sf::FloatRect gtb = gameTitle.getLocalBounds();
-    gameTitle.setOrigin(gtb.left + gtb.width / 2.0f, gtb.top + gtb.height / 2.0f);
-    gameTitle.setPosition(960.0f, titleY + 32.0f);
+    gameTitle.setOrigin(std::round(gtb.left + gtb.width / 2.0f), std::round(gtb.top + gtb.height / 2.0f));
+    gameTitle.setPosition(std::round(titleX + titleW / 2.0f), std::round(titleY + titleH / 2.0f));
     window.draw(gameTitle);
 
-    // Subtitle
-    sf::Text gameSub;
-    gameSub.setFont(f);
-    gameSub.setString(toUtf8(tiengViet ? "TƯỢNG KỲ KỲ PHỔ • ĐỒ ÁN OOP HCMUS 2026" : "ANCIENT XIANGQI • HCMUS OOP 2026"));
-    gameSub.setCharacterSize(16);
-    gameSub.setStyle(sf::Text::Bold);
-    gameSub.setFillColor(sf::Color(240, 200, 155));
-    sf::FloatRect gsbb = gameSub.getLocalBounds();
-    gameSub.setOrigin(gsbb.left + gsbb.width / 2.0f, gsbb.top + gsbb.height / 2.0f);
-    gameSub.setPosition(960.0f, titleY + 66.0f);
+    // Subtle dynasty subtitle below signboard (above Y=160 panels)
+    std::string subTitleStr = tiengViet ? "TƯỢNG KỲ KỲ PHỔ  •  ĐỒ ÁN OOP HCMUS" : "ANCIENT XIANGQI  •  SCROLL PAVILION";
+    sf::Text gameSubShadow;
+    gameSubShadow.setFont(f);
+    gameSubShadow.setString(toUtf8(subTitleStr));
+    gameSubShadow.setCharacterSize(13);
+    gameSubShadow.setStyle(sf::Text::Bold);
+    gameSubShadow.setFillColor(sf::Color(10, 6, 4, 230));
+    sf::FloatRect gssb = gameSubShadow.getLocalBounds();
+    gameSubShadow.setOrigin(std::round(gssb.left + gssb.width / 2.0f), std::round(gssb.top + gssb.height / 2.0f));
+    gameSubShadow.setPosition(601.0f, 137.0f);
+    window.draw(gameSubShadow);
+
+    sf::Text gameSub = gameSubShadow;
+    gameSub.setFillColor(sf::Color(242, 214, 155));
+    gameSub.setPosition(600.0f, 136.0f);
     window.draw(gameSub);
 
-    // Draw book
-    const float scale = 4.6f;
-    const float bookY = 190.0f;
+    const float panelY = 160.0f;
+    const float panelW = 300.0f;
+    const float panelH = 480.0f;
+    const float btnW = 240.0f;
+    const float btnH = 44.0f;
+    const float startBtnY = 266.0f;
+    const float btnSpacing = 56.0f;
 
-    // Book shadow
-    float shadowW = 1040.0f * bookProgress + 530.0f * (1.0f - bookProgress);
-    float shadowX = (1920.0f - shadowW) / 2.0f;
-    sf::RectangleShape shadow(sf::Vector2f(shadowW, 736.0f));
-    shadow.setPosition(shadowX + 12.0f, bookY + 12.0f);
-    shadow.setFillColor(sf::Color(0, 0, 0, 95));
-    window.draw(shadow);
+    const std::vector<std::string> mainBtnLabels = {
+        tiengViet ? "CHƠI MỚI" : "Play",
+        tiengViet ? "TIẾP TỤC" : "Load Game",
+        tiengViet ? "CÀI ĐẶT" : "Settings",
+        tiengViet ? "THÔNG TIN" : "Rules & Info",
+        tiengViet ? "THOÁT" : "Exit"
+    };
 
-    const sf::Color woodCoverCol(185, 140, 115); // Rich warm oriental rosewood tint
-    const sf::Color paperPageCol(255, 250, 242); // Antique parchment paper tint
+    auto drawEbonyOrFallback = [&](sf::FloatRect rect, OrientalPanelStyle style) {
+        if (fui.isLoaded() || style == OrientalPanelStyle::PARCHMENT_SCROLL) {
+            fui.drawPanel(window, rect, style);
+        } else {
+            sf::RectangleShape fallback(sf::Vector2f(rect.width, rect.height));
+            fallback.setPosition(rect.left, rect.top);
+            fallback.setFillColor(sf::Color(28, 20, 14, 242));
+            fallback.setOutlineThickness(2.0f);
+            fallback.setOutlineColor(sf::Color(201, 154, 62));
+            window.draw(fallback);
+        }
+    };
 
-    // Closed book
-    if (isBookClosed && bookProgress <= 0.0f) {
-        float coverW = 112.0f * scale; // 515.2px
-        float cx = (1920.0f - coverW) / 2.0f; // 702.4px
-        float cy = bookY;
-
-        // Book cover
-        if (assets.bookCover.getSize().x > 0) {
-            sf::Sprite closedCover(assets.bookCover);
-            closedCover.setTextureRect(sf::IntRect(112, 0, 112, 160));
-            closedCover.setPosition(cx, cy);
-            closedCover.setScale(scale, scale);
-            closedCover.setColor(woodCoverCol);
-            window.draw(closedCover);
+    auto drawParchmentHeader = [&](const std::string& headerStr, float x, float y, unsigned int size, bool centered) {
+        sf::Text txt;
+        txt.setFont(fBold);
+        txt.setString(toUtf8(headerStr));
+        txt.setCharacterSize(size);
+        txt.setStyle(sf::Text::Bold);
+        if (centered) {
+            sf::FloatRect tb = txt.getLocalBounds();
+            txt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
         }
 
-        // Cover buttons (standard proportional ~ 220px x 48px)
-        float btnW = 220.0f;
-        float btnH = 44.0f;
-        float btnX = cx + (coverW - btnW) / 2.0f;
-        float startBtnY = cy + 130.0f;
-        float btnSpacing = 72.0f;
+        sf::Text shadow = txt;
+        shadow.setPosition(std::round(x + 1.0f), std::round(y + 1.0f));
+        shadow.setFillColor(sf::Color(0, 0, 0, 100));
+        window.draw(shadow);
 
-        const std::vector<std::string> coverBtnLabels = {
-            tiengViet ? "CHƠI MỚI" : "PLAY",
-            tiengViet ? "TIẾP TỤC" : "LOAD",
-            tiengViet ? "CÀI ĐẶT" : "SETTINGS",
-            tiengViet ? "THÔNG TIN" : "INFORMATION",
-            tiengViet ? "THOÁT" : "EXIT"
-        };
+        txt.setPosition(std::round(x), std::round(y));
+        txt.setFillColor(sf::Color(175, 25, 20));
+        window.draw(txt);
+    };
 
+    auto drawLeftPanelContents = [&](float px, bool activeState) {
+        if (fui.isLoaded()) {
+            fui.drawRibbonTitle(window, px + panelW / 2.0f + (activeState ? 6.0f : 0.0f), panelY + 28.0f,
+                                activeState ? 216.0f : 236.0f, 44.0f,
+                                tiengViet ? "DANH MỤC" : "MAIN MENU",
+                                fBold, 17, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+        } else {
+            sf::Text hdr;
+            hdr.setFont(fBold);
+            hdr.setString(toUtf8(tiengViet ? "DANH MỤC" : "MAIN MENU"));
+            hdr.setCharacterSize(18);
+            hdr.setStyle(sf::Text::Bold);
+            hdr.setFillColor(sf::Color(255, 222, 120));
+            sf::FloatRect hb = hdr.getLocalBounds();
+            hdr.setOrigin(std::round(hb.left + hb.width / 2.0f), std::round(hb.top + hb.height / 2.0f));
+            hdr.setPosition(std::round(px + panelW / 2.0f), panelY + 50.0f);
+            window.draw(hdr);
+        }
+
+        sf::RectangleShape sepTop(sf::Vector2f(236.0f, 1.5f));
+        sepTop.setPosition(px + 32.0f, panelY + 86.0f);
+        sepTop.setFillColor(sf::Color(190, 150, 75, 160));
+        window.draw(sepTop);
+
+        float btnX = px + (panelW - btnW) / 2.0f;
         for (size_t i = 0; i < buttons.size() && i < 5; ++i) {
             buttons[i].setSize(btnW, btnH);
-            buttons[i].setPosition(btnX, startBtnY + i * btnSpacing);
-            buttons[i].setLabel(coverBtnLabels[i]);
-            buttons[i].setSelected(keyboardNavActive && static_cast<int>(i) == coverIndex);
+            buttons[i].setPosition(btnX, startBtnY + static_cast<float>(i) * btnSpacing);
+            buttons[i].setLabel(mainBtnLabels[i]);
+            buttons[i].setCharacterSize(16);
+            if (!activeState) {
+                buttons[i].setSelected(keyboardNavActive && static_cast<int>(i) == coverIndex);
+            } else {
+                bool isActiveSec = (static_cast<int>(activeSection) == static_cast<int>(i));
+                buttons[i].setSelected(isActiveSec && (currentFocus == MenuFocus::MAIN_MENU || keyboardNavActive));
+            }
             buttons[i].draw(window);
         }
 
-        // Control prompts
-        sf::Text fCoverText;
-        fCoverText.setFont(fBold);
-        fCoverText.setString(toUtf8(tiengViet ? "W / S: Di chuyển chọn mục  •  Enter: Mở sách" : "W / S: Navigate  •  Enter: Open Book"));
-        fCoverText.setCharacterSize(15);
-        fCoverText.setStyle(sf::Text::Bold);
-        fCoverText.setFillColor(sf::Color(255, 230, 180));
-        sf::FloatRect ctb = fCoverText.getLocalBounds();
-        fCoverText.setOrigin(ctb.left + ctb.width / 2.0f, ctb.top + ctb.height / 2.0f);
-        fCoverText.setPosition(cx + coverW / 2.0f, cy + 540.0f);
-        window.draw(fCoverText);
+        sf::RectangleShape sepBot(sf::Vector2f(236.0f, 1.5f));
+        sepBot.setPosition(px + 32.0f, 558.0f);
+        sepBot.setFillColor(sf::Color(190, 150, 75, 140));
+        window.draw(sepBot);
+
+        sf::Text hintTxt;
+        hintTxt.setFont(f);
+        hintTxt.setString(toUtf8(activeState
+            ? (tiengViet ? "[A/D] Chuyển bảng" : "[A/D] Switch Panel")
+            : (tiengViet ? "[Enter] Mở Bảng" : "[Enter] Unfold Menu")));
+        hintTxt.setCharacterSize(13);
+        hintTxt.setFillColor(sf::Color(225, 200, 150));
+        sf::FloatRect htb = hintTxt.getLocalBounds();
+        hintTxt.setOrigin(std::round(htb.left + htb.width / 2.0f), std::round(htb.top + htb.height / 2.0f));
+        hintTxt.setPosition(std::round(px + panelW / 2.0f), 592.0f);
+        window.draw(hintTxt);
+    };
+
+    // 2. Closed State: Single Vertical Panel Centered (X = 450, Y = 160, W = 300, H = 480)
+    if (isBookClosed && bookProgress <= 0.0f) {
+        const float centerX = 450.0f;
+
+        sf::RectangleShape shadow(sf::Vector2f(panelW, panelH));
+        shadow.setPosition(centerX + 8.0f, panelY + 8.0f);
+        shadow.setFillColor(sf::Color(0, 0, 0, 110));
+        window.draw(shadow);
+
+        drawEbonyOrFallback(sf::FloatRect(centerX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
+        drawLeftPanelContents(centerX, false);
     }
-    // Book animation
-    else if (isBookOpening || isBookClosing) {
-        float t = 1.0f - std::pow(1.0f - bookProgress, 3.0f);
-        float cx = 960.0f;
-        float openHalfW = 112.0f * scale * t;
+    // 3. Animating Twin Panels Unfold / Collapse (450 -> 260 & 640)
+    else if (isBookOpening || isBookClosing || bookProgress < 0.7f) {
+        float t = 1.0f - std::pow(1.0f - std::clamp(bookProgress, 0.0f, 1.0f), 3.0f);
+        float leftX = 450.0f - 190.0f * t;
+        float rightX = 450.0f + 190.0f * t;
 
-        // Left cover
-        if (assets.bookCover.getSize().x > 0) {
-            sf::Sprite leftCover(assets.bookCover);
-            leftCover.setTextureRect(sf::IntRect(0, 0, 112, 160));
-            leftCover.setPosition(cx - openHalfW, bookY);
-            leftCover.setScale((openHalfW / 112.0f), scale);
-            leftCover.setColor(woodCoverCol);
-            window.draw(leftCover);
-        }
+        // Right panel unfolds symmetrically from behind
+        sf::RectangleShape shadowR(sf::Vector2f(panelW, panelH));
+        shadowR.setPosition(rightX + 8.0f, panelY + 8.0f);
+        shadowR.setFillColor(sf::Color(0, 0, 0, 105));
+        window.draw(shadowR);
+        drawEbonyOrFallback(sf::FloatRect(rightX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
 
-        // Right cover
-        if (assets.bookCover.getSize().x > 0) {
-            sf::Sprite rightCover(assets.bookCover);
-            rightCover.setTextureRect(sf::IntRect(112, 0, 112, 160));
-            rightCover.setPosition(cx, bookY);
-            rightCover.setScale((openHalfW / 112.0f), scale);
-            rightCover.setColor(woodCoverCol);
-            window.draw(rightCover);
-        }
-
-        // Open pages
-        if (t > 0.08f) {
-            if (assets.bookPageLeft.getSize().x > 0) {
-                sf::Sprite spLeft(assets.bookPageLeft);
-                float pw = 104.0f * scale * t;
-                spLeft.setPosition(cx - pw, bookY + 6.5f * scale);
-                spLeft.setScale((pw / 104.0f), scale);
-                spLeft.setColor(paperPageCol);
-                window.draw(spLeft);
-            }
-            if (assets.bookPageRight.getSize().x > 0) {
-                sf::Sprite spRight(assets.bookPageRight);
-                float pw = 104.0f * scale * t;
-                spRight.setPosition(cx, bookY + 6.5f * scale);
-                spRight.setScale((pw / 104.0f), scale);
-                spRight.setColor(paperPageCol);
-                window.draw(spRight);
-            }
-        }
-
-        // Book spine
-        sf::RectangleShape spine(sf::Vector2f(28.0f * t, 736.0f));
-        spine.setOrigin(14.0f * t, 0.0f);
-        spine.setPosition(cx, bookY);
-        spine.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(130.0f * (1.0f - t))));
-        window.draw(spine);
+        // Left panel slides to X = 260
+        sf::RectangleShape shadowL(sf::Vector2f(panelW, panelH));
+        shadowL.setPosition(leftX + 8.0f, panelY + 8.0f);
+        shadowL.setFillColor(sf::Color(0, 0, 0, 110));
+        window.draw(shadowL);
+        drawEbonyOrFallback(sf::FloatRect(leftX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
+        drawLeftPanelContents(leftX, false);
     }
-    // Open book
+    // 4. Expanded Symmetrical Twin Panels:
+    //    Left  = (260, 160, 300, 480)
+    //    Right = (640, 160, 300, 480)
     else {
-        const float bookX = 445.0f; // Centered
+        const float leftX = 260.0f;
+        const float rightX = 640.0f;
 
-        // Cover background
-        if (assets.bookCover.getSize().x > 0) {
-            sf::Sprite spCover(assets.bookCover);
-            spCover.setPosition(bookX, bookY);
-            spCover.setScale(scale, scale);
-            spCover.setColor(woodCoverCol);
-            window.draw(spCover);
-        }
+        // Shadows
+        sf::RectangleShape shadowL(sf::Vector2f(panelW, panelH));
+        shadowL.setPosition(leftX + 8.0f, panelY + 8.0f);
+        shadowL.setFillColor(sf::Color(0, 0, 0, 110));
+        window.draw(shadowL);
 
-        // Left page
-        if (assets.bookPageLeft.getSize().x > 0) {
-            sf::Sprite spLeft(assets.bookPageLeft);
-            spLeft.setPosition(bookX + 8.0f * scale, bookY + 6.5f * scale); // (481.8, 219.9)
-            spLeft.setScale(scale, scale);
-            spLeft.setColor(paperPageCol);
-            window.draw(spLeft);
-        }
+        sf::RectangleShape shadowR(sf::Vector2f(panelW, panelH));
+        shadowR.setPosition(rightX + 8.0f, panelY + 8.0f);
+        shadowR.setFillColor(sf::Color(0, 0, 0, 110));
+        window.draw(shadowR);
 
-        // Right page
-        if (assets.bookPageRight.getSize().x > 0) {
-            sf::Sprite spRight(assets.bookPageRight);
-            spRight.setPosition(bookX + (8.0f + 104.0f + 8.0f) * scale, bookY + 6.5f * scale); // (997.8, 219.9)
-            spRight.setScale(scale, scale);
-            spRight.setColor(paperPageCol);
-            window.draw(spRight);
-        }
+        // Twin ornate ebony wood panels
+        drawEbonyOrFallback(sf::FloatRect(leftX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
+        drawEbonyOrFallback(sf::FloatRect(rightX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
 
-        // Book spine
-        sf::RectangleShape spineOpen(sf::Vector2f(20.0f, 736.0f));
-        spineOpen.setOrigin(10.0f, 0.0f);
-        spineOpen.setPosition(960.0f, bookY);
-        spineOpen.setFillColor(sf::Color(0, 0, 0, 40));
-        window.draw(spineOpen);
-
-        // Ribbon
-        if (assets.marker.getSize().x > 0) {
-            sf::Sprite spMarker(assets.marker);
-            spMarker.setPosition(482.0f, 186.0f);
-            spMarker.setScale(3.4f, 3.4f);
-            spMarker.setColor(sf::Color(210, 45, 35));
-            window.draw(spMarker);
-        }
-
-    // Top tabs
-        // Back tab
-        sf::FloatRect backTabRect(482.0f, 186.0f, 68.0f, 48.0f);
-        bool hoverBackTab = backTabRect.contains(static_cast<float>(mousePosCache.x), static_cast<float>(mousePosCache.y));
+        // Left Panel Back/Collapse icon at (272, 174, 28, 28)
+        sf::FloatRect backBtnRect(272.0f, 174.0f, 28.0f, 28.0f);
+        bool hoverBack = backBtnRect.contains(static_cast<float>(mousePosCache.x), static_cast<float>(mousePosCache.y));
+        sf::RectangleShape backBox(sf::Vector2f(28.0f, 28.0f));
+        backBox.setPosition(272.0f, 174.0f);
+        backBox.setFillColor(hoverBack ? sf::Color(70, 46, 26, 240) : sf::Color(38, 25, 16, 220));
+        backBox.setOutlineThickness(1.5f);
+        backBox.setOutlineColor(hoverBack ? sf::Color(255, 215, 100) : sf::Color(180, 140, 65));
+        window.draw(backBox);
 
         if (assets.iconArrow.getSize().x > 0) {
             sf::Sprite spArrow(assets.iconArrow);
             sf::Vector2u asz = assets.iconArrow.getSize();
             spArrow.setOrigin(asz.x / 2.0f, asz.y / 2.0f);
-            spArrow.setPosition(516.0f, 210.0f);
-            spArrow.setScale(-1.8f, 1.8f); // Đảo chiều sprite để mũi tên chỉ về bên TRÁI (<-)
-            spArrow.setColor(hoverBackTab ? sf::Color(220, 35, 25) : sf::Color(90, 50, 30, 230));
+            spArrow.setPosition(286.0f, 188.0f);
+            spArrow.setScale(-1.2f, 1.2f);
+            spArrow.setColor(hoverBack ? sf::Color(255, 225, 110) : sf::Color(225, 190, 130));
             window.draw(spArrow);
         } else {
-            sf::Text backArrow;
-            backArrow.setFont(f);
-            backArrow.setString(toUtf8("◄"));
-            backArrow.setCharacterSize(18);
-            backArrow.setStyle(sf::Text::Bold);
-            backArrow.setFillColor(hoverBackTab ? sf::Color(210, 35, 25) : sf::Color(85, 50, 30, 220));
-            sf::FloatRect bab = backArrow.getLocalBounds();
-            backArrow.setOrigin(bab.left + bab.width / 2.0f, bab.top + bab.height / 2.0f);
-            backArrow.setPosition(516.0f, 210.0f);
-            window.draw(backArrow);
+            sf::Text backGlyph;
+            backGlyph.setFont(fBold);
+            backGlyph.setString(toUtf8("<"));
+            backGlyph.setCharacterSize(16);
+            backGlyph.setFillColor(hoverBack ? sf::Color(255, 225, 110) : sf::Color(225, 190, 130));
+            sf::FloatRect bgb = backGlyph.getLocalBounds();
+            backGlyph.setOrigin(std::round(bgb.left + bgb.width / 2.0f), std::round(bgb.top + bgb.height / 2.0f));
+            backGlyph.setPosition(286.0f, 188.0f);
+            window.draw(backGlyph);
         }
 
-        if (hoverBackTab) {
-            sf::RectangleShape tabHighlight(sf::Vector2f(68.0f, 48.0f));
-            tabHighlight.setPosition(482.0f, 186.0f);
-            tabHighlight.setFillColor(sf::Color(255, 235, 170, 45));
-            tabHighlight.setOutlineThickness(2.0f);
-            tabHighlight.setOutlineColor(sf::Color(220, 185, 80));
-            window.draw(tabHighlight);
-
-
-            sf::RectangleShape tipBg(sf::Vector2f(105.0f, 26.0f));
-            tipBg.setPosition(465.0f, 150.0f);
-            tipBg.setFillColor(sf::Color(25, 18, 14, 230));
+        if (hoverBack) {
+            sf::RectangleShape tipBg(sf::Vector2f(106.0f, 24.0f));
+            tipBg.setPosition(260.0f, 134.0f);
+            tipBg.setFillColor(sf::Color(22, 15, 10, 235));
             tipBg.setOutlineThickness(1.0f);
-            tipBg.setOutlineColor(sf::Color(220, 180, 80));
+            tipBg.setOutlineColor(sf::Color(210, 170, 75));
             window.draw(tipBg);
 
-            sf::Text tipText;
-            tipText.setFont(fBold);
-            tipText.setString(toUtf8(tiengViet ? "Quay về bìa" : "Back to Cover"));
-            tipText.setCharacterSize(14);
-            tipText.setStyle(sf::Text::Bold);
-            tipText.setFillColor(sf::Color(255, 230, 120));
-            sf::FloatRect ttb = tipText.getLocalBounds();
-            tipText.setOrigin(ttb.left + ttb.width / 2.0f, ttb.top + ttb.height / 2.0f);
-            tipText.setPosition(516.0f, 163.0f);
-            window.draw(tipText);
+            sf::Text tipTxt;
+            tipTxt.setFont(fBold);
+            tipTxt.setString(toUtf8(tiengViet ? "Thu gọn [ESC]" : "Collapse [ESC]"));
+            tipTxt.setCharacterSize(12);
+            tipTxt.setFillColor(sf::Color(255, 228, 125));
+            sf::FloatRect ttb = tipTxt.getLocalBounds();
+            tipTxt.setOrigin(std::round(ttb.left + ttb.width / 2.0f), std::round(ttb.top + ttb.height / 2.0f));
+            tipTxt.setPosition(313.0f, 146.0f);
+            window.draw(tipTxt);
         }
 
-        // Section tabs
-        const sf::Texture* topTabIcons[5] = {
-            &assets.iconPlay, &assets.iconLoad, &assets.iconSettings, &assets.iconInfo, &assets.iconExit
-        };
+        // Render Left Panel buttons
+        drawLeftPanelContents(leftX, true);
 
-        for (int i = 0; i < 5; ++i) {
-            float tabX = 560.0f + i * 55.0f;
-            bool isTabActive = (static_cast<int>(activeSection) == i);
-            float tabY = isTabActive ? 186.0f : 192.0f;
-            float tabW = 48.0f;
-            float tabH = isTabActive ? 36.0f : 30.0f;
-
-            // Nền tab
-            sf::RectangleShape tabBox(sf::Vector2f(tabW, tabH));
-            tabBox.setPosition(tabX, tabY);
-            tabBox.setFillColor(isTabActive ? sf::Color(252, 242, 226) : sf::Color(230, 215, 192, 220));
-            tabBox.setOutlineThickness(1.0f);
-            tabBox.setOutlineColor(isTabActive ? sf::Color(190, 140, 75) : sf::Color(165, 135, 100));
-            window.draw(tabBox);
-
-            // Active tab frame
-            if (isTabActive && assets.frameHover.getSize().x > 0) {
-                sf::Sprite fHover(assets.frameHover);
-                fHover.setPosition(tabX - 2.0f, tabY - 2.0f);
-                fHover.setScale((tabW + 4.0f) / static_cast<float>(assets.frameHover.getSize().x),
-                                (tabH + 4.0f) / static_cast<float>(assets.frameHover.getSize().y));
-                window.draw(fHover);
-            }
-
-            // Hover nếu tab chưa active
-            bool isHov = sf::FloatRect(tabX, 185.0f, tabW, 40.0f).contains(static_cast<float>(mousePosCache.x), static_cast<float>(mousePosCache.y));
-            if (!isTabActive && isHov) {
-                sf::RectangleShape hBox(sf::Vector2f(tabW, tabH));
-                hBox.setPosition(tabX, tabY);
-                hBox.setFillColor(sf::Color(255, 235, 170, 70));
-                window.draw(hBox);
-            }
-
-            // Icon trong tab
-            if (topTabIcons[i] && topTabIcons[i]->getSize().x > 0) {
-                sf::Sprite ic(*topTabIcons[i]);
-                float icScale = 20.0f / static_cast<float>(topTabIcons[i]->getSize().y);
-                ic.setScale(icScale, icScale);
-                float icW = static_cast<float>(topTabIcons[i]->getSize().x) * icScale;
-                ic.setPosition(tabX + (tabW - icW) / 2.0f, tabY + 6.0f);
-                if (isTabActive) ic.setColor(sf::Color(185, 35, 25));
-                window.draw(ic);
-            }
-        }
-
-    // Left page
-        // Left page title
-        if (FantasyUI::get().isLoaded()) {
-            FantasyUI::get().drawRibbonTitle(window, 535.0f + 190.0f, 235.0f, 380.0f, 50.0f,
-                                             tiengViet ? "DANH MỤC CHÍNH" : "MAIN MENU",
-                                             fBold, 21, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
-        } else {
-            if (assets.frameNormal.getSize().x > 0) {
-                sf::Sprite lHeader(assets.frameNormal);
-                lHeader.setPosition(535.0f, 235.0f);
-                lHeader.setScale(380.0f / static_cast<float>(assets.frameNormal.getSize().x),
-                                 50.0f / static_cast<float>(assets.frameNormal.getSize().y));
-                window.draw(lHeader);
-            }
-
-            sf::Text lTitle;
-            lTitle.setFont(fBold);
-            lTitle.setString(toUtf8(tiengViet ? "DANH MỤC CHÍNH" : "MAIN MENU"));
-            lTitle.setCharacterSize(21);
-            lTitle.setStyle(sf::Text::Bold);
-            lTitle.setFillColor(sf::Color(140, 25, 20));
-            sf::FloatRect ltb = lTitle.getLocalBounds();
-            lTitle.setOrigin(ltb.left + ltb.width / 2.0f, ltb.top + ltb.height / 2.0f);
-            lTitle.setPosition(535.0f + 190.0f, 260.0f);
-            window.draw(lTitle);
-        }
-
-        if (assets.decLine.getSize().x > 0) {
-            sf::Sprite lineL(assets.decLine);
-            lineL.setPosition(540.0f, 292.0f);
-            lineL.setScale(370.0f / static_cast<float>(assets.decLine.getSize().x), 2.8f);
-            window.draw(lineL);
-        }
-
-        // Category buttons
-        const std::vector<std::string> navLabels = {
-            tiengViet ? "Chơi Mới" : "Play",
-            tiengViet ? "Tiếp Tục" : "Load Game",
-            tiengViet ? "Cài Đặt" : "Settings",
-            tiengViet ? "Thông Tin" : "Information",
-            tiengViet ? "Thoát Game" : "Exit"
-        };
-
-        const float lBtnW = 220.0f;
-        const float lBtnH = 44.0f;
-        const float lBtnX = 535.0f + (380.0f - lBtnW) / 2.0f;
-        const float lStartBtnY = 310.0f;
-        const float lSpacing = 66.0f;
-
-        for (int i = 0; i < 5; ++i) {
-            float by = lStartBtnY + i * lSpacing;
-            bool isCurrent = (static_cast<int>(activeSection) == i);
-            bool isHover = sf::FloatRect(lBtnX, by, lBtnW, lBtnH).contains(static_cast<float>(mousePosCache.x), static_cast<float>(mousePosCache.y));
-            bool isHighlight = isHover || isCurrent;
-
-            // Bar background & frame outline
-            sf::RectangleShape barShape(sf::Vector2f(lBtnW, lBtnH));
-            barShape.setPosition(lBtnX, by);
-
-            if (isHighlight) {
-                barShape.setFillColor(sf::Color(255, 245, 230, 255));
-                barShape.setOutlineThickness(2.0f);
-                barShape.setOutlineColor(sf::Color(210, 140, 50, 245));
-            } else {
-                barShape.setFillColor(sf::Color(240, 228, 210, 220));
-                barShape.setOutlineThickness(1.2f);
-                barShape.setOutlineColor(sf::Color(175, 140, 100, 180));
-            }
-            window.draw(barShape);
-
-            // Selection frame
-            if (isHighlight && assets.frameHover.getSize().x > 0) {
-                sf::Sprite fHover(assets.frameHover);
-                fHover.setPosition(lBtnX - 3.0f, by - 3.0f);
-                fHover.setScale((lBtnW + 6.0f) / static_cast<float>(assets.frameHover.getSize().x),
-                                (lBtnH + 6.0f) / static_cast<float>(assets.frameHover.getSize().y));
-                window.draw(fHover);
-            }
-
-            // 4 Corner brackets on highlight
-            if (isHighlight) {
-                ve4GocLuaChon(window, sf::Vector2f(lBtnX, by), sf::Vector2f(lBtnW, lBtnH), 2.0f, 1.8f);
-            }
-
-            // Icon
-            if (topTabIcons[i] && topTabIcons[i]->getSize().x > 0) {
-                sf::Sprite ic(*topTabIcons[i]);
-                float icH = 26.0f;
-                float icScale = icH / static_cast<float>(topTabIcons[i]->getSize().y);
-                ic.setScale(icScale, icScale);
-                ic.setPosition(lBtnX + 16.0f, by + (lBtnH - icH) / 2.0f);
-                if (isHighlight) ic.setColor(sf::Color(190, 35, 25));
-                else ic.setColor(sf::Color(85, 55, 30));
-                window.draw(ic);
-            }
-
-            // Item label
-            sf::Text bText;
-            bText.setFont(fBold);
-            bText.setString(toUtf8(navLabels[i]));
-            bText.setCharacterSize(20);
-            bText.setStyle(sf::Text::Bold);
-            if (isHighlight) bText.setFillColor(sf::Color(185, 25, 20));
-            else bText.setFillColor(sf::Color(55, 30, 15));
-            bText.setPosition(lBtnX + 56.0f, by + 10.0f);
-            window.draw(bText);
-        }
-
-        // Control prompts
-        sf::Text fLText;
-        fLText.setFont(fBold);
-        fLText.setString(toUtf8(tiengViet ? "W/S: Lên/Xuống  |  A/D: Đổi Menu" : "W/S: Up/Down  |  A/D: Switch Menu"));
-        fLText.setCharacterSize(14);
-        fLText.setStyle(sf::Text::Bold);
-        fLText.setFillColor(sf::Color(80, 45, 25));
-        fLText.setPosition(535.0f, 695.0f);
-        window.draw(fLText);
-
-    // Right page
-        const float rHeaderX = 1042.0f;
-        const float rHeaderW = 390.0f;
-
+        // Right Panel Title Ribbon
         std::string rightTitleStr;
-        if (activeSection == MenuSection::PLAY) rightTitleStr = tiengViet ? "CHỌN CHẾ ĐỘ CHƠI" : "SELECT GAME MODE";
-        else if (activeSection == MenuSection::LOAD) rightTitleStr = tiengViet ? "CÁC VÁN ĐẤU ĐÃ LƯU" : "SAVED GAMES";
-        else if (activeSection == MenuSection::SETTINGS) rightTitleStr = tiengViet ? "CÀI ĐẶT HỆ THỐNG" : "SYSTEM SETTINGS";
-        else if (activeSection == MenuSection::INFO) rightTitleStr = tiengViet ? "THÔNG TIN & LUẬT CHƠI" : "INFORMATION & RULES";
-        else if (activeSection == MenuSection::EXIT) rightTitleStr = tiengViet ? "XÁC NHẬN THOÁT GAME" : "CONFIRM EXIT";
+        if (activeSection == MenuSection::PLAY) rightTitleStr = tiengViet ? "CHẾ ĐỘ CHƠI" : "GAME MODES";
+        else if (activeSection == MenuSection::LOAD) rightTitleStr = tiengViet ? "VÁN ĐÃ LƯU" : "SAVED GAMES";
+        else if (activeSection == MenuSection::SETTINGS) rightTitleStr = tiengViet ? "CÀI ĐẶT" : "SETTINGS";
+        else if (activeSection == MenuSection::INFO) rightTitleStr = tiengViet ? "THÔNG TIN" : "INFO & RULES";
+        else if (activeSection == MenuSection::EXIT) rightTitleStr = tiengViet ? "THOÁT GAME" : "EXIT GAME";
 
-        // Right page title
-        if (FantasyUI::get().isLoaded()) {
-            FantasyUI::get().drawRibbonTitle(window, rHeaderX + rHeaderW / 2.0f, 235.0f, rHeaderW, 50.0f,
-                                             rightTitleStr, fBold, 21, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+        if (fui.isLoaded()) {
+            fui.drawRibbonTitle(window, rightX + panelW / 2.0f, panelY + 28.0f, 236.0f, 44.0f,
+                                rightTitleStr, fBold, 16, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
         } else {
-            if (assets.frameNormal.getSize().x > 0) {
-                sf::Sprite rHeader(assets.frameNormal);
-                rHeader.setPosition(rHeaderX, 235.0f);
-                rHeader.setScale(rHeaderW / static_cast<float>(assets.frameNormal.getSize().x),
-                                 50.0f / static_cast<float>(assets.frameNormal.getSize().y));
-                window.draw(rHeader);
-            }
-
             sf::Text rTitle;
             rTitle.setFont(fBold);
             rTitle.setString(toUtf8(rightTitleStr));
-            rTitle.setCharacterSize(21);
+            rTitle.setCharacterSize(18);
             rTitle.setStyle(sf::Text::Bold);
-            rTitle.setFillColor(sf::Color(140, 25, 20));
+            rTitle.setFillColor(sf::Color(255, 222, 120));
             sf::FloatRect rtb = rTitle.getLocalBounds();
-            rTitle.setOrigin(rtb.left + rtb.width / 2.0f, rtb.top + rtb.height / 2.0f);
-            rTitle.setPosition(rHeaderX + rHeaderW / 2.0f, 260.0f);
+            rTitle.setOrigin(std::round(rtb.left + rtb.width / 2.0f), std::round(rtb.top + rtb.height / 2.0f));
+            rTitle.setPosition(std::round(rightX + panelW / 2.0f), panelY + 50.0f);
             window.draw(rTitle);
         }
 
-        if (assets.decLine.getSize().x > 0) {
-            sf::Sprite lineR(assets.decLine);
-            lineR.setPosition(rHeaderX, 292.0f);
-            lineR.setScale(rHeaderW / static_cast<float>(assets.decLine.getSize().x), 2.8f);
-            window.draw(lineR);
-        }
+        const float rx = 665.0f;
+        const float rw = 250.0f;
+        const float rightCenterX = rightX + panelW / 2.0f; // 790.0f
 
-        // Load section
-        if (activeSection == MenuSection::LOAD) {
+        if (activeSection == MenuSection::PLAY) {
+            sf::RectangleShape sepR(sf::Vector2f(236.0f, 1.5f));
+            sepR.setPosition(rightX + 32.0f, panelY + 86.0f);
+            sepR.setFillColor(sf::Color(190, 150, 75, 160));
+            window.draw(sepR);
+
+            for (auto& btn : rightPageButtons) {
+                btn.draw(window);
+            }
+
+            // Mode preview card below the 3 cards (eliminates dead space)
+            drawEbonyOrFallback(sf::FloatRect(652.0f, 442.0f, 276.0f, 178.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+
+            int previewMode = 0;
+            for (size_t i = 0; i < rightPageButtons.size() && i < 3; ++i) {
+                if (rightPageButtons[i].isHovered() || (keyboardNavActive && currentFocus == MenuFocus::SUB_MENU && static_cast<int>(i) == rightPageIndex)) {
+                    previewMode = static_cast<int>(i);
+                    break;
+                }
+            }
+
+            std::string mHead, mDesc;
+            if (previewMode == 0) {
+                mHead = tiengViet ? "ĐẤU ĐỐI KHÁNG" : "TWO PLAYERS (PvP)";
+                mDesc = tiengViet
+                    ? "Hai kỳ thủ luân phiên đánh\nquân Đỏ và Đen trên cùng máy.\nHỗ trợ Undo/Redo & lưu ván."
+                    : "Challenge a friend locally\non Red and Black turns.\nIncludes timer & history.";
+            } else if (previewMode == 1) {
+                mHead = tiengViet ? "ĐẤU VỚI AI" : "PLAYER VS AI";
+                mDesc = tiengViet
+                    ? "Thi đấu cùng AI Minimax.\nTùy chọn phe Đỏ/Đen, cấp độ\nvà thời gian suy nghĩ."
+                    : "Battle our Minimax engine.\nChoose your side, timer\nand AI difficulty level.";
+            } else {
+                mHead = tiengViet ? "MÁY ĐẤU DEMO" : "DEMO MATCH";
+                mDesc = tiengViet
+                    ? "Xem hai kỳ thủ AI tự động\nđối đầu và phân tích các\nthế trận kinh điển."
+                    : "Watch two AI engines play\nautonomously in real time.\nStudy classic endgames.";
+            }
+
+            drawParchmentHeader(mHead, rightCenterX, 468.0f, 20, true);
+
+            sf::RectangleShape pLine(sf::Vector2f(226.0f, 2.0f));
+            pLine.setPosition(rightCenterX - 113.0f, 490.0f);
+            pLine.setFillColor(sf::Color(45, 25, 15, 160));
+            window.draw(pLine);
+
+            sf::Text mdTxt;
+            mdTxt.setFont(fBold);
+            mdTxt.setString(toUtf8(mDesc));
+            mdTxt.setCharacterSize(16);
+            mdTxt.setStyle(sf::Text::Bold);
+            mdTxt.setFillColor(sf::Color(35, 18, 10));
+            mdTxt.setLineSpacing(1.22f);
+            sf::FloatRect mdb = mdTxt.getLocalBounds();
+            mdTxt.setOrigin(std::round(mdb.left + mdb.width / 2.0f), std::round(mdb.top + mdb.height / 2.0f));
+            mdTxt.setPosition(rightCenterX, 554.0f);
+            window.draw(mdTxt);
+        }
+        else if (activeSection == MenuSection::LOAD) {
+            // Draw Jade card buttons first, then overlay bright gold/ivory slot text
+            for (auto& btn : rightPageButtons) {
+                btn.draw(window);
+            }
+
             for (int i = 0; i < 3; ++i) {
-                float slotY = 315.0f + i * 90.0f;
+                float slotY = 252.0f + static_cast<float>(i) * 74.0f;
                 std::string headerStr = (tiengViet ? "Ô LƯU " : "SAVE SLOT ") + std::to_string(i + 1);
-                std::string descStr = getSlotInfoStr ? getSlotInfoStr(i, 0) : (tiengViet ? "(Ô lưu trống - Chưa có dữ liệu)" : "(Empty slot)");
+                std::string descStr = getSlotInfoStr ? getSlotInfoStr(i, 0) : (tiengViet ? "(Ô lưu trống)" : "(Empty slot)");
                 std::string subStr = getSlotInfoStr ? getSlotInfoStr(i, 1) : "";
 
                 sf::Text sHeader;
                 sHeader.setFont(fBold);
                 sHeader.setString(toUtf8(headerStr));
-                sHeader.setCharacterSize(16);
+                sHeader.setCharacterSize(15);
                 sHeader.setStyle(sf::Text::Bold);
-                sHeader.setFillColor(currentSlot == i ? sf::Color(185, 25, 20) : sf::Color(55, 28, 14));
-                sHeader.setPosition(rHeaderX + 18.0f, slotY + 8.0f);
+                sHeader.setFillColor(currentSlot == i ? sf::Color(255, 225, 105) : sf::Color(235, 200, 125));
+                sHeader.setPosition(rx + 12.0f, slotY + 5.0f);
                 window.draw(sHeader);
 
                 sf::Text sDesc;
                 sDesc.setFont(fBold);
                 sDesc.setString(toUtf8(descStr));
-                sDesc.setCharacterSize(15);
+                sDesc.setCharacterSize(14);
                 sDesc.setStyle(sf::Text::Bold);
-                sDesc.setFillColor(descStr.find("(") != std::string::npos ? sf::Color(115, 80, 50) : sf::Color(45, 22, 10));
-                sDesc.setPosition(rHeaderX + 18.0f, slotY + 32.0f);
+                sDesc.setFillColor(descStr.find("(") != std::string::npos ? sf::Color(200, 195, 175) : sf::Color(245, 236, 215));
+                sDesc.setPosition(rx + 12.0f, slotY + 24.0f);
                 window.draw(sDesc);
 
                 if (!subStr.empty()) {
                     sf::Text sSub;
                     sSub.setFont(fBold);
                     sSub.setString(toUtf8(subStr));
-                    sSub.setCharacterSize(14);
+                    sSub.setCharacterSize(13);
                     sSub.setStyle(sf::Text::Bold);
-                    sSub.setFillColor(sf::Color(85, 45, 25));
-                    sSub.setPosition(rHeaderX + 18.0f, slotY + 54.0f);
+                    sSub.setFillColor(sf::Color(205, 225, 205));
+                    sSub.setPosition(rx + 12.0f, slotY + 43.0f);
                     window.draw(sSub);
                 }
             }
+
+            sf::Text lHint;
+            lHint.setFont(fBold);
+            lHint.setString(toUtf8(tiengViet ? "Chọn ô lưu rồi bấm Vào Ván" : "Pick a slot then click Load"));
+            lHint.setCharacterSize(14);
+            lHint.setStyle(sf::Text::Bold);
+            lHint.setFillColor(sf::Color(235, 210, 160));
+            sf::FloatRect lhb = lHint.getLocalBounds();
+            lHint.setOrigin(std::round(lhb.left + lhb.width / 2.0f), std::round(lhb.top + lhb.height / 2.0f));
+            lHint.setPosition(rightCenterX, 584.0f);
+            window.draw(lHint);
         }
-        // Settings section
         else if (activeSection == MenuSection::SETTINGS) {
-            if (settingsSubTab == 0) { // Âm thanh (Audio)
+            // Aged Xuan Parchment inset for active settings tab content
+            drawEbonyOrFallback(sf::FloatRect(652.0f, 286.0f, 276.0f, 254.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+
+            if (settingsSubTab == 0) { // Audio
                 const std::vector<std::string> audioLabels = {
-                    tiengViet ? "Âm lượng tổng" : "All Volumes",
-                    tiengViet ? "Nhạc nền (BGM)" : "Music",
-                    tiengViet ? "Hiệu ứng (SFX)" : "Sound Effects"
+                    tiengViet ? "Âm tổng" : "Master Vol",
+                    tiengViet ? "Nhạc nền" : "Music BGM",
+                    tiengViet ? "Hiệu ứng" : "Sound FX"
                 };
 
                 float curVols[3] = {
@@ -1632,26 +1504,65 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     getSfxBat ? getSfxBat() : true
                 };
 
-                // Sliders
                 for (int i = 0; i < 3; ++i) {
-                    float rowY = 345.0f + i * 60.0f;
+                    float rowY = 298.0f + static_cast<float>(i) * 52.0f;
 
-                    // Label bên trái
                     sf::Text aLabel;
                     aLabel.setFont(fBold);
                     aLabel.setString(toUtf8(audioLabels[i]));
                     aLabel.setCharacterSize(16);
                     aLabel.setStyle(sf::Text::Bold);
-                    aLabel.setFillColor(sf::Color(50, 25, 12));
-                    aLabel.setPosition(rHeaderX + 6.0f, rowY + 3.0f);
+                    aLabel.setFillColor(sf::Color(35, 18, 10));
+                    aLabel.setPosition(664.0f, rowY - 1.0f);
                     window.draw(aLabel);
 
-                    // Slider Bar Track
-                    float barX = 1202.0f;
-                    float barY = rowY + 8.0f;
-                    float barW = 135.0f;
-                    float barH = 12.0f;
+                    // Value Badge
+                    float badgeX = 824.0f;
+                    float badgeY = rowY;
+                    float badgeW = 38.0f;
+                    float badgeH = 22.0f;
+                    sf::RectangleShape rBadge(sf::Vector2f(badgeW, badgeH));
+                    rBadge.setPosition(badgeX, badgeY);
+                    rBadge.setFillColor(sf::Color(246, 236, 215));
+                    rBadge.setOutlineThickness(1.5f);
+                    rBadge.setOutlineColor(sf::Color(45, 25, 15));
+                    window.draw(rBadge);
 
+                    sf::Text valText;
+                    valText.setFont(fBold);
+                    valText.setString(std::to_string(static_cast<int>(curVols[i])));
+                    valText.setCharacterSize(14);
+                    valText.setStyle(sf::Text::Bold);
+                    valText.setFillColor(sf::Color(35, 18, 10));
+                    sf::FloatRect vtb = valText.getLocalBounds();
+                    valText.setOrigin(std::round(vtb.left + vtb.width / 2.0f), std::round(vtb.top + vtb.height / 2.0f));
+                    valText.setPosition(badgeX + badgeW / 2.0f, badgeY + badgeH / 2.0f);
+                    window.draw(valText);
+
+                    // Toggle Switch
+                    float toggleX = 870.0f;
+                    float toggleY = rowY;
+                    float toggleW = 40.0f;
+                    float toggleH = 22.0f;
+                    const sf::Texture& tTex = curToggles[i] ? assets.toggleOn : assets.toggleOff;
+                    if (tTex.getSize().x > 0) {
+                        sf::Sprite spToggle(tTex);
+                        spToggle.setPosition(toggleX, toggleY);
+                        spToggle.setScale(toggleW / static_cast<float>(tTex.getSize().x),
+                                          toggleH / static_cast<float>(tTex.getSize().y));
+                        window.draw(spToggle);
+                    } else {
+                        sf::RectangleShape rToggle(sf::Vector2f(toggleW, toggleH));
+                        rToggle.setPosition(toggleX, toggleY);
+                        rToggle.setFillColor(curToggles[i] ? sf::Color(70, 155, 65) : sf::Color(135, 120, 105));
+                        window.draw(rToggle);
+                    }
+
+                    // Slider Bar Track cleanly beneath label
+                    float barX = 664.0f;
+                    float barY = rowY + 26.0f;
+                    float barW = 152.0f;
+                    float barH = 10.0f;
                     if (assets.bar.getSize().x > 0) {
                         sf::Sprite spBar(assets.bar);
                         spBar.setPosition(barX, barY);
@@ -1665,7 +1576,6 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                         window.draw(rBar);
                     }
 
-                    // Slider Progress Fill
                     float fillW = std::max(0.0f, (barW - 4.0f) * (curVols[i] / 100.0f));
                     if (fillW > 2.0f) {
                         if (assets.fill.getSize().x > 0) {
@@ -1677,330 +1587,290 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                         } else {
                             sf::RectangleShape rFill(sf::Vector2f(fillW, barH - 4.0f));
                             rFill.setPosition(barX + 2.0f, barY + 2.0f);
-                            rFill.setFillColor(sf::Color(190, 45, 35));
+                            rFill.setFillColor(sf::Color(175, 25, 20));
                             window.draw(rFill);
                         }
                     }
 
-                    // Slider Thumb Knob Handle
-                    float handleX = barX + barW * (curVols[i] / 100.0f) - 8.0f;
-                    float handleY = barY - 6.0f;
+                    float handleX = barX + barW * (curVols[i] / 100.0f) - 7.0f;
+                    float handleY = barY - 5.0f;
                     if (assets.handle.getSize().x > 0) {
                         sf::Sprite spHandle(assets.handle);
                         spHandle.setPosition(handleX, handleY);
-                        spHandle.setScale(16.0f / static_cast<float>(assets.handle.getSize().x),
-                                          24.0f / static_cast<float>(assets.handle.getSize().y));
+                        spHandle.setScale(14.0f / static_cast<float>(assets.handle.getSize().x),
+                                          20.0f / static_cast<float>(assets.handle.getSize().y));
                         window.draw(spHandle);
                     } else {
-                        sf::CircleShape cHandle(8.0f);
+                        sf::CircleShape cHandle(7.0f);
                         cHandle.setPosition(handleX, handleY);
                         cHandle.setFillColor(sf::Color(230, 205, 140));
                         cHandle.setOutlineThickness(1.5f);
-                        cHandle.setOutlineColor(sf::Color(90, 50, 25));
+                        cHandle.setOutlineColor(sf::Color(45, 25, 15));
                         window.draw(cHandle);
-                    }
-
-                    // Value Badge Pill
-                    float badgeX = 1347.0f;
-                    float badgeY = rowY + 1.0f;
-                    float badgeW = 44.0f;
-                    float badgeH = 26.0f;
-
-                    sf::RectangleShape rBadge(sf::Vector2f(badgeW, badgeH));
-                    rBadge.setPosition(badgeX, badgeY);
-                    rBadge.setFillColor(sf::Color(246, 236, 220));
-                    rBadge.setOutlineThickness(1.5f);
-                    rBadge.setOutlineColor(sf::Color(170, 125, 75));
-                    window.draw(rBadge);
-
-                    sf::Text valText;
-                    valText.setFont(f);
-                    valText.setString(std::to_string(static_cast<int>(curVols[i])));
-                    valText.setCharacterSize(15);
-                    valText.setStyle(sf::Text::Bold);
-                    valText.setFillColor(sf::Color(55, 25, 10));
-                    sf::FloatRect vtb = valText.getLocalBounds();
-                    valText.setOrigin(vtb.left + vtb.width / 2.0f, vtb.top + vtb.height / 2.0f);
-                    valText.setPosition(badgeX + badgeW / 2.0f, badgeY + badgeH / 2.0f);
-                    window.draw(valText);
-
-                    // Toggle Switch Button
-                    float toggleX = 1401.0f;
-                    float toggleY = rowY + 1.0f;
-                    float toggleW = 42.0f;
-                    float toggleH = 26.0f;
-
-                    const sf::Texture& tTex = curToggles[i] ? assets.toggleOn : assets.toggleOff;
-                    if (tTex.getSize().x > 0) {
-                        sf::Sprite spToggle(tTex);
-                        spToggle.setPosition(toggleX, toggleY);
-                        spToggle.setScale(toggleW / static_cast<float>(tTex.getSize().x),
-                                          toggleH / static_cast<float>(tTex.getSize().y));
-                        window.draw(spToggle);
-                    } else {
-                        sf::RectangleShape rToggle(sf::Vector2f(toggleW, toggleH));
-                        rToggle.setPosition(toggleX, toggleY);
-                        rToggle.setFillColor(curToggles[i] ? sf::Color(80, 160, 70) : sf::Color(130, 120, 110));
-                        window.draw(rToggle);
                     }
                 }
 
-                // Check alarm
-                float chkRowY = 525.0f;
+                // Check alarm row
+                float chkRowY = 456.0f;
                 sf::Text chkLabel;
                 chkLabel.setFont(fBold);
-                chkLabel.setString(toUtf8(tiengViet ? "Báo chiếu tướng" : "Check Alarm"));
+                chkLabel.setString(toUtf8(tiengViet ? "Báo chiếu" : "Check Alert"));
                 chkLabel.setCharacterSize(16);
                 chkLabel.setStyle(sf::Text::Bold);
-                chkLabel.setFillColor(sf::Color(50, 25, 12));
-                chkLabel.setPosition(rHeaderX + 6.0f, chkRowY + 3.0f);
+                chkLabel.setFillColor(sf::Color(35, 18, 10));
+                chkLabel.setPosition(664.0f, chkRowY);
                 window.draw(chkLabel);
 
-                std::string chkStr = getSettingStatusStr ? getSettingStatusStr(9) : "BẬT";
+                std::string chkStr = getSettingStatusStr ? getSettingStatusStr(9) : (tiengViet ? "BẬT" : "ON");
                 bool chkOn = (chkStr == "BẬT" || chkStr == "ON");
 
-                // Badge BẬT/TẮT
-                float chkBadgeX = 1347.0f;
-                float chkBadgeY = chkRowY + 1.0f;
-                sf::RectangleShape rChkBadge(sf::Vector2f(44.0f, 26.0f));
-                rChkBadge.setPosition(chkBadgeX, chkBadgeY);
-                rChkBadge.setFillColor(sf::Color(246, 236, 220));
+                sf::RectangleShape rChkBadge(sf::Vector2f(40.0f, 22.0f));
+                rChkBadge.setPosition(822.0f, chkRowY);
+                rChkBadge.setFillColor(sf::Color(246, 236, 215));
                 rChkBadge.setOutlineThickness(1.5f);
-                rChkBadge.setOutlineColor(sf::Color(170, 125, 75));
+                rChkBadge.setOutlineColor(sf::Color(45, 25, 15));
                 window.draw(rChkBadge);
 
                 sf::Text chkValText;
-                chkValText.setFont(f);
+                chkValText.setFont(fBold);
                 chkValText.setString(toUtf8(chkStr));
                 chkValText.setCharacterSize(14);
                 chkValText.setStyle(sf::Text::Bold);
-                chkValText.setFillColor(chkOn ? sf::Color(185, 25, 20) : sf::Color(115, 85, 55));
+                chkValText.setFillColor(chkOn ? sf::Color(175, 25, 20) : sf::Color(35, 18, 10));
                 sf::FloatRect ctb = chkValText.getLocalBounds();
-                chkValText.setOrigin(ctb.left + ctb.width / 2.0f, ctb.top + ctb.height / 2.0f);
-                chkValText.setPosition(chkBadgeX + 22.0f, chkBadgeY + 13.0f);
+                chkValText.setOrigin(std::round(ctb.left + ctb.width / 2.0f), std::round(ctb.top + ctb.height / 2.0f));
+                chkValText.setPosition(842.0f, chkRowY + 11.0f);
                 window.draw(chkValText);
 
-                // Toggle switch chuông báo
-                float chkToggleX = 1401.0f;
                 const sf::Texture& chkTex = chkOn ? assets.toggleOn : assets.toggleOff;
                 if (chkTex.getSize().x > 0) {
                     sf::Sprite spToggle(chkTex);
-                    spToggle.setPosition(chkToggleX, chkBadgeY);
-                    spToggle.setScale(42.0f / static_cast<float>(chkTex.getSize().x),
-                                      26.0f / static_cast<float>(chkTex.getSize().y));
+                    spToggle.setPosition(870.0f, chkRowY);
+                    spToggle.setScale(40.0f / static_cast<float>(chkTex.getSize().x),
+                                      22.0f / static_cast<float>(chkTex.getSize().y));
                     window.draw(spToggle);
                 }
             }
-            else if (settingsSubTab == 1) { // Đồ họa (Graphics)
-                // Piece style note
+            else if (settingsSubTab == 1) { // Graphics
+                sf::Text gNote;
+                gNote.setFont(fBold);
+                gNote.setString(toUtf8(tiengViet ? "Phong cách Á Đông\n16-bit Cổ Phong" : "16-bit Oriental\nPavilion Aesthetic"));
+                gNote.setCharacterSize(16);
+                gNote.setStyle(sf::Text::Bold);
+                gNote.setFillColor(sf::Color(35, 18, 10));
+                gNote.setLineSpacing(1.25f);
+                sf::FloatRect gnb = gNote.getLocalBounds();
+                gNote.setOrigin(std::round(gnb.left + gnb.width / 2.0f), std::round(gnb.top + gnb.height / 2.0f));
+                gNote.setPosition(rightCenterX, 502.0f);
+                window.draw(gNote);
             }
-            else if (settingsSubTab == 3) { // Phím (Controls)
-                sf::Text hSec;
-                hSec.setFont(fBold);
-                hSec.setString(toUtf8(tiengViet ? "CÁC PHÍM ĐIỀU KHIỂN BÀN CỜ:" : "BOARD CONTROLS:"));
-                hSec.setCharacterSize(15);
-                hSec.setStyle(sf::Text::Bold);
-                hSec.setFillColor(sf::Color(160, 25, 20));
-                hSec.setPosition(rHeaderX + 12.0f, 338.0f);
-                window.draw(hSec);
+            else if (settingsSubTab == 3) { // Controls
+                drawParchmentHeader(tiengViet ? "ĐIỀU KHIỂN" : "BOARD CONTROLS", 666.0f, 300.0f, 20, false);
 
-                if (assets.decLine.getSize().x > 0) {
-                    sf::Sprite lineDiv(assets.decLine);
-                    lineDiv.setPosition(rHeaderX + 10.0f, 366.0f);
-                    lineDiv.setScale((rHeaderW - 20.0f) / static_cast<float>(assets.decLine.getSize().x), 1.6f);
-                    window.draw(lineDiv);
-                }
+                sf::RectangleShape div(sf::Vector2f(248.0f, 2.0f));
+                div.setPosition(666.0f, 328.0f);
+                div.setFillColor(sf::Color(45, 25, 15, 150));
+                window.draw(div);
 
                 const std::vector<std::string> ctrlItems = tiengViet ? std::vector<std::string>{
-                    "• Di chuyển con trỏ: Phím W/A/S/D hoặc 4 Mũi Tên",
-                    "• Chọn / Hạ quân cờ: Phím [Space] hoặc [Enter]",
-                    "• Hủy chọn / Menu: Phím [ESC] hoặc [Backspace]",
-                    "• Hoàn tác nước đi: Phím [Ctrl + Z]"
+                    "• Di chuyển: WASD / Mũi tên",
+                    "• Chọn / Hạ cờ: Enter / Space",
+                    "• Hủy / Quay lại: ESC",
+                    "• Hoàn tác: Ctrl + Z"
                 } : std::vector<std::string>{
-                    "• Move Cursor: W/A/S/D or Arrow Keys",
-                    "• Select / Move Piece: [Space] or [Enter]",
-                    "• Deselect / Menu: [ESC] or [Backspace]",
-                    "• Undo Move: [Ctrl + Z]"
+                    "• Move: WASD / Arrows",
+                    "• Select / Drop: Enter / Space",
+                    "• Deselect / Back: ESC",
+                    "• Undo Move: Ctrl + Z"
                 };
 
                 for (size_t i = 0; i < ctrlItems.size(); ++i) {
                     sf::Text cTxt;
                     cTxt.setFont(fBold);
                     cTxt.setString(toUtf8(ctrlItems[i]));
-                    cTxt.setCharacterSize(14);
+                    cTxt.setCharacterSize(16);
                     cTxt.setStyle(sf::Text::Bold);
-                    cTxt.setFillColor(sf::Color(45, 22, 10));
-                    cTxt.setPosition(rHeaderX + 12.0f, 382.0f + static_cast<float>(i) * 32.0f);
+                    cTxt.setFillColor(sf::Color(35, 18, 10));
+                    cTxt.setPosition(666.0f, 340.0f + static_cast<float>(i) * 29.0f);
                     window.draw(cTxt);
                 }
 
                 sf::Text promptTxt;
                 promptTxt.setFont(fBold);
-                promptTxt.setString(toUtf8(tiengViet ? "Chọn bộ phím nhanh bên dưới:" : "Select quick preset below:"));
-                promptTxt.setCharacterSize(14);
+                promptTxt.setString(toUtf8(tiengViet ? "Chọn bộ phím nhanh:" : "Select key preset:"));
+                promptTxt.setCharacterSize(16);
                 promptTxt.setStyle(sf::Text::Bold);
-                promptTxt.setFillColor(sf::Color(140, 30, 20));
-                promptTxt.setPosition(rHeaderX + 12.0f, 514.0f);
+                promptTxt.setFillColor(sf::Color(175, 25, 20));
+                promptTxt.setPosition(666.0f, 464.0f);
                 window.draw(promptTxt);
             }
+
+            for (auto& btn : rightPageButtons) {
+                btn.draw(window);
+            }
         }
-        // Info section
         else if (activeSection == MenuSection::INFO) {
+            drawEbonyOrFallback(sf::FloatRect(652.0f, 288.0f, 276.0f, 326.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+
             if (infoSubTab == 0) {
-                sf::Text h1;
-                h1.setFont(fBold);
-                h1.setString(toUtf8(tiengViet ? "DỰ ÁN LẬP TRÌNH HƯỚNG ĐỐI TƯỢNG (OOP)" : "OBJECT-ORIENTED PROGRAMMING (OOP)"));
-                h1.setCharacterSize(15);
-                h1.setStyle(sf::Text::Bold);
-                h1.setFillColor(sf::Color(160, 25, 20));
-                h1.setPosition(rHeaderX + 12.0f, 340.0f);
-                window.draw(h1);
+                drawParchmentHeader(tiengViet ? "ĐỒ ÁN OOP 2026" : "OOP PROJECT 2026", 666.0f, 300.0f, 20, false);
 
                 sf::Text h2;
                 h2.setFont(fBold);
-                h2.setString(toUtf8(tiengViet ? "Trường ĐH Khoa học Tự nhiên - ĐHQG-HCM (2026)" : "VNU-HCM University of Science (HCMUS 2026)"));
-                h2.setCharacterSize(14);
+                h2.setString(toUtf8(tiengViet ? "ĐH KHTN ĐHQG-HCM" : "HCMUS - VNUHCM"));
+                h2.setCharacterSize(16);
                 h2.setStyle(sf::Text::Bold);
-                h2.setFillColor(sf::Color(80, 45, 25));
-                h2.setPosition(rHeaderX + 12.0f, 366.0f);
+                h2.setFillColor(sf::Color(35, 18, 10));
+                h2.setPosition(666.0f, 326.0f);
                 window.draw(h2);
 
-                if (assets.decLine.getSize().x > 0) {
-                    sf::Sprite lineDiv(assets.decLine);
-                    lineDiv.setPosition(rHeaderX + 10.0f, 395.0f);
-                    lineDiv.setScale((rHeaderW - 20.0f) / static_cast<float>(assets.decLine.getSize().x), 1.6f);
-                    window.draw(lineDiv);
-                }
+                sf::RectangleShape div(sf::Vector2f(248.0f, 2.0f));
+                div.setPosition(666.0f, 354.0f);
+                div.setFillColor(sf::Color(45, 25, 15, 150));
+                window.draw(div);
 
-                sf::Text hSec;
-                hSec.setFont(fBold);
-                hSec.setString(toUtf8(tiengViet ? "CÁC MẪU THIẾT KẾ (DESIGN PATTERNS):" : "DESIGN PATTERNS APPLIED:"));
-                hSec.setCharacterSize(14);
-                hSec.setStyle(sf::Text::Bold);
-                hSec.setFillColor(sf::Color(140, 30, 20));
-                hSec.setPosition(rHeaderX + 12.0f, 410.0f);
-                window.draw(hSec);
+                drawParchmentHeader(tiengViet ? "MẪU THIẾT KẾ:" : "DESIGN PATTERNS:", 666.0f, 364.0f, 18, false);
 
                 const std::vector<std::string> patterns = tiengViet ? std::vector<std::string>{
-                    "1. State Pattern: Quản lý ván đấu & menu.",
-                    "2. Command Pattern: Lưu nước đi, Undo / Redo.",
-                    "3. Strategy Pattern: Thuật toán AI Minimax.",
-                    "4. Factory Pattern: Khởi tạo đa hình 7 quân cờ.",
-                    "5. Observer & Singleton: Quản lý âm thanh & cài đặt."
+                    "1. State: Luồng ván & menu",
+                    "2. Command: Undo / Redo",
+                    "3. Strategy: AI Alpha-Beta",
+                    "4. Factory: 7 loại quân cờ",
+                    "5. Singleton: Âm & Cài đặt"
                 } : std::vector<std::string>{
-                    "1. State Pattern: Game & menu state flow.",
-                    "2. Command Pattern: Move history, Undo / Redo.",
-                    "3. Strategy Pattern: Minimax & Alpha-Beta AI.",
-                    "4. Factory Pattern: Polymorphic 7 piece types.",
-                    "5. Observer & Singleton: Audio & Settings."
+                    "1. State: Menu & game flow",
+                    "2. Command: Undo / Redo",
+                    "3. Strategy: AI Alpha-Beta",
+                    "4. Factory: 7 piece classes",
+                    "5. Singleton: Audio/Config"
                 };
 
                 for (size_t i = 0; i < patterns.size(); ++i) {
                     sf::Text pTxt;
                     pTxt.setFont(fBold);
                     pTxt.setString(toUtf8(patterns[i]));
-                    pTxt.setCharacterSize(14);
+                    pTxt.setCharacterSize(16);
                     pTxt.setStyle(sf::Text::Bold);
-                    pTxt.setFillColor(sf::Color(45, 22, 10));
-                    pTxt.setPosition(rHeaderX + 12.0f, 442.0f + static_cast<float>(i) * 33.0f);
+                    pTxt.setFillColor(sf::Color(35, 18, 10));
+                    pTxt.setPosition(666.0f, 392.0f + static_cast<float>(i) * 32.0f);
                     window.draw(pTxt);
                 }
-            }
-            else {
-                sf::Text hSec;
-                hSec.setFont(fBold);
-                hSec.setString(toUtf8(tiengViet ? "QUY TẮC DI CHUYỂN 7 QUÂN CỜ:" : "RULES FOR 7 PIECE TYPES:"));
-                hSec.setCharacterSize(15);
-                hSec.setStyle(sf::Text::Bold);
-                hSec.setFillColor(sf::Color(160, 25, 20));
-                hSec.setPosition(rHeaderX + 12.0f, 340.0f);
-                window.draw(hSec);
 
-                if (assets.decLine.getSize().x > 0) {
-                    sf::Sprite lineDiv(assets.decLine);
-                    lineDiv.setPosition(rHeaderX + 10.0f, 370.0f);
-                    lineDiv.setScale((rHeaderW - 20.0f) / static_cast<float>(assets.decLine.getSize().x), 1.6f);
-                    window.draw(lineDiv);
-                }
+                sf::Text techTxt;
+                techTxt.setFont(fBold);
+                techTxt.setString(toUtf8("C++17  •  SFML 2.6  •  OOP"));
+                techTxt.setCharacterSize(15);
+                techTxt.setStyle(sf::Text::Bold);
+                techTxt.setFillColor(sf::Color(115, 45, 20));
+                sf::FloatRect tb = techTxt.getLocalBounds();
+                techTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+                techTxt.setPosition(rightCenterX, 586.0f);
+                window.draw(techTxt);
+            } else {
+                drawParchmentHeader(tiengViet ? "LUẬT 7 QUÂN CỜ" : "XIANGQI RULES", 666.0f, 298.0f, 20, false);
+
+                sf::RectangleShape div(sf::Vector2f(248.0f, 2.0f));
+                div.setPosition(666.0f, 326.0f);
+                div.setFillColor(sf::Color(45, 25, 15, 150));
+                window.draw(div);
 
                 const std::vector<std::string> rules = tiengViet ? std::vector<std::string>{
-                    "• TƯỚNG: Đi 1 ô ngang/dọc trong Cung; không đối mặt.",
-                    "• SĨ: Đi chéo 1 ô trong Cung để hộ vệ Tướng.",
-                    "• TƯỢNG: Đi chéo 2 ô (không qua sông); có cản mắt.",
-                    "• XE: Đi ngang/dọc không hạn chế khi đường trống.",
-                    "• PHÁO: Đi như Xe; ăn quân phải nhảy qua 1 quân.",
-                    "• MÃ: Đi chữ Nhật (1 thẳng 1 chéo); có cản chân.",
-                    "• TỐT: Chưa qua sông đi thẳng; qua sông đi thêm ngang."
+                    "• TƯỚNG: 1 ô Cung; cấm lộ mặt.",
+                    "• SĨ: Chéo 1 ô trong Cung.",
+                    "• TƯỢNG: Chéo 2 ô, không sang sông.",
+                    "• XE: Ngang dọc khi trống.",
+                    "• PHÁO: Nhảy qua 1 ngòi để ăn.",
+                    "• MÃ: Chữ L; bị cản chân.",
+                    "• TỐT: Tiến 1; qua sông đi ngang."
                 } : std::vector<std::string>{
-                    "• GENERAL: 1 step orthogonal in Palace. No facing.",
-                    "• ADVISOR: 1 step diagonally within Palace.",
-                    "• ELEPHANT: 2 steps diagonally, no crossing river.",
-                    "• CHARIOT: Orthogonal move. Strongest piece.",
-                    "• CANNON: Moves like Chariot; captures by jumping.",
-                    "• HORSE: Moves in L-shape; can be blocked.",
-                    "• SOLDIER: 1 step forward; sideways after river."
+                    "• KING: 1 step in Palace.",
+                    "• ADVISOR: 1 diag in Palace.",
+                    "• ELEPHANT: 2 diag, own side.",
+                    "• CHARIOT: Straight lines.",
+                    "• CANNON: Jump 1 to capture.",
+                    "• HORSE: L-move; blockable.",
+                    "• SOLDIER: Fwd; side past river."
                 };
 
                 for (size_t i = 0; i < rules.size(); ++i) {
                     sf::Text rTxt;
                     rTxt.setFont(fBold);
                     rTxt.setString(toUtf8(rules[i]));
-                    rTxt.setCharacterSize(14);
+                    rTxt.setCharacterSize(16);
                     rTxt.setStyle(sf::Text::Bold);
-                    rTxt.setFillColor(sf::Color(45, 22, 10));
-                    rTxt.setPosition(rHeaderX + 12.0f, 386.0f + static_cast<float>(i) * 34.0f);
+                    rTxt.setFillColor(sf::Color(35, 18, 10));
+                    rTxt.setPosition(666.0f, 340.0f + static_cast<float>(i) * 35.0f);
                     window.draw(rTxt);
                 }
             }
+
+            for (auto& btn : rightPageButtons) {
+                btn.draw(window);
+            }
         }
-        // Exit section
         else if (activeSection == MenuSection::EXIT) {
-            sf::CircleShape exitRing(48.0f);
-            exitRing.setFillColor(sf::Color(230, 205, 165));
-            exitRing.setOutlineThickness(3.0f);
-            exitRing.setOutlineColor(sf::Color(190, 40, 30));
-            exitRing.setOrigin(48.0f, 48.0f);
-            exitRing.setPosition(rHeaderX + rHeaderW / 2.0f, 360.0f);
+            drawEbonyOrFallback(sf::FloatRect(652.0f, 250.0f, 276.0f, 236.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+
+            sf::CircleShape exitRing(34.0f);
+            exitRing.setFillColor(sf::Color(225, 198, 158));
+            exitRing.setOutlineThickness(2.5f);
+            exitRing.setOutlineColor(sf::Color(175, 25, 20));
+            exitRing.setOrigin(34.0f, 34.0f);
+            exitRing.setPosition(rightCenterX, 316.0f);
             window.draw(exitRing);
 
             if (assets.iconExit.getSize().x > 0) {
                 sf::Sprite ic(assets.iconExit);
                 sf::Vector2u isz = assets.iconExit.getSize();
                 ic.setOrigin(isz.x / 2.0f, isz.y / 2.0f);
-                ic.setPosition(rHeaderX + rHeaderW / 2.0f, 360.0f);
-                ic.setScale(1.8f, 1.8f);
+                ic.setPosition(rightCenterX, 316.0f);
+                ic.setScale(1.4f, 1.4f);
                 window.draw(ic);
             }
 
             sf::Text eTxt;
             eTxt.setFont(fBold);
             std::string q = tiengViet
-                ? "Bạn có chắc chắn muốn thoát game?\nMọi thiết lập đã lưu sẽ được bảo toàn."
-                : "Are you sure you want to exit?\nAll saved settings will be preserved.";
+                ? "Bạn chắc chắn muốn thoát?\nThiết lập đã lưu sẽ được giữ."
+                : "Are you sure you want to exit?\nSaved settings will be kept.";
             eTxt.setString(toUtf8(q));
-            eTxt.setCharacterSize(17);
+            eTxt.setCharacterSize(16);
             eTxt.setStyle(sf::Text::Bold);
-            eTxt.setFillColor(sf::Color(55, 25, 12));
-            eTxt.setLineSpacing(1.35f);
+            eTxt.setFillColor(sf::Color(35, 18, 10));
+            eTxt.setLineSpacing(1.28f);
             sf::FloatRect etb = eTxt.getLocalBounds();
-            eTxt.setOrigin(etb.left + etb.width / 2.0f, etb.top + etb.height / 2.0f);
-            eTxt.setPosition(rHeaderX + rHeaderW / 2.0f, 445.0f);
+            eTxt.setOrigin(std::round(etb.left + etb.width / 2.0f), std::round(etb.top + etb.height / 2.0f));
+            eTxt.setPosition(rightCenterX, 418.0f);
             window.draw(eTxt);
-        }
 
-        // Draw buttons
-        for (size_t i = 0; i < rightPageButtons.size(); ++i) {
-            rightPageButtons[i].draw(window);
+            for (auto& btn : rightPageButtons) {
+                btn.draw(window);
+            }
         }
-
-        // Control prompts
-        sf::Text fRText;
-        fRText.setFont(fBold);
-        fRText.setString(toUtf8(tiengViet ? "W/S: Lên/Xuống  |  A/D: Sang Trái/Phải  |  Enter: Chọn" : "W/S: Up/Down  |  A/D: Left/Right  |  Enter: Select"));
-        fRText.setCharacterSize(14);
-        fRText.setStyle(sf::Text::Bold);
-        fRText.setFillColor(sf::Color(80, 45, 25));
-        fRText.setPosition(1020.0f, 695.0f);
-        window.draw(fRText);
     }
+
+    // 5. Minimalist Dark Footer Strip (1200x800)
+    sf::RectangleShape footerBar(sf::Vector2f(1200.0f, 40.0f));
+    footerBar.setPosition(0.0f, 760.0f);
+    footerBar.setFillColor(sf::Color(12, 8, 6, 205));
+    window.draw(footerBar);
+
+    sf::RectangleShape footerLine(sf::Vector2f(1200.0f, 1.5f));
+    footerLine.setPosition(0.0f, 760.0f);
+    footerLine.setFillColor(sf::Color(185, 145, 65, 180));
+    window.draw(footerLine);
+
+    sf::Text footerTxt;
+    footerTxt.setFont(fBold);
+    std::string footerPrompt = (isBookClosed || bookProgress < 0.7f)
+        ? (tiengViet ? "[W/S] Di chuyển   |   [Enter] Chọn   |   [ESC] Quay lại" : "[W/S] Navigate   |   [Enter] Select   |   [ESC] Back")
+        : (tiengViet ? "[W/S] Lên/Xuống   |   [A/D] Đổi bảng   |   [Enter] Chọn   |   [ESC] Thu gọn" : "[W/S] Navigate   |   [A/D] Switch Panel   |   [Enter] Select   |   [ESC] Back");
+    footerTxt.setString(toUtf8(footerPrompt));
+    footerTxt.setCharacterSize(14);
+    footerTxt.setStyle(sf::Text::Bold);
+    footerTxt.setFillColor(sf::Color(240, 215, 155));
+    sf::FloatRect ftb = footerTxt.getLocalBounds();
+    footerTxt.setOrigin(std::round(ftb.left + ftb.width / 2.0f), std::round(ftb.top + ftb.height / 2.0f));
+    footerTxt.setPosition(600.0f, 780.0f);
+    window.draw(footerTxt);
 }

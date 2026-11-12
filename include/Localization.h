@@ -177,7 +177,20 @@ enum class LocKey {
     RED_WINS,
     BLACK_WINS,
     DRAW_MATCH,
-    PLAY_AGAIN
+    PLAY_AGAIN,
+
+    // Random Scene & Alerts
+    PROCEED_TO_ROLL,
+    RANDOM_TITLE,
+    RANDOM_SUBTITLE,
+    RANDOM_BTN_ROLL,
+    RANDOM_BTN_START,
+    RANDOM_BTN_REROLL,
+    CHECKMATE_ALERT,
+    DRAW_ALERT,
+    ILLEGAL_MOVE,
+    PVP_BTN_NEXT_P2,
+    PVP_BTN_BACK_P1
 };
 
 class Loc {

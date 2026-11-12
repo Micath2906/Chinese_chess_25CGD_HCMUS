@@ -79,6 +79,10 @@ public:
                          const sf::Color& textColor = sf::Color(255, 235, 180),
                          const sf::Color& tint = sf::Color::White);
 
+    // Covers 100% of physical window pixels (bypassing logical letterboxed viewport)
+    void drawFullDimOverlay(sf::RenderWindow& window,
+                            const sf::Color& color = sf::Color(0, 0, 0, 160));
+
     // Textures
     sf::Texture texMasterSpritesheet; // assets/xiangqi_oriental_sheet.png
     sf::Texture texMedieval;          // Alias for backward compatibility

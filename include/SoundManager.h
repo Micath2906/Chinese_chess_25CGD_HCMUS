@@ -10,7 +10,8 @@ enum class SoundType {
     CHECK,
     VICTORY,
     DEFEAT,
-    CLICK
+    CLICK,
+    ILLEGAL
 };
 
 class SoundManager {
@@ -28,6 +29,7 @@ private:
     sf::SoundBuffer bufferVictory;
     sf::SoundBuffer bufferDefeat;
     sf::SoundBuffer bufferClick;
+    sf::SoundBuffer bufferIllegal;
     sf::SoundBuffer bufferBgm;
 
     sf::Sound soundMove;
@@ -36,6 +38,7 @@ private:
     sf::Sound soundVictory;
     sf::Sound soundDefeat;
     sf::Sound soundClick;
+    sf::Sound soundIllegal;
     sf::Sound soundBgm;
 
     void sinhAmThanh();
