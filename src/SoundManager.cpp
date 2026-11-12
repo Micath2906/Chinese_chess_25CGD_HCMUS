@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <filesystem>
 
 SoundManager::SoundManager()
     : amThanhBat(true),
@@ -22,8 +23,11 @@ static bool loadSoundFile(sf::SoundBuffer& buf, const std::string& relativePath)
         "../../../",
         "../../../../"
     };
+    std::error_code ec;
     for (const auto& prefix : prefixes) {
-        if (buf.loadFromFile(prefix + relativePath)) {
+        std::string fullPath = prefix + relativePath;
+        if (std::filesystem::exists(std::filesystem::u8path(fullPath), ec) &&
+            buf.loadFromFile(fullPath)) {
             return true;
         }
     }

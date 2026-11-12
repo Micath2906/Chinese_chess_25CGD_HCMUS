@@ -2,12 +2,18 @@
 #include "Menu.h"
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 
 static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth = false) {
     const std::vector<std::string> prefixes = { "", "../", "../../" };
+    std::error_code ec;
     for (const auto& p : prefixes) {
+        std::string fullPath = p + path;
+        if (!std::filesystem::exists(std::filesystem::u8path(fullPath), ec)) {
+            continue;
+        }
         sf::Image img;
-        if (img.loadFromFile(p + path)) {
+        if (img.loadFromFile(fullPath)) {
             bool hasAlpha = false;
             sf::Vector2u sz = img.getSize();
             for (unsigned int y = 0; y < sz.y && !hasAlpha; ++y) {
@@ -55,20 +61,14 @@ bool FantasyUI::init() {
     const std::vector<std::string> prefixes = { "", "../", "../../", "resources/", "../resources/" };
     bool ok = false;
 
-    // Load xiangqi_oriental_sheet.png first
+    // Load xiangqi_oriental_sheet.png
+    std::error_code ec;
     for (const auto& p : prefixes) {
-        if (masterImg.loadFromFile(p + "assets/xiangqi_oriental_sheet.png")) {
+        std::string fullPath = p + "assets/xiangqi_oriental_sheet.png";
+        if (std::filesystem::exists(std::filesystem::u8path(fullPath), ec) &&
+            masterImg.loadFromFile(fullPath)) {
             ok = true;
             break;
-        }
-    }
-    if (!ok) {
-        for (const auto& p : prefixes) {
-            if (masterImg.loadFromFile(p + "assets/xiangqi_master_spritesheet.png") ||
-                masterImg.loadFromFile(p + "assets/xiangqi_ui_spritesheet.png")) {
-                ok = true;
-                break;
-            }
         }
     }
 
@@ -187,13 +187,43 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
                           const sf::Color& tint) {
     if (dstRect.width <= 0.0f || dstRect.height <= 0.0f) return;
 
+    auto drawXuanParchment = [&]() {
+        sf::RectangleShape cardBg(sf::Vector2f(dstRect.width, dstRect.height));
+        cardBg.setPosition(dstRect.left, dstRect.top);
+        sf::Color fillCol(235, 222, 195);
+        if (tint != sf::Color::White) {
+            fillCol.r = static_cast<sf::Uint8>((fillCol.r * tint.r) / 255);
+            fillCol.g = static_cast<sf::Uint8>((fillCol.g * tint.g) / 255);
+            fillCol.b = static_cast<sf::Uint8>((fillCol.b * tint.b) / 255);
+            fillCol.a = tint.a;
+        }
+        cardBg.setFillColor(fillCol);
+        cardBg.setOutlineThickness(-2.0f);
+        cardBg.setOutlineColor(sf::Color(45, 25, 15, tint.a));
+        window.draw(cardBg);
+
+        if (dstRect.width > 12.0f && dstRect.height > 12.0f) {
+            sf::RectangleShape innerHighlight(sf::Vector2f(dstRect.width - 6.0f, dstRect.height - 6.0f));
+            innerHighlight.setPosition(dstRect.left + 3.0f, dstRect.top + 3.0f);
+            innerHighlight.setFillColor(sf::Color::Transparent);
+            innerHighlight.setOutlineThickness(-1.0f);
+            innerHighlight.setOutlineColor(sf::Color(195, 165, 115, 140));
+            window.draw(innerHighlight);
+        }
+    };
+
+    if (style == OrientalPanelStyle::PARCHMENT_SCROLL) {
+        drawXuanParchment();
+        return;
+    }
+
     if (loaded && texFantasy.getSize().x > 0) {
         switch (style) {
             case OrientalPanelStyle::EBONY_WOOD:
                 draw9Slice(window, texFantasy, rcPanelEbony, 24, 24, 24, 24, dstRect, tint);
                 return;
             case OrientalPanelStyle::PARCHMENT_SCROLL:
-                draw9Slice(window, texFantasy, rcParchment, 20, 20, 20, 20, dstRect, tint);
+                drawXuanParchment();
                 return;
             case OrientalPanelStyle::JADE_INSET: {
                 sf::RectangleShape slotBg(sf::Vector2f(dstRect.width, dstRect.height));
@@ -230,12 +260,7 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
             break;
         }
         case OrientalPanelStyle::PARCHMENT_SCROLL: {
-            sf::RectangleShape cardBg(sf::Vector2f(dstRect.width, dstRect.height));
-            cardBg.setPosition(dstRect.left, dstRect.top);
-            cardBg.setFillColor(sf::Color(232, 216, 184, 240));
-            cardBg.setOutlineThickness(1.2f);
-            cardBg.setOutlineColor(sf::Color(165, 130, 85, 220));
-            window.draw(cardBg);
+            drawXuanParchment();
             break;
         }
         case OrientalPanelStyle::JADE_INSET: {
@@ -433,4 +458,22 @@ void FantasyUI::drawRibbonTitle(sf::RenderWindow& window,
         txt.setFillColor(textColor);
         window.draw(txt);
     }
+}
+
+void FantasyUI::drawFullDimOverlay(sf::RenderWindow& window, const sf::Color& color) {
+    sf::View currentView = window.getView();
+    sf::Vector2u winSize = window.getSize();
+    sf::View pixelView(sf::FloatRect(
+        0.0f, 0.0f,
+        static_cast<float>(winSize.x),
+        static_cast<float>(winSize.y)));
+    window.setView(pixelView);
+
+    sf::RectangleShape fullDimOverlay(sf::Vector2f(
+        static_cast<float>(winSize.x),
+        static_cast<float>(winSize.y)));
+    fullDimOverlay.setFillColor(color);
+    window.draw(fullDimOverlay);
+
+    window.setView(currentView);
 }
