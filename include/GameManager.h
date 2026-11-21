@@ -19,6 +19,7 @@ enum class TrangThai {
     PLAY_SUBMENU,
     PVP_SETUP,
     PVAI_SETUP,
+    RANDOM_LUOT,
     LOAD_MENU,
     SETTINGS_MENU,
     KEYBINDING_MENU,
@@ -104,6 +105,8 @@ private:
     Menu menuChinh;
     Menu menuPlaySub;
     Menu menuPvpSetup;
+    Menu menuPvpSetupP1;
+    Menu menuPvpSetupP2;
     Menu menuPvaiSetup;
     Menu menuLoad;
     Menu menuSettings;
@@ -160,6 +163,7 @@ private:
     std::unique_ptr<TextInput> inputAiPlayerName;
     
     // PvP setup state
+    int pvpSetupStep; // 1 = P1, 2 = P2
     int p1CharIndex;
     int p2CharIndex;
     int pvpFirstPlayer; // 1 = P1, 2 = P2
@@ -211,6 +215,46 @@ private:
     float toastTimer;
     std::string lyDoKetThuc;
 
+    // Draw Offer Dialog
+    bool hienPopupXinHoa;
+    Mau nguoiXinHoa;
+    std::unique_ptr<Button> btnAcceptDraw;
+    std::unique_ptr<Button> btnDeclineDraw;
+
+    // In-game buttons for Player 2 (Right panel)
+    std::vector<std::unique_ptr<Button>> inGameRightButtons;
+
+    // Victory celebration particles
+    struct VictoryParticle {
+        sf::Vector2f pos;
+        sf::Vector2f vel;
+        sf::Color color;
+        float rot;
+        float rotSpeed;
+        float size;
+    };
+    std::vector<VictoryParticle> victoryParticles;
+    bool victoryParticlesActive;
+
+    // Random Turn Order Scene state
+    bool isRandomRolling;
+    bool rollFinished;
+    float rollTimer;
+    float rollAngle;
+    int rollWinner;
+    std::unique_ptr<Button> btnRoll;
+    std::unique_ptr<Button> btnStartFromRoll;
+    std::unique_ptr<Button> btnReroll;
+    std::unique_ptr<Button> btnBackFromRoll;
+
+    // Invalid move feedback
+    sf::Vector2i viTriNuocDiSai;
+    float thoiGianNuocDiSai;
+    std::string lyDoNuocDiSai;
+
+    // Pulse animation clock
+    sf::Clock bannerPulseClock;
+
 public:
     GameManager();
     
@@ -251,7 +295,11 @@ private:
     void thucHienHoanTac();
     void thucHienDiTiep();
     void thucHienDauHang();
+    void thucHienDauHang(Mau mau);
     void thucHienXinHoa();
+    void thucHienXinHoa(Mau mau);
+    void chapNhanHoa();
+    void tuChoiHoa();
     void thucHienLuuGame();
     void thucHienLoadGame();
     void quayLaiMenu();
@@ -287,6 +335,14 @@ private:
     std::string layKyHieuQuanTheoStyle(const std::string& tenGoc, Mau mau) const;
     std::string layTenPieceAura(PieceAura aura) const;
     void veAuraQuan(sf::Vector2f pos, float r, PieceAura aura, bool isKing);
+    void veAvatarPortrait(sf::Vector2f center, float radius, int charIndex, Mau mau, PieceAura aura, bool activeGlow = false);
+    std::string xacDinhLyDoNuocDiSai(std::shared_ptr<QuanCo> quan, int hMoi, int cMoi);
+
+    // Random Turn Scene
+    void khoiTaoRandomLuotScene();
+    void batDauRandomRoll();
+    void capNhatRandomRoll(float dt);
+    void veRandomLuot();
     
     // Rendering
     void ve();
@@ -298,6 +354,12 @@ private:
     void veThanhBenPhai();
     void veThanhThongBao();
     void vePopupKetThuc();
+    void vePopupXinHoa();
+    void vePopupNuocDiSai();
+    void veVictoryParticles();
+    void khoiTaoVictoryParticles();
+    void capNhatVictoryParticles(float dt);
+    void veKhayQuanBiAn(float x, float y, float w, float h, Mau mauQuanBiAn, const std::string& tieuDe);
     void veMenuPopUpInGame();
     void veToast();
     

@@ -93,6 +93,7 @@ void SoundManager::capNhatAmLuong() {
     soundVictory.setVolume(effectiveSfx);
     soundDefeat.setVolume(effectiveSfx);
     soundClick.setVolume(effectiveSfx);
+    soundIllegal.setVolume(effectiveSfx);
     soundBgm.setVolume(effectiveBgm);
 }
 
@@ -177,6 +178,14 @@ void SoundManager::sinhAmThanh() {
         }, bufferClick);
     soundClick.setBuffer(bufferClick);
 
+    // Illegal move: Warning low double buzzer
+    makeBuffer(0.18, [&](double t, size_t, size_t) {
+        double decay = std::exp(-std::fmod(t, 0.09) * 35.0);
+        double buzzer = (std::sin(2.0 * PI * 140.0 * t) > 0 ? 1.0 : -1.0) * 0.35;
+        return buzzer * decay;
+    }, bufferIllegal);
+    soundIllegal.setBuffer(bufferIllegal);
+
     // BGM fallback
     struct NoteEvent {
         double startTime;
@@ -246,6 +255,9 @@ void SoundManager::play(SoundType type) {
         break;
     case SoundType::CLICK:
         soundClick.play();
+        break;
+    case SoundType::ILLEGAL:
+        soundIllegal.play();
         break;
     }
 }

@@ -299,6 +299,31 @@ std::string Loc::get(LocKey key) {
             return vi ? "HAI BÊN HÒA CỜ!" : "GAME DRAW!";
         case LocKey::PLAY_AGAIN:
             return vi ? "Chơi lại" : "Play Again";
+
+        // Random Scene & Alerts
+        case LocKey::PROCEED_TO_ROLL:
+            return vi ? "TIẾP TỤC: RANDOM LƯỢT ĐI >>" : "PROCEED: ROLL TURN ORDER >>";
+        case LocKey::RANDOM_TITLE:
+            return vi ? "BỐC THĂM / RANDOM LƯỢT ĐI" : "TURN ORDER RANDOMIZER";
+        case LocKey::RANDOM_SUBTITLE:
+            return vi ? "Tung xúc xắc xác định ai cầm quân ĐỎ (Đi trước) và ĐEN (Đi sau)" 
+                      : "Roll to randomly determine who plays RED (Moves first) and BLACK (Moves second)";
+        case LocKey::RANDOM_BTN_ROLL:
+            return vi ? "TUNG ĐỒNG XU RANDOM" : "ROLL RANDOM TURN";
+        case LocKey::RANDOM_BTN_START:
+            return vi ? "VÀO TRẬN ĐẤU" : "START MATCH";
+        case LocKey::RANDOM_BTN_REROLL:
+            return vi ? "Tung lại" : "Roll Again";
+        case LocKey::CHECKMATE_ALERT:
+            return vi ? "CHIẾU BÍ!" : "CHECKMATE!";
+        case LocKey::DRAW_ALERT:
+            return vi ? "HÒA CỜ!" : "DRAW!";
+        case LocKey::ILLEGAL_MOVE:
+            return vi ? "NƯỚC ĐI KHÔNG HỢP LỆ!" : "ILLEGAL MOVE!";
+        case LocKey::PVP_BTN_NEXT_P2:
+            return vi ? "TIẾP THEO (NGƯỜI CHƠI 2) >>" : "NEXT (PLAYER 2) >>";
+        case LocKey::PVP_BTN_BACK_P1:
+            return vi ? "<< QUAY LẠI (NGƯỜI CHƠI 1)" : "<< BACK (PLAYER 1)";
     }
 
     return "";

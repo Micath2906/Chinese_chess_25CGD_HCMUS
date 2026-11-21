@@ -243,6 +243,12 @@ bool BanCo::kiemTraNuocDiHopLe(int hangBD, int cotBD, int hangKT, int cotKT) con
     auto quan = timQuan(hangBD, cotBD);
     if (!quan) return false;
     
+    // In Chinese Chess / Xiangqi, general cannot be captured directly
+    auto quanDich = timQuan(hangKT, cotKT);
+    if (quanDich && quanDich->laTuong()) {
+        return false;
+    }
+
     if (!quan->kiemTraNuocDi(*this, hangKT, cotKT)) {
         return false;
     }
@@ -285,7 +291,13 @@ bool BanCo::diChuyen(int hangBD, int cotBD, int hangKT, int cotKT) {
     // Check checkmate or stalemate
     if (!coNuocDiHopLe(luotChoi)) {
         ketThuc = true;
-        nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
+        if (kiemTraChieu(luotChoi)) {
+            // Đang bị chiếu mà không còn nước đi hợp lệ -> Chiếu bí! Bên chiếu thắng
+            nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
+        } else {
+            // Không bị chiếu nhưng không còn nước đi hợp lệ -> Xử hòa
+            nguoiThang = Mau::HOA;
+        }
     }
     
     return true;
@@ -349,7 +361,11 @@ bool BanCo::diTiep() {
     
     if (!coNuocDiHopLe(luotChoi)) {
         ketThuc = true;
-        nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
+        if (kiemTraChieu(luotChoi)) {
+            nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
+        } else {
+            nguoiThang = Mau::HOA;
+        }
     }
     
     return true;
@@ -370,14 +386,34 @@ NuocDi BanCo::getNuocDiCuoi() const {
     return lichSuNuocDi.back();
 }
 
-std::string BanCo::layMoTaNuocDi(const NuocDi& nd) const {
+static std::string translatePieceName(const std::string& vnName, bool tiengViet) {
+    if (tiengViet) return vnName;
+    if (vnName == "Tướng") return "General";
+    if (vnName == "Sĩ") return "Advisor";
+    if (vnName == "Tượng" || vnName == "Voi") return "Elephant";
+    if (vnName == "Xe") return "Chariot";
+    if (vnName == "Pháo") return "Cannon";
+    if (vnName == "Mã") return "Horse";
+    if (vnName == "Tốt") return "Soldier";
+    return vnName;
+}
+
+std::string BanCo::layMoTaNuocDi(const NuocDi& nd, bool tiengViet) const {
     if (nd.hangBatDau < 0) return "";
-    std::string phe = (nd.mauQuan == Mau::DO) ? "Đỏ" : "Đen";
-    std::string text = phe + ": " + nd.tenQuan + " (" + 
+    std::string phe = (nd.mauQuan == Mau::DO) 
+        ? (tiengViet ? "Đỏ" : "Red") 
+        : (tiengViet ? "Đen" : "Black");
+    std::string tenQ = translatePieceName(nd.tenQuan, tiengViet);
+    std::string text = phe + ": " + tenQ + " (" + 
                        std::to_string(nd.hangBatDau) + "," + std::to_string(nd.cotBatDau) + ") -> (" +
                        std::to_string(nd.hangKetThuc) + "," + std::to_string(nd.cotKetThuc) + ")";
     if (nd.quanBiAn) {
-        text += " [Ăn " + nd.quanBiAn->layTen() + "]";
+        std::string tenAn = translatePieceName(nd.quanBiAn->layTen(), tiengViet);
+        if (tiengViet) {
+            text += " [Ăn " + tenAn + "]";
+        } else {
+            text += " [Captures " + tenAn + "]";
+        }
     }
     return text;
 }

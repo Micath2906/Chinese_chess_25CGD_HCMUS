@@ -91,5 +91,5 @@ public:
     static int getSOCOT() { return SO_COT; }
     
     // Mô tả nước đi
-    std::string layMoTaNuocDi(const NuocDi& nd) const;
+    std::string layMoTaNuocDi(const NuocDi& nd, bool tiengViet = true) const;
 };
