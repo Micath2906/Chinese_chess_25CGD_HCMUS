@@ -19,7 +19,7 @@ TextInput::TextInput(float x, float y, float w, float h, sf::Font& font,
     text.setFont(font);
     text.setCharacterSize(16);
     text.setStyle(sf::Text::Bold);
-    text.setFillColor(sf::Color::White);
+    text.setFillColor(sf::Color(255, 230, 140));
     text.setPosition(x + 10.0f, y + (h - 20.0f) / 2.0f);
 
     placeholderText.setFont(font);
@@ -87,12 +87,12 @@ void TextInput::draw(sf::RenderWindow& window) {
     if (parchmentStyle) {
         box.setOutlineThickness(2.0f);
         if (focused) {
-            box.setOutlineColor(sf::Color(175, 25, 20));
-            box.setFillColor(sf::Color(246, 234, 210));
+            box.setOutlineColor(sf::Color(215, 155, 55));
+            box.setFillColor(sf::Color(232, 212, 180));
             text.setFillColor(sf::Color(35, 18, 10));
         } else {
-            box.setOutlineColor(sf::Color(45, 25, 15));
-            box.setFillColor(sf::Color(235, 222, 195));
+            box.setOutlineColor(sf::Color(125, 85, 45));
+            box.setFillColor(sf::Color(220, 196, 160));
             text.setFillColor(sf::Color(35, 18, 10));
             placeholderText.setFillColor(sf::Color(115, 85, 55));
         }

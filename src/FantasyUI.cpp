@@ -190,7 +190,7 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
     auto drawXuanParchment = [&]() {
         sf::RectangleShape cardBg(sf::Vector2f(dstRect.width, dstRect.height));
         cardBg.setPosition(dstRect.left, dstRect.top);
-        sf::Color fillCol(235, 222, 195);
+        sf::Color fillCol(244, 232, 204); // Kem lụa sáng ấm
         if (tint != sf::Color::White) {
             fillCol.r = static_cast<sf::Uint8>((fillCol.r * tint.r) / 255);
             fillCol.g = static_cast<sf::Uint8>((fillCol.g * tint.g) / 255);
@@ -199,7 +199,7 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
         }
         cardBg.setFillColor(fillCol);
         cardBg.setOutlineThickness(-2.0f);
-        cardBg.setOutlineColor(sf::Color(45, 25, 15, tint.a));
+        cardBg.setOutlineColor(sf::Color(92, 56, 30, tint.a)); // Viền nâu đồng ấm
         window.draw(cardBg);
 
         if (dstRect.width > 12.0f && dstRect.height > 12.0f) {
@@ -207,7 +207,7 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
             innerHighlight.setPosition(dstRect.left + 3.0f, dstRect.top + 3.0f);
             innerHighlight.setFillColor(sf::Color::Transparent);
             innerHighlight.setOutlineThickness(-1.0f);
-            innerHighlight.setOutlineColor(sf::Color(195, 165, 115, 140));
+            innerHighlight.setOutlineColor(sf::Color(210, 178, 122, 165)); // Viền trong ánh vàng kem
             window.draw(innerHighlight);
         }
     };
@@ -228,9 +228,9 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
             case OrientalPanelStyle::JADE_INSET: {
                 sf::RectangleShape slotBg(sf::Vector2f(dstRect.width, dstRect.height));
                 slotBg.setPosition(dstRect.left, dstRect.top);
-                slotBg.setFillColor(sf::Color(20, 36, 30, 235));
-                slotBg.setOutlineThickness(1.2f);
-                slotBg.setOutlineColor(sf::Color(46, 230, 166, 180));
+                slotBg.setFillColor(sf::Color(36, 24, 17, 238));
+                slotBg.setOutlineThickness(1.4f);
+                slotBg.setOutlineColor(sf::Color(196, 152, 72, 210));
                 window.draw(slotBg);
                 return;
             }
@@ -266,7 +266,7 @@ void FantasyUI::drawPanel(sf::RenderWindow& window,
         case OrientalPanelStyle::JADE_INSET: {
             sf::RectangleShape slotBg(sf::Vector2f(dstRect.width, dstRect.height));
             slotBg.setPosition(dstRect.left, dstRect.top);
-            slotBg.setFillColor(sf::Color(26, 61, 52, 235));
+            slotBg.setFillColor(sf::Color(36, 24, 17, 238));
             slotBg.setOutlineThickness(1.2f);
             slotBg.setOutlineColor(sf::Color(46, 230, 166, 180));
             window.draw(slotBg);

@@ -59,7 +59,7 @@ public:
         labelText.setFont(font);
         labelText.setCharacterSize(16);
         labelText.setStyle(sf::Text::Bold);
-        labelText.setFillColor(sf::Color(220, 235, 250));
+        labelText.setFillColor(sf::Color(255, 230, 140));
         labelText.setString(title);
         labelText.setPosition(posX, posY - 24.0f);
         window.draw(labelText);

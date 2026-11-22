@@ -1183,7 +1183,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             fui.drawRibbonTitle(window, px + panelW / 2.0f + (activeState ? 6.0f : 0.0f), panelY + 28.0f,
                                 activeState ? 240.0f : 260.0f, 46.0f,
                                 tiengViet ? "DANH MỤC" : "MAIN MENU",
-                                fBold, 18, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+                                fBold, 18, sf::Color(255, 235, 140), sf::Color(190, 50, 35));
         } else {
             sf::Text hdr;
             hdr.setFont(fBold);
@@ -1352,14 +1352,14 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
 
         if (fui.isLoaded()) {
             fui.drawRibbonTitle(window, rightX + panelW / 2.0f, panelY + 28.0f, 260.0f, 46.0f,
-                                rightTitleStr, fBold, 18, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+                                rightTitleStr, fBold, 18, sf::Color(255, 235, 140), sf::Color(190, 50, 35));
         } else {
             sf::Text rTitle;
             rTitle.setFont(fBold);
             rTitle.setString(toUtf8(rightTitleStr));
             rTitle.setCharacterSize(18);
             rTitle.setStyle(sf::Text::Bold);
-            rTitle.setFillColor(sf::Color(255, 222, 120));
+            rTitle.setFillColor(sf::Color(255, 235, 10));
             sf::FloatRect rtb = rTitle.getLocalBounds();
             rTitle.setOrigin(std::round(rtb.left + rtb.width / 2.0f), std::round(rtb.top + rtb.height / 2.0f));
             rTitle.setPosition(std::round(rightX + panelW / 2.0f), panelY + 50.0f);
@@ -1434,11 +1434,14 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 btn.draw(window);
             }
 
+            float centerX = std::round(rx + rw / 2.0f);
+
             for (int i = 0; i < 3; ++i) {
                 float slotY = 252.0f + static_cast<float>(i) * 82.0f;
                 std::string headerStr = (tiengViet ? "Ô LƯU " : "SAVE SLOT ") + std::to_string(i + 1);
                 std::string descStr = getSlotInfoStr ? getSlotInfoStr(i, 0) : (tiengViet ? "(Ô lưu trống)" : "(Empty slot)");
                 std::string subStr = getSlotInfoStr ? getSlotInfoStr(i, 1) : "";
+                bool hasSub = !subStr.empty();
 
                 sf::Text sHeader;
                 sHeader.setFont(fBold);
@@ -1446,7 +1449,9 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 sHeader.setCharacterSize(16);
                 sHeader.setStyle(sf::Text::Bold);
                 sHeader.setFillColor(currentSlot == i ? sf::Color(255, 225, 105) : sf::Color(235, 200, 125));
-                sHeader.setPosition(rx + 16.0f, slotY + 6.0f);
+                sf::FloatRect hb = sHeader.getLocalBounds();
+                sHeader.setOrigin(std::round(hb.left + hb.width / 2.0f), std::round(hb.top + hb.height / 2.0f));
+                sHeader.setPosition(centerX, std::round(slotY + (hasSub ? 17.0f : 23.0f)));
                 window.draw(sHeader);
 
                 sf::Text sDesc;
@@ -1454,18 +1459,22 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 sDesc.setString(toUtf8(descStr));
                 sDesc.setCharacterSize(15);
                 sDesc.setStyle(sf::Text::Bold);
-                sDesc.setFillColor(descStr.find("(") != std::string::npos ? sf::Color(200, 195, 175) : sf::Color(245, 236, 215));
-                sDesc.setPosition(rx + 16.0f, slotY + 28.0f);
+                sDesc.setFillColor(sf::Color(235, 200, 110)); 
+                sf::FloatRect db = sDesc.getLocalBounds();
+                sDesc.setOrigin(std::round(db.left + db.width / 2.0f), std::round(db.top + db.height / 2.0f));
+                sDesc.setPosition(centerX, std::round(slotY + (hasSub ? 38.0f : 48.0f)));
                 window.draw(sDesc);
 
-                if (!subStr.empty()) {
+                if (hasSub) {
                     sf::Text sSub;
                     sSub.setFont(fBold);
                     sSub.setString(toUtf8(subStr));
                     sSub.setCharacterSize(14);
                     sSub.setStyle(sf::Text::Bold);
                     sSub.setFillColor(sf::Color(205, 225, 205));
-                    sSub.setPosition(rx + 16.0f, slotY + 48.0f);
+                    sf::FloatRect sb = sSub.getLocalBounds();
+                    sSub.setOrigin(std::round(sb.left + sb.width / 2.0f), std::round(sb.top + sb.height / 2.0f));
+                    sSub.setPosition(centerX, std::round(slotY + 57.0f));
                     window.draw(sSub);
                 }
             }
@@ -1874,3 +1883,4 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     footerTxt.setPosition(600.0f, 780.0f);
     window.draw(footerTxt);
 }
+
