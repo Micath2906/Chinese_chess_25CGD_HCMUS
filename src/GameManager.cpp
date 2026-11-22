@@ -136,35 +136,37 @@ void GameManager::khoiTao() {
         ));
     }
 
-    // Load fonts
-    tryLoadFontCandidates(fontVn, {
-        "assets/font/ViaodaLibre-Regular.ttf",
-        "resources/fonts/ViaodaLibre-Regular.ttf",
-        "assets/font/NomNaTong-Regular.ttf",
-        "resources/fonts/NomNaTong-Regular.ttf",
+    // Load fonts (prioritize thick, readable bold fonts for UI legibility)
+    tryLoadFontCandidates(fontVnBold, {
+        "assets/font/arialbd.ttf",
+        "resources/fonts/arialbd.ttf",
+        "C:/Windows/Fonts/arialbd.ttf",
+        "C:/Windows/Fonts/segoeuib.ttf",
         "resources/fonts/arial.ttf",
         "C:/Windows/Fonts/arial.ttf"
     });
 
-    tryLoadFontCandidates(fontVnBold, {
-        "assets/font/ViaodaLibre-Regular.ttf",
-        "resources/fonts/ViaodaLibre-Regular.ttf",
+    tryLoadFontCandidates(fontEnBold, {
+        "assets/font/arialbd.ttf",
+        "resources/fonts/arialbd.ttf",
         "C:/Windows/Fonts/arialbd.ttf",
-        "resources/fonts/arial.ttf"
+        "assets/font/PixeloidSansBold.ttf",
+        "resources/fonts/PixeloidSansBold.ttf",
+        "C:/Windows/Fonts/segoeuib.ttf"
+    });
+
+    tryLoadFontCandidates(fontVn, {
+        "resources/fonts/arial.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+        "C:/Windows/Fonts/segoeui.ttf",
+        "assets/font/NomNaTong-Regular.ttf"
     });
 
     tryLoadFontCandidates(fontEn, {
-        "assets/font/ViaodaLibre-Regular.ttf",
-        "resources/fonts/ViaodaLibre-Regular.ttf",
+        "resources/fonts/arial.ttf",
+        "C:/Windows/Fonts/arial.ttf",
         "assets/font/PixeloidSans.ttf",
         "resources/fonts/PixeloidSans.ttf"
-    });
-
-    tryLoadFontCandidates(fontEnBold, {
-        "assets/font/ViaodaLibre-Regular.ttf",
-        "resources/fonts/ViaodaLibre-Regular.ttf",
-        "assets/font/PixeloidSansBold.ttf",
-        "resources/fonts/PixeloidSansBold.ttf"
     });
 
     tryLoadFontCandidates(fontHan, {
@@ -3590,16 +3592,17 @@ void GameManager::veThanhBenTrai() {
         }
 
         sf::Text lText;
-        lText.setFont(font);
-        lText.setCharacterSize(11);
+        lText.setFont(fontBold);
+        lText.setCharacterSize(13);
+        lText.setStyle(sf::Text::Bold);
         lText.setString(toUtf8(rows[i].label));
-        lText.setFillColor(sf::Color(185, 165, 135));
+        lText.setFillColor(sf::Color(220, 200, 165));
         lText.setPosition(infoX + 16.0f, rowY);
         window.draw(lText);
 
         sf::Text vText;
         vText.setFont(fontBold);
-        vText.setCharacterSize(12);
+        vText.setCharacterSize(14);
         vText.setStyle(sf::Text::Bold);
         vText.setString(toUtf8(rows[i].val));
         vText.setFillColor(rows[i].valColor);
@@ -3620,10 +3623,10 @@ void GameManager::veKhayQuanBiAn(float x, float y, float w, float h, Mau mauQuan
 
     sf::Text capTitle;
     capTitle.setFont(fontBold);
-    capTitle.setCharacterSize(12);
+    capTitle.setCharacterSize(13);
     capTitle.setStyle(sf::Text::Bold);
     capTitle.setString(toUtf8(tieuDe));
-    capTitle.setFillColor(sf::Color(210, 185, 140));
+    capTitle.setFillColor(sf::Color(225, 200, 155));
     sf::FloatRect ctbTitle = capTitle.getLocalBounds();
     capTitle.setOrigin(std::round(ctbTitle.left + ctbTitle.width / 2.0f), std::round(ctbTitle.top));
     capTitle.setPosition(std::round(x + w / 2.0f), y + 7.0f);
@@ -3694,10 +3697,11 @@ void GameManager::veKhayQuanBiAn(float x, float y, float w, float h, Mau mauQuan
 
     if (capCount == 0) {
         sf::Text noCap;
-        noCap.setFont(font);
-        noCap.setCharacterSize(11);
+        noCap.setFont(fontBold);
+        noCap.setCharacterSize(14);
+        noCap.setStyle(sf::Text::Bold);
         noCap.setString(toUtf8(Loc::getLanguage() == Language::TIENG_VIET ? "[ Chưa có quân bị bắt ]" : "[ No captured pieces ]"));
-        noCap.setFillColor(sf::Color(160, 145, 130));
+        noCap.setFillColor(sf::Color(230, 215, 185));
         sf::FloatRect ncb = noCap.getLocalBounds();
         noCap.setOrigin(std::round(ncb.left + ncb.width / 2.0f), std::round(ncb.top + ncb.height / 2.0f));
         noCap.setPosition(std::round(x + w / 2.0f), std::round(y + h / 2.0f + 6.0f));
@@ -3842,28 +3846,28 @@ void GameManager::veThanhBenPhai() {
         // Table Headers
         sf::Text hCol0;
         hCol0.setFont(fontBold);
-        hCol0.setCharacterSize(11);
+        hCol0.setCharacterSize(13);
         hCol0.setStyle(sf::Text::Bold);
         hCol0.setString("#");
-        hCol0.setFillColor(sf::Color(200, 175, 130));
+        hCol0.setFillColor(sf::Color(220, 195, 150));
         hCol0.setPosition(col0X, headerY);
         window.draw(hCol0);
 
         sf::Text hCol1;
         hCol1.setFont(fontBold);
-        hCol1.setCharacterSize(11);
+        hCol1.setCharacterSize(13);
         hCol1.setStyle(sf::Text::Bold);
         hCol1.setString(toUtf8(tiengViet ? "Bên Đỏ" : "Red"));
-        hCol1.setFillColor(sf::Color(255, 135, 125));
+        hCol1.setFillColor(sf::Color(255, 145, 135));
         hCol1.setPosition(col1X, headerY);
         window.draw(hCol1);
 
         sf::Text hCol2;
         hCol2.setFont(fontBold);
-        hCol2.setCharacterSize(11);
+        hCol2.setCharacterSize(13);
         hCol2.setStyle(sf::Text::Bold);
         hCol2.setString(toUtf8(tiengViet ? "Bên Đen" : "Black"));
-        hCol2.setFillColor(sf::Color(145, 195, 255));
+        hCol2.setFillColor(sf::Color(155, 205, 255));
         hCol2.setPosition(col2X, headerY);
         window.draw(hCol2);
 
@@ -3889,11 +3893,11 @@ void GameManager::veThanhBenPhai() {
 
             // Col 0: Round number
             sf::Text rNum;
-            rNum.setFont(font);
-            rNum.setCharacterSize(11);
+            rNum.setFont(fontBold);
+            rNum.setCharacterSize(13);
             rNum.setStyle(sf::Text::Bold);
             rNum.setString(std::to_string(r + 1));
-            rNum.setFillColor(sf::Color(180, 160, 130));
+            rNum.setFillColor(sf::Color(210, 190, 155));
             rNum.setPosition(col0X, rowY);
             window.draw(rNum);
 
@@ -3902,10 +3906,11 @@ void GameManager::veThanhBenPhai() {
             if (redIdx < totalMoves) {
                 std::string redDesc = banCo.layMoTaNuocDiNgan(lichSu[redIdx], tiengViet);
                 sf::Text rTxt;
-                rTxt.setFont(font);
-                rTxt.setCharacterSize(11);
+                rTxt.setFont(fontBold);
+                rTxt.setCharacterSize(13);
+                rTxt.setStyle(sf::Text::Bold);
                 rTxt.setString(toUtf8(redDesc));
-                rTxt.setFillColor(sf::Color(245, 140, 130));
+                rTxt.setFillColor(sf::Color(255, 150, 140));
                 sf::FloatRect tb = rTxt.getLocalBounds();
                 float maxColW = 90.0f;
                 if (tb.width > maxColW) {
@@ -3920,10 +3925,11 @@ void GameManager::veThanhBenPhai() {
             if (blackIdx < totalMoves) {
                 std::string blackDesc = banCo.layMoTaNuocDiNgan(lichSu[blackIdx], tiengViet);
                 sf::Text bTxt;
-                bTxt.setFont(font);
-                bTxt.setCharacterSize(11);
+                bTxt.setFont(fontBold);
+                bTxt.setCharacterSize(13);
+                bTxt.setStyle(sf::Text::Bold);
                 bTxt.setString(toUtf8(blackDesc));
-                bTxt.setFillColor(sf::Color(150, 195, 245));
+                bTxt.setFillColor(sf::Color(165, 210, 255));
                 sf::FloatRect tb = bTxt.getLocalBounds();
                 float maxColW = 90.0f;
                 if (tb.width > maxColW) {
@@ -4042,10 +4048,10 @@ void GameManager::vePopupKetThuc() {
     // 7. Dòng phụ đề thông điệp kết quả
     sf::Text tSub;
     tSub.setFont(fBodyBold);
-    tSub.setCharacterSize(14);
+    tSub.setCharacterSize(16);
     tSub.setStyle(sf::Text::Bold);
     tSub.setString(toUtf8(subHeaderStr));
-    tSub.setFillColor(sf::Color(255, 230, 140));
+    tSub.setFillColor(sf::Color(255, 235, 150));
     sf::FloatRect sb = tSub.getLocalBounds();
     tSub.setOrigin(sb.left + sb.width / 2.0f, sb.top + sb.height / 2.0f);
     tSub.setPosition(dx + dw / 2.0f, dy + 76.0f);
@@ -4062,10 +4068,10 @@ void GameManager::vePopupKetThuc() {
     // Tiêu đề bảng thống kê
     sf::Text sHeader;
     sHeader.setFont(fBodyBold);
-    sHeader.setCharacterSize(13);
+    sHeader.setCharacterSize(15);
     sHeader.setStyle(sf::Text::Bold);
     sHeader.setString(toUtf8(tiengViet ? "--- TỔNG KẾT VÁN ĐẤU ---" : "--- MATCH REPORT ---"));
-    sHeader.setFillColor(sf::Color(210, 175, 105));
+    sHeader.setFillColor(sf::Color(230, 195, 125));
     sf::FloatRect shb = sHeader.getLocalBounds();
     sHeader.setOrigin(shb.left + shb.width / 2.0f, shb.top + shb.height / 2.0f);
     sHeader.setPosition(statX + statW / 2.0f, statY + 15.0f);
@@ -4136,16 +4142,16 @@ void GameManager::vePopupKetThuc() {
 
         sf::Text tLbl;
         tLbl.setFont(fBodyBold);
-        tLbl.setCharacterSize(13);
+        tLbl.setCharacterSize(14);
         tLbl.setStyle(sf::Text::Bold);
         tLbl.setString(toUtf8(rows[r].label));
-        tLbl.setFillColor(sf::Color(235, 215, 155));
+        tLbl.setFillColor(sf::Color(240, 220, 160));
         tLbl.setPosition(statX + 20.0f, curRowY + 1.0f);
         window.draw(tLbl);
 
         sf::Text tVal;
         tVal.setFont(fBodyBold);
-        tVal.setCharacterSize(13);
+        tVal.setCharacterSize(14);
         tVal.setStyle(sf::Text::Bold);
         tVal.setString(toUtf8(rows[r].val));
         tVal.setFillColor(rows[r].valCol);
@@ -4164,11 +4170,11 @@ void GameManager::vePopupKetThuc() {
     // Shortcut prompts
     sf::Text tHint;
     tHint.setFont(fBodyBold);
-    tHint.setCharacterSize(13);
+    tHint.setCharacterSize(14);
     tHint.setStyle(sf::Text::Bold);
     tHint.setString(toUtf8(tiengViet ? "[ Phím Enter: Bắt đầu ván mới  |  Phím ESC: Về Menu chính ]"
                                      : "[ Enter: Play Again  |  ESC: Main Menu ]"));
-    tHint.setFillColor(sf::Color(220, 195, 140));
+    tHint.setFillColor(sf::Color(235, 210, 155));
     sf::FloatRect hb = tHint.getLocalBounds();
     tHint.setOrigin(hb.left + hb.width / 2.0f, hb.top + hb.height / 2.0f);
     tHint.setPosition(dx + dw / 2.0f, dy + dh - 14.0f);
@@ -4200,11 +4206,11 @@ void GameManager::veMenuPopUpInGame() {
     // 4. Y = 458: Hint text "Nhấn [ESC] để quay lại ngay"
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Text tHint;
-    tHint.setFont(font);
-    tHint.setCharacterSize(12);
+    tHint.setFont(fontBold);
+    tHint.setCharacterSize(14);
     tHint.setStyle(sf::Text::Bold);
     tHint.setString(toUtf8(tiengViet ? "Nhấn [ESC] để quay lại ngay" : "Press [ESC] to quick resume"));
-    tHint.setFillColor(sf::Color(220, 195, 140, 220));
+    tHint.setFillColor(sf::Color(240, 215, 155));
     sf::FloatRect hb = tHint.getLocalBounds();
     tHint.setOrigin(std::round(hb.left + hb.width / 2.0f), std::round(hb.top + hb.height / 2.0f));
     tHint.setPosition(1200.0f / 2.0f, 458.0f);
@@ -5156,11 +5162,11 @@ void GameManager::vePvpSetup() {
     }
 
     sf::Text p1PrevLabel;
-    p1PrevLabel.setFont(font);
-    p1PrevLabel.setCharacterSize(11);
+    p1PrevLabel.setFont(fontBold);
+    p1PrevLabel.setCharacterSize(13);
     p1PrevLabel.setStyle(sf::Text::Bold);
     p1PrevLabel.setString("AURA PREVIEW");
-    p1PrevLabel.setFillColor(sf::Color(255, 215, 0));
+    p1PrevLabel.setFillColor(sf::Color(255, 220, 100));
     sf::FloatRect plbnd = p1PrevLabel.getLocalBounds();
     p1PrevLabel.setOrigin(plbnd.left + plbnd.width / 2.0f, plbnd.top + plbnd.height / 2.0f);
     p1PrevLabel.setPosition(p1KingPos.x, p1KingPos.y + previewR + 12.0f);
@@ -5237,11 +5243,11 @@ void GameManager::vePvpSetup() {
     }
 
     sf::Text p2PrevLabel;
-    p2PrevLabel.setFont(font);
-    p2PrevLabel.setCharacterSize(11);
+    p2PrevLabel.setFont(fontBold);
+    p2PrevLabel.setCharacterSize(13);
     p2PrevLabel.setStyle(sf::Text::Bold);
     p2PrevLabel.setString("AURA PREVIEW");
-    p2PrevLabel.setFillColor(sf::Color(140, 200, 255));
+    p2PrevLabel.setFillColor(sf::Color(160, 215, 255));
     sf::FloatRect p2lbnd = p2PrevLabel.getLocalBounds();
     p2PrevLabel.setOrigin(p2lbnd.left + p2lbnd.width / 2.0f, p2lbnd.top + p2lbnd.height / 2.0f);
     p2PrevLabel.setPosition(p2KingPos.x, p2KingPos.y + previewR + 12.0f);
@@ -5362,11 +5368,11 @@ void GameManager::vePvaiSetup() {
     }
 
     sf::Text pPrevLabel;
-    pPrevLabel.setFont(font);
-    pPrevLabel.setCharacterSize(11);
+    pPrevLabel.setFont(fontBold);
+    pPrevLabel.setCharacterSize(13);
     pPrevLabel.setStyle(sf::Text::Bold);
     pPrevLabel.setString("AURA PREVIEW");
-    pPrevLabel.setFillColor(sf::Color(255, 215, 0));
+    pPrevLabel.setFillColor(sf::Color(255, 220, 100));
     sf::FloatRect plb = pPrevLabel.getLocalBounds();
     pPrevLabel.setOrigin(plb.left + plb.width / 2.0f, plb.top + plb.height / 2.0f);
     pPrevLabel.setPosition(pKingPos.x, pKingPos.y + previewR + 12.0f);
@@ -5388,7 +5394,7 @@ void GameManager::vePvaiSetup() {
     aiDiffPrompt.setFont(font);
     aiDiffPrompt.setCharacterSize(15);
     aiDiffPrompt.setString((Loc::getLanguage() == Language::TIENG_VIET) ? "Chon cap do thu thach:" : "Select challenge level:");
-    aiDiffPrompt.setFillColor(sf::Color(180, 195, 215));
+    aiDiffPrompt.setFillColor(sf::Color(225, 235, 250));
     aiDiffPrompt.setPosition(710.0f, 165.0f);
     window.draw(aiDiffPrompt);
 
@@ -5396,7 +5402,7 @@ void GameManager::vePvaiSetup() {
     aiAuraPrompt.setFont(font);
     aiAuraPrompt.setCharacterSize(15);
     aiAuraPrompt.setString((Loc::getLanguage() == Language::TIENG_VIET) ? "Hao quang cua May AI:" : "AI Piece Aura:");
-    aiAuraPrompt.setFillColor(sf::Color(180, 195, 215));
+    aiAuraPrompt.setFillColor(sf::Color(225, 235, 250));
     aiAuraPrompt.setPosition(710.0f, 245.0f);
     window.draw(aiAuraPrompt);
 
@@ -5441,26 +5447,27 @@ void GameManager::vePvaiSetup() {
     }
 
     sf::Text aiPrevLabel;
-    aiPrevLabel.setFont(font);
-    aiPrevLabel.setCharacterSize(11);
+    aiPrevLabel.setFont(fontBold);
+    aiPrevLabel.setCharacterSize(13);
     aiPrevLabel.setStyle(sf::Text::Bold);
     aiPrevLabel.setString("AI AURA");
-    aiPrevLabel.setFillColor(sf::Color(140, 200, 255));
+    aiPrevLabel.setFillColor(sf::Color(160, 215, 255));
     sf::FloatRect albnd = aiPrevLabel.getLocalBounds();
     aiPrevLabel.setOrigin(albnd.left + albnd.width / 2.0f, albnd.top + albnd.height / 2.0f);
     aiPrevLabel.setPosition(aiKingPos.x, aiKingPos.y + previewR + 12.0f);
     window.draw(aiPrevLabel);
 
     sf::Text aiDesc;
-    aiDesc.setFont(font);
-    aiDesc.setCharacterSize(13);
+    aiDesc.setFont(fontBold);
+    aiDesc.setCharacterSize(15);
+    aiDesc.setStyle(sf::Text::Bold);
     std::string aiDescStr = (aiDifficulty == DoKho::DE) 
         ? ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do De: Nuoc di co ban, thich hop luyen tap." : "Easy mode: Basic play, great for training.")
         : ((aiDifficulty == DoKho::TRUNG_BINH) 
             ? ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do Vua: Minimax 2 lop + Danh gia the tran." : "Medium mode: Minimax 2-ply + Position evaluation.")
             : ((Loc::getLanguage() == Language::TIENG_VIET) ? "Cap do Kho: Alpha-Beta 4 lop + Sap xep nuoc di." : "Hard mode: Alpha-Beta 4-ply + Move ordering."));
     aiDesc.setString(aiDescStr);
-    aiDesc.setFillColor(sf::Color(255, 230, 140));
+    aiDesc.setFillColor(sf::Color(255, 235, 150));
     aiDesc.setPosition(710.0f, 335.0f);
     window.draw(aiDesc);
 
@@ -6286,16 +6293,22 @@ void GameManager::veRandomLuot() {
     bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Font& fBold = assets.fontBoldLoaded ? assets.fontBold : fontBold;
 
-    // 1. Header Title & Subtitle
+    // 1. Header Title & Subtitle (Centered strictly at logical center X = 600.0f)
     sf::Text title;
     title.setFont(fBold);
-    title.setCharacterSize(38);
+    title.setCharacterSize(36);
     title.setStyle(sf::Text::Bold);
     title.setString(toUtf8(Loc::get(LocKey::RANDOM_TITLE)));
-    title.setFillColor(sf::Color(240, 190, 70));
+    title.setFillColor(sf::Color(255, 222, 105));
     sf::FloatRect tb = title.getLocalBounds();
     title.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-    title.setPosition(window.getSize().x / 2.0f, 52.0f);
+
+    sf::Text titleShadow = title;
+    titleShadow.setFillColor(sf::Color(0, 0, 0, 180));
+    titleShadow.setPosition(602.0f, 50.0f);
+    window.draw(titleShadow);
+
+    title.setPosition(600.0f, 48.0f);
     window.draw(title);
 
     sf::Text subtitle;
@@ -6303,10 +6316,16 @@ void GameManager::veRandomLuot() {
     subtitle.setCharacterSize(16);
     subtitle.setStyle(sf::Text::Bold);
     subtitle.setString(toUtf8(Loc::get(LocKey::RANDOM_SUBTITLE)));
-    subtitle.setFillColor(sf::Color(255, 230, 140));
+    subtitle.setFillColor(sf::Color(255, 235, 150));
     tb = subtitle.getLocalBounds();
     subtitle.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-    subtitle.setPosition(window.getSize().x / 2.0f, 92.0f);
+
+    sf::Text subtitleShadow = subtitle;
+    subtitleShadow.setFillColor(sf::Color(0, 0, 0, 160));
+    subtitleShadow.setPosition(601.0f, 91.0f);
+    window.draw(subtitleShadow);
+
+    subtitle.setPosition(600.0f, 90.0f);
     window.draw(subtitle);
 
     // Determine Names, Roles, and Auras
@@ -6335,29 +6354,34 @@ void GameManager::veRandomLuot() {
         p2AuraChoice = p2Aura;
     }
 
-    // 2. Left Player Card
-    sf::RectangleShape c1(sf::Vector2f(360.0f, 480.0f));
-    c1.setPosition(80.0f, 130.0f);
-    c1.setFillColor(sf::Color(22, 28, 42));
-    c1.setOutlineThickness(2.0f);
+    // 2. Left Player Card (Framed with Oriental Ebony Panel)
+    sf::FloatRect cardRect1(80.0f, 130.0f, 360.0f, 480.0f);
     bool p1IsRed = rollFinished && (rollWinner == 0);
-    c1.setOutlineColor(p1IsRed ? sf::Color(240, 90, 90) : sf::Color(65, 80, 115));
-    window.draw(c1);
+    sf::Color tint1 = p1IsRed ? sf::Color(255, 215, 215) : sf::Color(215, 235, 255);
+    FantasyUI::get().drawPanel(window, cardRect1, OrientalPanelStyle::EBONY_WOOD, tint1);
 
-    sf::RectangleShape h1(sf::Vector2f(360.0f, 40.0f));
-    h1.setPosition(80.0f, 130.0f);
-    h1.setFillColor(p1IsRed ? sf::Color(75, 25, 25) : sf::Color(32, 42, 60));
+    sf::RectangleShape h1(sf::Vector2f(340.0f, 38.0f));
+    h1.setPosition(90.0f, 140.0f);
+    h1.setFillColor(p1IsRed ? sf::Color(85, 25, 25, 220) : sf::Color(32, 45, 68, 220));
+    h1.setOutlineThickness(1.5f);
+    h1.setOutlineColor(p1IsRed ? sf::Color(230, 80, 80) : sf::Color(80, 130, 200));
     window.draw(h1);
 
     sf::Text t1;
-    t1.setFont(fontBold);
+    t1.setFont(fBold);
     t1.setCharacterSize(16);
     t1.setStyle(sf::Text::Bold);
     t1.setString(toUtf8((cheDoChoi == CheDoChoi::HAI_NGUOI) ? "[ " + Loc::get(LocKey::P1_LABEL) + " ]" : "[ " + Loc::get(LocKey::PLAYER_LABEL) + " ]"));
-    t1.setFillColor(p1IsRed ? sf::Color(255, 170, 170) : sf::Color(160, 205, 255));
+    t1.setFillColor(p1IsRed ? sf::Color(255, 210, 210) : sf::Color(190, 225, 255));
     tb = t1.getLocalBounds();
-    t1.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    t1.setPosition(260.0f, 150.0f);
+    t1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text t1Shadow = t1;
+    t1Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    t1Shadow.setPosition(261.0f, 160.0f);
+    window.draw(t1Shadow);
+
+    t1.setPosition(260.0f, 159.0f);
     window.draw(t1);
 
     // Left Avatar Portrait
@@ -6366,13 +6390,19 @@ void GameManager::veRandomLuot() {
     veAvatarPortrait(ava1Pos, 54.0f, p1Char, m1, p1AuraChoice, p1IsRed);
 
     sf::Text np1;
-    np1.setFont(fontBold);
+    np1.setFont(fBold);
     np1.setCharacterSize(22);
     np1.setStyle(sf::Text::Bold);
     np1.setString(toUtf8(p1Name));
-    np1.setFillColor(p1IsRed ? sf::Color(255, 130, 130) : sf::Color(255, 230, 140));
+    np1.setFillColor(p1IsRed ? sf::Color(255, 140, 140) : sf::Color(255, 235, 150));
     tb = np1.getLocalBounds();
-    np1.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+    np1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text np1Shadow = np1;
+    np1Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    np1Shadow.setPosition(261.0f, 346.0f);
+    window.draw(np1Shadow);
+
     np1.setPosition(260.0f, 345.0f);
     window.draw(np1);
 
@@ -6381,90 +6411,113 @@ void GameManager::veRandomLuot() {
     rp1.setCharacterSize(18);
     rp1.setStyle(sf::Text::Bold);
     rp1.setString(toUtf8("[" + Loc::getCharName(p1Char) + "]"));
-    rp1.setFillColor(sf::Color(255, 222, 130));
+    rp1.setFillColor(sf::Color(255, 222, 120));
     tb = rp1.getLocalBounds();
     rp1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text rp1Shadow = rp1;
+    rp1Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    rp1Shadow.setPosition(261.0f, 381.0f);
+    window.draw(rp1Shadow);
+
     rp1.setPosition(260.0f, 380.0f);
     window.draw(rp1);
 
     sf::Text ap1;
     ap1.setFont(fBold);
-    ap1.setCharacterSize(15);
+    ap1.setCharacterSize(16);
     ap1.setStyle(sf::Text::Bold);
     ap1.setString(toUtf8(layTenPieceAura(p1AuraChoice)));
-    ap1.setFillColor(sf::Color(255, 230, 140));
+    ap1.setFillColor(p1IsRed ? sf::Color(255, 225, 180) : sf::Color(200, 230, 255));
     tb = ap1.getLocalBounds();
     ap1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text ap1Shadow = ap1;
+    ap1Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    ap1Shadow.setPosition(261.0f, 413.0f);
+    window.draw(ap1Shadow);
+
     ap1.setPosition(260.0f, 412.0f);
     window.draw(ap1);
 
     // Left Result Status
-    sf::RectangleShape stBox1(sf::Vector2f(300.0f, 44.0f));
+    sf::RectangleShape stBox1(sf::Vector2f(300.0f, 46.0f));
     stBox1.setPosition(110.0f, 470.0f);
     if (rollFinished) {
         if (p1IsRed) {
-            stBox1.setFillColor(sf::Color(120, 28, 28));
-            stBox1.setOutlineThickness(1.5f);
+            stBox1.setFillColor(sf::Color(135, 25, 25));
+            stBox1.setOutlineThickness(2.0f);
             stBox1.setOutlineColor(sf::Color(255, 215, 0));
         } else {
-            stBox1.setFillColor(sf::Color(25, 45, 75));
-            stBox1.setOutlineThickness(1.0f);
-            stBox1.setOutlineColor(sf::Color(100, 160, 240));
+            stBox1.setFillColor(sf::Color(25, 45, 80));
+            stBox1.setOutlineThickness(1.5f);
+            stBox1.setOutlineColor(sf::Color(110, 175, 255));
         }
     } else {
-        stBox1.setFillColor(sf::Color(18, 22, 32));
+        stBox1.setFillColor(sf::Color(20, 25, 36));
         stBox1.setOutlineThickness(1.0f);
-        stBox1.setOutlineColor(sf::Color(50, 60, 80));
+        stBox1.setOutlineColor(sf::Color(70, 85, 110));
     }
     window.draw(stBox1);
 
     sf::Text stTxt1;
-    stTxt1.setFont(fontBold);
-    stTxt1.setCharacterSize(15);
+    stTxt1.setFont(fBold);
+    stTxt1.setCharacterSize(16);
     stTxt1.setStyle(sf::Text::Bold);
     if (isRandomRolling) {
         stTxt1.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "Đang quay đồng xu..." : "Rolling turn..."));
-        stTxt1.setFillColor(sf::Color(255, 230, 140));
+        stTxt1.setFillColor(sf::Color(255, 235, 150));
     } else if (rollFinished) {
         if (p1IsRed) {
             stTxt1.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "* QUÂN ĐỎ (ĐI TRƯỚC) *" : "* RED SIDE (MOVES FIRST) *"));
-            stTxt1.setFillColor(sf::Color(255, 230, 100));
+            stTxt1.setFillColor(sf::Color(255, 235, 110));
         } else {
             stTxt1.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "QUÂN ĐEN (ĐI SAU)" : "BLACK SIDE (MOVES SECOND)"));
-            stTxt1.setFillColor(sf::Color(170, 215, 255));
+            stTxt1.setFillColor(sf::Color(180, 225, 255));
         }
     } else {
         stTxt1.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "(Sẵn sàng tung lượt)" : "(Ready to roll)"));
-        stTxt1.setFillColor(sf::Color(150, 165, 185));
+        stTxt1.setFillColor(sf::Color(180, 195, 215));
     }
     tb = stTxt1.getLocalBounds();
-    stTxt1.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    stTxt1.setPosition(260.0f, 492.0f);
+    stTxt1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text stTxt1Shadow = stTxt1;
+    stTxt1Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    stTxt1Shadow.setPosition(261.0f, 494.0f);
+    window.draw(stTxt1Shadow);
+
+    stTxt1.setPosition(260.0f, 493.0f);
     window.draw(stTxt1);
 
-    // 3. Right Player Card
-    sf::RectangleShape c2(sf::Vector2f(360.0f, 480.0f));
-    c2.setPosition(760.0f, 130.0f);
-    c2.setFillColor(sf::Color(22, 28, 42));
-    c2.setOutlineThickness(2.0f);
+    // 3. Right Player Card (Framed with Oriental Ebony Panel)
+    sf::FloatRect cardRect2(760.0f, 130.0f, 360.0f, 480.0f);
     bool p2IsRed = rollFinished && (rollWinner == 1);
-    c2.setOutlineColor(p2IsRed ? sf::Color(240, 90, 90) : sf::Color(65, 80, 115));
-    window.draw(c2);
+    sf::Color tint2 = p2IsRed ? sf::Color(255, 215, 215) : sf::Color(215, 235, 255);
+    FantasyUI::get().drawPanel(window, cardRect2, OrientalPanelStyle::EBONY_WOOD, tint2);
 
-    sf::RectangleShape h2(sf::Vector2f(360.0f, 40.0f));
-    h2.setPosition(760.0f, 130.0f);
-    h2.setFillColor(p2IsRed ? sf::Color(75, 25, 25) : sf::Color(32, 42, 60));
+    sf::RectangleShape h2(sf::Vector2f(340.0f, 38.0f));
+    h2.setPosition(770.0f, 140.0f);
+    h2.setFillColor(p2IsRed ? sf::Color(85, 25, 25, 220) : sf::Color(32, 45, 68, 220));
+    h2.setOutlineThickness(1.5f);
+    h2.setOutlineColor(p2IsRed ? sf::Color(230, 80, 80) : sf::Color(80, 130, 200));
     window.draw(h2);
 
     sf::Text t2;
-    t2.setFont(fontBold);
+    t2.setFont(fBold);
     t2.setCharacterSize(16);
     t2.setStyle(sf::Text::Bold);
     t2.setString(toUtf8((cheDoChoi == CheDoChoi::HAI_NGUOI) ? "[ " + Loc::get(LocKey::P2_LABEL) + " ]" : "[ AI BOT ]"));
-    t2.setFillColor(p2IsRed ? sf::Color(255, 170, 170) : sf::Color(160, 205, 255));
+    t2.setFillColor(p2IsRed ? sf::Color(255, 210, 210) : sf::Color(190, 225, 255));
     tb = t2.getLocalBounds();
-    t2.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    t2.setPosition(940.0f, 150.0f);
+    t2.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text t2Shadow = t2;
+    t2Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    t2Shadow.setPosition(941.0f, 160.0f);
+    window.draw(t2Shadow);
+
+    t2.setPosition(940.0f, 159.0f);
     window.draw(t2);
 
     // Right Avatar Portrait
@@ -6473,13 +6526,19 @@ void GameManager::veRandomLuot() {
     veAvatarPortrait(ava2Pos, 54.0f, p2Char, m2, p2AuraChoice, p2IsRed);
 
     sf::Text np2;
-    np2.setFont(fontBold);
+    np2.setFont(fBold);
     np2.setCharacterSize(22);
     np2.setStyle(sf::Text::Bold);
     np2.setString(toUtf8(p2Name));
-    np2.setFillColor(p2IsRed ? sf::Color(255, 130, 130) : sf::Color(230, 240, 255));
+    np2.setFillColor(p2IsRed ? sf::Color(255, 140, 140) : sf::Color(235, 245, 255));
     tb = np2.getLocalBounds();
-    np2.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+    np2.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text np2Shadow = np2;
+    np2Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    np2Shadow.setPosition(941.0f, 346.0f);
+    window.draw(np2Shadow);
+
     np2.setPosition(940.0f, 345.0f);
     window.draw(np2);
 
@@ -6488,65 +6547,83 @@ void GameManager::veRandomLuot() {
     rp2.setCharacterSize(18);
     rp2.setStyle(sf::Text::Bold);
     rp2.setString(toUtf8("[" + Loc::getCharName(p2Char) + "]"));
-    rp2.setFillColor(sf::Color(255, 222, 130));
+    rp2.setFillColor(sf::Color(255, 222, 120));
     tb = rp2.getLocalBounds();
     rp2.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text rp2Shadow = rp2;
+    rp2Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    rp2Shadow.setPosition(941.0f, 381.0f);
+    window.draw(rp2Shadow);
+
     rp2.setPosition(940.0f, 380.0f);
     window.draw(rp2);
 
     sf::Text ap2;
     ap2.setFont(fBold);
-    ap2.setCharacterSize(15);
+    ap2.setCharacterSize(16);
     ap2.setStyle(sf::Text::Bold);
     ap2.setString(toUtf8(layTenPieceAura(p2AuraChoice)));
-    ap2.setFillColor(sf::Color(215, 235, 255));
+    ap2.setFillColor(p2IsRed ? sf::Color(255, 225, 180) : sf::Color(200, 230, 255));
     tb = ap2.getLocalBounds();
     ap2.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text ap2Shadow = ap2;
+    ap2Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    ap2Shadow.setPosition(941.0f, 413.0f);
+    window.draw(ap2Shadow);
+
     ap2.setPosition(940.0f, 412.0f);
     window.draw(ap2);
 
     // Right Result Status
-    sf::RectangleShape stBox2(sf::Vector2f(300.0f, 44.0f));
+    sf::RectangleShape stBox2(sf::Vector2f(300.0f, 46.0f));
     stBox2.setPosition(790.0f, 470.0f);
     if (rollFinished) {
         if (p2IsRed) {
-            stBox2.setFillColor(sf::Color(120, 28, 28));
-            stBox2.setOutlineThickness(1.5f);
+            stBox2.setFillColor(sf::Color(135, 25, 25));
+            stBox2.setOutlineThickness(2.0f);
             stBox2.setOutlineColor(sf::Color(255, 215, 0));
         } else {
-            stBox2.setFillColor(sf::Color(25, 45, 75));
-            stBox2.setOutlineThickness(1.0f);
-            stBox2.setOutlineColor(sf::Color(100, 160, 240));
+            stBox2.setFillColor(sf::Color(25, 45, 80));
+            stBox2.setOutlineThickness(1.5f);
+            stBox2.setOutlineColor(sf::Color(110, 175, 255));
         }
     } else {
-        stBox2.setFillColor(sf::Color(18, 22, 32));
+        stBox2.setFillColor(sf::Color(20, 25, 36));
         stBox2.setOutlineThickness(1.0f);
-        stBox2.setOutlineColor(sf::Color(50, 60, 80));
+        stBox2.setOutlineColor(sf::Color(70, 85, 110));
     }
     window.draw(stBox2);
 
     sf::Text stTxt2;
-    stTxt2.setFont(fontBold);
-    stTxt2.setCharacterSize(15);
+    stTxt2.setFont(fBold);
+    stTxt2.setCharacterSize(16);
     stTxt2.setStyle(sf::Text::Bold);
     if (isRandomRolling) {
         stTxt2.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "Đang quay đồng xu..." : "Rolling turn..."));
-        stTxt2.setFillColor(sf::Color(220, 220, 160));
+        stTxt2.setFillColor(sf::Color(255, 235, 150));
     } else if (rollFinished) {
         if (p2IsRed) {
             stTxt2.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "* QUÂN ĐỎ (ĐI TRƯỚC) *" : "* RED SIDE (MOVES FIRST) *"));
-            stTxt2.setFillColor(sf::Color(255, 230, 100));
+            stTxt2.setFillColor(sf::Color(255, 235, 110));
         } else {
             stTxt2.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "QUÂN ĐEN (ĐI SAU)" : "BLACK SIDE (MOVES SECOND)"));
-            stTxt2.setFillColor(sf::Color(170, 215, 255));
+            stTxt2.setFillColor(sf::Color(180, 225, 255));
         }
     } else {
         stTxt2.setString(toUtf8((Loc::getLanguage() == Language::TIENG_VIET) ? "(Sẵn sàng tung lượt)" : "(Ready to roll)"));
-        stTxt2.setFillColor(sf::Color(150, 165, 185));
+        stTxt2.setFillColor(sf::Color(180, 195, 215));
     }
     tb = stTxt2.getLocalBounds();
-    stTxt2.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    stTxt2.setPosition(940.0f, 492.0f);
+    stTxt2.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text stTxt2Shadow = stTxt2;
+    stTxt2Shadow.setFillColor(sf::Color(0, 0, 0, 180));
+    stTxt2Shadow.setPosition(941.0f, 494.0f);
+    window.draw(stTxt2Shadow);
+
+    stTxt2.setPosition(940.0f, 493.0f);
     window.draw(stTxt2);
 
     // 4. Center Coin / Dice Roll Zone
@@ -6560,12 +6637,18 @@ void GameManager::veRandomLuot() {
     // Decorative Coin Label Badge
     sf::Text coinBadge;
     coinBadge.setFont(fBold);
-    coinBadge.setCharacterSize(15);
+    coinBadge.setCharacterSize(16);
     coinBadge.setStyle(sf::Text::Bold);
     coinBadge.setString(toUtf8(vi ? "[ ĐỒNG XU LƯỢT ĐI ]" : "[ TURN COIN ]"));
-    coinBadge.setFillColor(sf::Color(220, 195, 130));
+    coinBadge.setFillColor(sf::Color(255, 230, 140));
     tb = coinBadge.getLocalBounds();
     coinBadge.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text badgeShadow = coinBadge;
+    badgeShadow.setFillColor(sf::Color(0, 0, 0, 180));
+    badgeShadow.setPosition(coinPos.x + 1.0f, coinPos.y - 82.0f + 1.0f);
+    window.draw(badgeShadow);
+
     coinBadge.setPosition(coinPos.x, coinPos.y - 82.0f);
     window.draw(coinBadge);
 
@@ -6582,7 +6665,7 @@ void GameManager::veRandomLuot() {
     coin.setOrigin(coinBaseR, coinBaseR);
     coin.setPosition(coinPos);
     coin.setScale(coinScaleX, 1.0f);
-    coin.setFillColor(showRedSide ? sf::Color(165, 30, 30) : sf::Color(30, 42, 60));
+    coin.setFillColor(showRedSide ? sf::Color(175, 30, 30) : sf::Color(30, 45, 68));
     coin.setOutlineThickness(3.5f);
     coin.setOutlineColor(sf::Color(255, 215, 0));
     window.draw(coin);
@@ -6607,20 +6690,26 @@ void GameManager::veRandomLuot() {
         coinTxt.setString(showRedSide ? "RED" : "BLACK");
     }
     coinTxt.setScale(coinScaleX, 1.0f);
-    coinTxt.setFillColor(sf::Color(255, 235, 120));
+    coinTxt.setFillColor(sf::Color(255, 240, 140));
     tb = coinTxt.getLocalBounds();
     coinTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text coinTxtShadow = coinTxt;
+    coinTxtShadow.setFillColor(sf::Color(0, 0, 0, 180));
+    coinTxtShadow.setPosition(coinPos.x + 1.0f, coinPos.y - 2.0f + 1.0f);
+    window.draw(coinTxtShadow);
+
     coinTxt.setPosition(coinPos.x, coinPos.y - 2.0f);
     window.draw(coinTxt);
 
     // Dynamic result subtitle below coin
     sf::Text coinResultHint;
     coinResultHint.setFont(fBold);
-    coinResultHint.setCharacterSize(15);
+    coinResultHint.setCharacterSize(16);
     coinResultHint.setStyle(sf::Text::Bold);
     if (isRandomRolling) {
         coinResultHint.setString(toUtf8(vi ? "Đang tung đồng xu..." : "Rolling..."));
-        coinResultHint.setFillColor(sf::Color(220, 220, 160));
+        coinResultHint.setFillColor(sf::Color(255, 235, 150));
     } else if (rollFinished) {
         if (cheDoChoi == CheDoChoi::HAI_NGUOI) {
             if (rollWinner == 0) {
@@ -6635,13 +6724,19 @@ void GameManager::veRandomLuot() {
                 coinResultHint.setString(toUtf8(vi ? "-> Máy đi trước (Đỏ)" : "-> AI moves first (Red)"));
             }
         }
-        coinResultHint.setFillColor(sf::Color(255, 225, 130));
+        coinResultHint.setFillColor(sf::Color(255, 235, 140));
     } else {
         coinResultHint.setString(toUtf8(vi ? "Bấm để tung lượt đi" : "Click to roll turn"));
-        coinResultHint.setFillColor(sf::Color(170, 185, 205));
+        coinResultHint.setFillColor(sf::Color(200, 215, 235));
     }
     tb = coinResultHint.getLocalBounds();
     coinResultHint.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+    sf::Text hintShadow = coinResultHint;
+    hintShadow.setFillColor(sf::Color(0, 0, 0, 180));
+    hintShadow.setPosition(coinPos.x + 1.0f, coinPos.y + 82.0f + 1.0f);
+    window.draw(hintShadow);
+
     coinResultHint.setPosition(coinPos.x, coinPos.y + 82.0f);
     window.draw(coinResultHint);
 
@@ -6683,10 +6778,10 @@ void GameManager::vePopupXinHoa() {
 
     sf::Text tMsg1;
     tMsg1.setFont(fBody);
-    tMsg1.setCharacterSize(15);
+    tMsg1.setCharacterSize(16);
     tMsg1.setStyle(sf::Text::Bold);
     tMsg1.setString(toUtf8(senderName + " (" + senderSide + ") " + (vi ? "muốn cầu hòa ván cờ này." : "proposes an honorable draw.")));
-    tMsg1.setFillColor(sf::Color(255, 230, 180));
+    tMsg1.setFillColor(sf::Color(255, 235, 180));
     sf::FloatRect b1 = tMsg1.getLocalBounds();
     tMsg1.setOrigin(std::round(b1.left + b1.width / 2.0f), std::round(b1.top + b1.height / 2.0f));
     tMsg1.setPosition(dx + dw / 2.0f, dy + 88.0f);
@@ -6694,9 +6789,10 @@ void GameManager::vePopupXinHoa() {
 
     sf::Text tMsg2;
     tMsg2.setFont(fBody);
-    tMsg2.setCharacterSize(14);
+    tMsg2.setCharacterSize(16);
+    tMsg2.setStyle(sf::Text::Bold);
     tMsg2.setString(toUtf8(vi ? "Bạn có đồng ý kết thúc trận đấu với tỷ số hòa?" : "Do you agree to conclude this match as a draw?"));
-    tMsg2.setFillColor(sf::Color(215, 205, 185));
+    tMsg2.setFillColor(sf::Color(255, 240, 205));
     sf::FloatRect b2 = tMsg2.getLocalBounds();
     tMsg2.setOrigin(std::round(b2.left + b2.width / 2.0f), std::round(b2.top + b2.height / 2.0f));
     tMsg2.setPosition(dx + dw / 2.0f, dy + 120.0f);
@@ -6743,10 +6839,10 @@ void GameManager::vePopupNuocDiSai() {
     // Warning message
     sf::Text tReason;
     tReason.setFont(fBody);
-    tReason.setCharacterSize(15);
+    tReason.setCharacterSize(17);
     tReason.setStyle(sf::Text::Bold);
     tReason.setString(toUtf8(lyDoNuocDiSai));
-    tReason.setFillColor(sf::Color(255, 220, 160, alpha));
+    tReason.setFillColor(sf::Color(255, 230, 170, alpha));
     sf::FloatRect rb = tReason.getLocalBounds();
     tReason.setOrigin(std::round(rb.left + rb.width / 2.0f), std::round(rb.top + rb.height / 2.0f));
     tReason.setPosition(dx + dw / 2.0f, dy + 95.0f);
@@ -6755,9 +6851,10 @@ void GameManager::vePopupNuocDiSai() {
     // Dismiss hint
     sf::Text tHint;
     tHint.setFont(fBody);
-    tHint.setCharacterSize(12);
+    tHint.setCharacterSize(14);
+    tHint.setStyle(sf::Text::Bold);
     tHint.setString(toUtf8(vi ? "(Nhấp chuột bất kỳ đâu để tiếp tục)" : "(Click anywhere to dismiss)"));
-    tHint.setFillColor(sf::Color(190, 170, 140, static_cast<sf::Uint8>(alpha * 0.85f)));
+    tHint.setFillColor(sf::Color(225, 205, 160, static_cast<sf::Uint8>(alpha * 0.95f)));
     sf::FloatRect hb = tHint.getLocalBounds();
     tHint.setOrigin(std::round(hb.left + hb.width / 2.0f), std::round(hb.top + hb.height / 2.0f));
     tHint.setPosition(dx + dw / 2.0f, dy + dh - 26.0f);

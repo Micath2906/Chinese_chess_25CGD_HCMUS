@@ -98,39 +98,36 @@ MenuAssets::MenuAssets() {
     loadTexSafe(playBg, "assets/xiangqi_background_pavilion.png", true, false) ||
     loadTexSafe(playBg, "resources/textures/background play.jpg", true, false);
 
-    // Load fonts
-    fontVnLoaded = loadFontSafe(fontVn, "assets/font/ViaodaLibre-Regular.ttf") ||
-                   loadFontSafe(fontVn, "resources/fonts/ViaodaLibre-Regular.ttf") ||
-                   loadFontSafe(fontVn, "assets/font/NomNaTong-Regular.ttf") ||
-                   loadFontSafe(fontVn, "resources/fonts/NomNaTong-Regular.ttf") ||
-                   loadFontSafe(fontVn, "resources/fonts/arial.ttf") ||
+    // Load fonts (prioritize thick, readable bold fonts for UI clarity)
+    fontVnBoldLoaded = loadFontSafe(fontVnBold, "assets/font/arialbd.ttf") ||
+                       loadFontSafe(fontVnBold, "resources/fonts/arialbd.ttf") ||
+                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/arialbd.ttf") ||
+                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/segoeuib.ttf") ||
+                       loadFontSafe(fontVnBold, "resources/fonts/arial.ttf") ||
+                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/arial.ttf");
+
+    fontEnBoldLoaded = loadFontSafe(fontEnBold, "assets/font/arialbd.ttf") ||
+                       loadFontSafe(fontEnBold, "resources/fonts/arialbd.ttf") ||
+                       loadFontSafe(fontEnBold, "C:/Windows/Fonts/arialbd.ttf") ||
+                       loadFontSafe(fontEnBold, "assets/font/PixeloidSansBold.ttf") ||
+                       loadFontSafe(fontEnBold, "resources/fonts/PixeloidSansBold.ttf") ||
+                       loadFontSafe(fontEnBold, "C:/Windows/Fonts/segoeuib.ttf");
+
+    fontVnLoaded = loadFontSafe(fontVn, "resources/fonts/arial.ttf") ||
                    loadFontSafe(fontVn, "C:/Windows/Fonts/arial.ttf") ||
                    loadFontSafe(fontVn, "C:/Windows/Fonts/segoeui.ttf") ||
                    loadFontSafe(fontVn, "C:/Windows/Fonts/tahoma.ttf");
 
-    fontVnBoldLoaded = loadFontSafe(fontVnBold, "assets/font/ViaodaLibre-Regular.ttf") ||
-                       loadFontSafe(fontVnBold, "resources/fonts/ViaodaLibre-Regular.ttf") ||
-                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/arialbd.ttf") ||
-                       loadFontSafe(fontVnBold, "resources/fonts/arial.ttf") ||
-                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/arial.ttf");
-
-    fontEnLoaded = loadFontSafe(fontEn, "assets/font/ViaodaLibre-Regular.ttf") ||
-                   loadFontSafe(fontEn, "resources/fonts/ViaodaLibre-Regular.ttf") ||
+    fontEnLoaded = loadFontSafe(fontEn, "resources/fonts/arial.ttf") ||
+                   loadFontSafe(fontEn, "C:/Windows/Fonts/arial.ttf") ||
                    loadFontSafe(fontEn, "assets/font/PixeloidSans.ttf") ||
-                   loadFontSafe(fontEn, "resources/fonts/PixeloidSans.ttf") ||
-                   loadFontSafe(fontEn, "resources/fonts/arial.ttf");
-
-    fontEnBoldLoaded = loadFontSafe(fontEnBold, "assets/font/ViaodaLibre-Regular.ttf") ||
-                       loadFontSafe(fontEnBold, "resources/fonts/ViaodaLibre-Regular.ttf") ||
-                       loadFontSafe(fontEnBold, "assets/font/PixeloidSansBold.ttf") ||
-                       loadFontSafe(fontEnBold, "resources/fonts/PixeloidSansBold.ttf") ||
-                       loadFontSafe(fontEnBold, "assets/font/PixeloidSans.ttf");
+                   loadFontSafe(fontEn, "resources/fonts/PixeloidSans.ttf");
 
     // Font aliases
     vnFont = fontVn;
     vnFontLoaded = fontVnLoaded;
-    fontBold = fontEnBoldLoaded ? fontEnBold : fontVn;
-    fontBoldLoaded = fontEnBoldLoaded || fontVnLoaded;
+    fontBold = fontVnBoldLoaded ? fontVnBold : (fontEnBoldLoaded ? fontEnBold : fontVn);
+    fontBoldLoaded = fontVnBoldLoaded || fontEnBoldLoaded || fontVnLoaded;
     globalFont = fontBold;
     fontLoaded = fontBoldLoaded;
 }
@@ -1223,12 +1220,13 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         window.draw(sepBot);
 
         sf::Text hintTxt;
-        hintTxt.setFont(f);
+        hintTxt.setFont(fBold);
         hintTxt.setString(toUtf8(activeState
             ? (tiengViet ? "[A/D] Chuyển bảng" : "[A/D] Switch Panel")
             : (tiengViet ? "[Enter] Mở Bảng" : "[Enter] Unfold Menu")));
-        hintTxt.setCharacterSize(14);
-        hintTxt.setFillColor(sf::Color(225, 200, 150));
+        hintTxt.setCharacterSize(15);
+        hintTxt.setStyle(sf::Text::Bold);
+        hintTxt.setFillColor(sf::Color(245, 215, 160));
         sf::FloatRect htb = hintTxt.getLocalBounds();
         hintTxt.setOrigin(std::round(htb.left + htb.width / 2.0f), std::round(htb.top + htb.height / 2.0f));
         hintTxt.setPosition(std::round(px + panelW / 2.0f), 608.0f);
