@@ -1157,30 +1157,15 @@ void GameManager::khoiTaoNutTrongGame() {
     inGameMenuButtons.clear();
 
     // 1. In-game Left Panel Action Buttons (Player 1 / Red)
-    // Row 1 (Y=308): Undo & Redo
-    auto btnUndo = std::make_unique<Button>(35.0f, 308.0f, 115.0f, 38.0f, Loc::get(LocKey::UNDO), font, [this]() {
-        thucHienHoanTac();
-    });
-    btnUndo->setCharacterSize(14);
-    btnUndo->setColors(sf::Color(55, 42, 32, 240), sf::Color(85, 65, 48, 255), sf::Color(40, 30, 22, 255));
-    inGameButtons.push_back(std::move(btnUndo));
-
-    auto btnRedo = std::make_unique<Button>(160.0f, 308.0f, 115.0f, 38.0f, Loc::get(LocKey::REDO), font, [this]() {
-        thucHienDiTiep();
-    });
-    btnRedo->setCharacterSize(14);
-    btnRedo->setColors(sf::Color(55, 42, 32, 240), sf::Color(85, 65, 48, 255), sf::Color(40, 30, 22, 255));
-    inGameButtons.push_back(std::move(btnRedo));
-
-    // Row 2 (Y=352): Draw & Resign for Player 1 (Red)
-    auto btnDraw = std::make_unique<Button>(35.0f, 352.0f, 115.0f, 38.0f, Loc::get(LocKey::DRAW_OFFER), font, [this]() {
+    // Row 1 (Y=308): Draw & Resign for Player 1 (Red)
+    auto btnDraw = std::make_unique<Button>(35.0f, 308.0f, 115.0f, 38.0f, Loc::get(LocKey::DRAW_OFFER), font, [this]() {
         thucHienXinHoa(Mau::DO);
     });
     btnDraw->setCharacterSize(14);
     btnDraw->setColors(sf::Color(45, 52, 65, 240), sf::Color(65, 80, 105, 255), sf::Color(35, 40, 52, 255));
     inGameButtons.push_back(std::move(btnDraw));
 
-    auto btnResign = std::make_unique<Button>(160.0f, 352.0f, 115.0f, 38.0f, Loc::get(LocKey::SURRENDER), font, [this]() {
+    auto btnResign = std::make_unique<Button>(160.0f, 308.0f, 115.0f, 38.0f, Loc::get(LocKey::SURRENDER), font, [this]() {
         thucHienDauHang(Mau::DO);
     });
     btnResign->setCharacterSize(14);
@@ -2273,10 +2258,6 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
             } else {
                 diChuyenQuan(viTriConTro.x, viTriConTro.y);
             }
-        } else if (key == keyConfig.keyUndo || (ctrl && key == sf::Keyboard::Z)) {
-            thucHienHoanTac();
-        } else if (key == keyConfig.keyRedo || (ctrl && key == sf::Keyboard::Y)) {
-            thucHienDiTiep();
         }
     }
 }
@@ -2473,45 +2454,11 @@ void GameManager::tinhCacNuocDiHopLe() {
 }
 
 void GameManager::thucHienHoanTac() {
-    if (!banCo.coTheHoanTac()) {
-        hienToast((Loc::getLanguage() == Language::TIENG_VIET) ? "Khong the hoan tac them!" : "Cannot undo further!");
-        return;
-    }
-
-    if (cheDoChoi == CheDoChoi::VOI_MAY) {
-        banCo.hoanTac();
-        if (banCo.coTheHoanTac()) {
-            banCo.hoanTac();
-        }
-    } else {
-        banCo.hoanTac();
-    }
-
-    quanDangChon = nullptr;
-    cacNuocDiHopLe.clear();
-    soundManager.play(SoundType::CLICK);
-    hienToast(Loc::get(LocKey::UNDO));
+    // Undo removed as requested
 }
 
 void GameManager::thucHienDiTiep() {
-    if (!banCo.coTheDiTiep()) {
-        hienToast((Loc::getLanguage() == Language::TIENG_VIET) ? "Khong the di tiep nua!" : "Cannot redo further!");
-        return;
-    }
-
-    if (cheDoChoi == CheDoChoi::VOI_MAY) {
-        banCo.diTiep();
-        if (banCo.coTheDiTiep()) {
-            banCo.diTiep();
-        }
-    } else {
-        banCo.diTiep();
-    }
-
-    quanDangChon = nullptr;
-    cacNuocDiHopLe.clear();
-    soundManager.play(SoundType::CLICK);
-    hienToast(Loc::get(LocKey::REDO));
+    // Redo removed as requested
 }
 
 void GameManager::thucHienDauHang() {
@@ -3529,14 +3476,123 @@ void GameManager::veThanhBenTrai() {
     timerTxt.setPosition(std::round(timerSlotX + timerSlotW / 2.0f), std::round(timerSlotY + timerSlotH / 2.0f));
     window.draw(timerTxt);
 
-    // 2. Action buttons for Player 1 (Undo, Redo, Draw, Resign, Help, Menu)
+    // 2. Action buttons for Player 1 (Draw, Resign)
     for (auto& btn : inGameButtons) {
         btn->draw(window);
     }
 
     // 3. Captured Pieces Tray for Red (displays Black pieces captured by Red)
     std::string capTitleRed = tiengViet ? "QUÂN ĐÃ BẮT (ĐỎ)" : "CAPTURED PIECES (RED)";
-    veKhayQuanBiAn(px, 400.0f, pw, 306.0f, Mau::DEN, capTitleRed);
+    veKhayQuanBiAn(px, 356.0f, pw, 140.0f, Mau::DEN, capTitleRed);
+
+    // 4. Match Status Panel at X=35.0f, Y=508.0f, W=240.0f, H=247.0f (Symmetrical to Move History)
+    float infoX = px;
+    float infoY = 508.0f;
+    float infoW = pw;
+    float infoH = 247.0f;
+
+    FantasyUI::get().drawPanel(window, sf::FloatRect(infoX, infoY, infoW, infoH), OrientalPanelStyle::EBONY_WOOD);
+
+    sf::RectangleShape infoInset(sf::Vector2f(infoW - 18.0f, infoH - 18.0f));
+    infoInset.setPosition(infoX + 9.0f, infoY + 9.0f);
+    infoInset.setFillColor(sf::Color(32, 20, 15));
+    infoInset.setOutlineThickness(1.0f);
+    infoInset.setOutlineColor(sf::Color(140, 102, 48, 175));
+    window.draw(infoInset);
+
+    // Header: "THÔNG TIN TRẬN ĐẤU" / "MATCH INFO"
+    sf::Text titleInfoShadow;
+    titleInfoShadow.setFont(fontBold);
+    titleInfoShadow.setCharacterSize(14);
+    titleInfoShadow.setStyle(sf::Text::Bold);
+    titleInfoShadow.setString(toUtf8(tiengViet ? "THÔNG TIN TRẬN ĐẤU" : "MATCH INFO"));
+    titleInfoShadow.setFillColor(sf::Color(0, 0, 0, 140));
+    sf::FloatRect tib = titleInfoShadow.getLocalBounds();
+    titleInfoShadow.setOrigin(std::round(tib.left + tib.width / 2.0f), std::round(tib.top));
+    titleInfoShadow.setPosition(std::round(infoX + infoW / 2.0f) + 1.0f, infoY + 12.0f);
+    window.draw(titleInfoShadow);
+
+    sf::Text titleInfo = titleInfoShadow;
+    titleInfo.setFillColor(sf::Color(235, 198, 118));
+    titleInfo.setPosition(std::round(infoX + infoW / 2.0f), infoY + 11.0f);
+    window.draw(titleInfo);
+
+    sf::RectangleShape divInfo(sf::Vector2f(infoW - 36.0f, 1.5f));
+    divInfo.setPosition(infoX + 18.0f, infoY + 32.0f);
+    divInfo.setFillColor(sf::Color(175, 132, 62, 190));
+    window.draw(divInfo);
+
+    // Calculate match stats
+    std::string sMode = (cheDoChoi == CheDoChoi::HAI_NGUOI)
+        ? (tiengViet ? "2 Người (PvP)" : "2 Players (PvP)")
+        : (tiengViet ? "Đấu Máy (AI)" : "vs Computer (AI)");
+    int currentRound = static_cast<int>(banCo.getLichSuNuocDi().size() / 2) + 1;
+    std::string sRound = std::to_string(currentRound);
+    std::string sTurn = isRedTurn
+        ? (tiengViet ? "Bên Đỏ" : "Red Side")
+        : (tiengViet ? "Bên Đen" : "Black Side");
+    sf::Color turnColor = isRedTurn ? sf::Color(245, 120, 110) : sf::Color(135, 185, 245);
+
+    bool inCheck = banCo.kiemTraChieuTuong();
+    std::string sStatus = inCheck
+        ? (tiengViet ? "CHIẾU TƯỚNG!" : "CHECK!")
+        : (tiengViet ? "Bình thường" : "Normal");
+    sf::Color statusColor = inCheck ? sf::Color(255, 75, 75) : sf::Color(145, 215, 145);
+
+    int redCap = 0, blackCap = 0;
+    for (const auto& q : banCo.getCacQuan()) {
+        if (q && q->getDaBiAn()) {
+            if (q->getMau() == Mau::DEN) redCap++;
+            else blackCap++;
+        }
+    }
+
+    struct InfoRow {
+        std::string label;
+        std::string val;
+        sf::Color valColor;
+    };
+    std::vector<InfoRow> rows = {
+        { tiengViet ? "Chế độ:" : "Mode:", sMode, sf::Color(220, 205, 175) },
+        { tiengViet ? "Hiệp đấu:" : "Round:", sRound, sf::Color(220, 205, 175) },
+        { tiengViet ? "Lượt đi:" : "Turn:", sTurn, turnColor },
+        { tiengViet ? "Tình trạng:" : "Status:", sStatus, statusColor },
+        { tiengViet ? "Đã bắt:" : "Captured:", (tiengViet ? "Đỏ " : "Red ") + std::to_string(redCap) + (tiengViet ? " | Đen " : " | Black ") + std::to_string(blackCap), sf::Color(220, 205, 175) }
+    };
+
+    float rowY = infoY + 44.0f;
+    for (size_t i = 0; i < rows.size(); ++i) {
+        if (i % 2 == 1) {
+            sf::RectangleShape strip(sf::Vector2f(infoW - 24.0f, 32.0f));
+            strip.setPosition(infoX + 12.0f, rowY - 4.0f);
+            strip.setFillColor(sf::Color(255, 236, 196, 10));
+            window.draw(strip);
+        }
+
+        sf::Text lText;
+        lText.setFont(font);
+        lText.setCharacterSize(11);
+        lText.setString(toUtf8(rows[i].label));
+        lText.setFillColor(sf::Color(185, 165, 135));
+        lText.setPosition(infoX + 16.0f, rowY);
+        window.draw(lText);
+
+        sf::Text vText;
+        vText.setFont(fontBold);
+        vText.setCharacterSize(12);
+        vText.setStyle(sf::Text::Bold);
+        vText.setString(toUtf8(rows[i].val));
+        vText.setFillColor(rows[i].valColor);
+        sf::FloatRect vtb = vText.getLocalBounds();
+        float maxValW = 125.0f;
+        if (vtb.width > maxValW) {
+            vText.setScale(maxValW / vtb.width, 1.0f);
+        }
+        vText.setPosition(infoX + infoW - 16.0f - std::min(vtb.width, maxValW), rowY);
+        window.draw(vText);
+
+        rowY += 38.0f;
+    }
 }
 
 void GameManager::veKhayQuanBiAn(float x, float y, float w, float h, Mau mauQuanBiAn, const std::string& tieuDe) {
@@ -3746,11 +3802,6 @@ void GameManager::veThanhBenPhai() {
     window.draw(div);
 
     const auto& lichSu = banCo.getLichSuNuocDi();
-    size_t count = lichSu.size();
-    size_t maxDisplay = 8;
-    size_t start = (count > maxDisplay) ? (count - maxDisplay) : 0;
-    float textY = histY + 38.0f;
-
     if (lichSu.empty()) {
         sf::Text emptyT;
         emptyT.setFont(font);
@@ -3763,30 +3814,106 @@ void GameManager::veThanhBenPhai() {
         emptyT.setPosition(std::round(histX + histW / 2.0f), std::round(histY + histH / 2.0f + 8.0f));
         window.draw(emptyT);
     } else {
-        for (size_t i = start; i < count; ++i) {
-            if ((i - start) % 2 == 1) {
-                sf::RectangleShape strip(sf::Vector2f(histW - 26.0f, 22.0f));
-                strip.setPosition(histX + 13.0f, textY - 2.0f);
-                strip.setFillColor(sf::Color(255, 236, 196, 14));
+        float col0X = histX + 13.0f;
+        float col1X = histX + 37.0f;
+        float col2X = histX + 132.0f;
+        float headerY = histY + 36.0f;
+
+        // Table Headers
+        sf::Text hCol0;
+        hCol0.setFont(fontBold);
+        hCol0.setCharacterSize(11);
+        hCol0.setStyle(sf::Text::Bold);
+        hCol0.setString("#");
+        hCol0.setFillColor(sf::Color(200, 175, 130));
+        hCol0.setPosition(col0X, headerY);
+        window.draw(hCol0);
+
+        sf::Text hCol1;
+        hCol1.setFont(fontBold);
+        hCol1.setCharacterSize(11);
+        hCol1.setStyle(sf::Text::Bold);
+        hCol1.setString(toUtf8(tiengViet ? "Bên Đỏ" : "Red"));
+        hCol1.setFillColor(sf::Color(255, 135, 125));
+        hCol1.setPosition(col1X, headerY);
+        window.draw(hCol1);
+
+        sf::Text hCol2;
+        hCol2.setFont(fontBold);
+        hCol2.setCharacterSize(11);
+        hCol2.setStyle(sf::Text::Bold);
+        hCol2.setString(toUtf8(tiengViet ? "Bên Đen" : "Black"));
+        hCol2.setFillColor(sf::Color(145, 195, 255));
+        hCol2.setPosition(col2X, headerY);
+        window.draw(hCol2);
+
+        sf::RectangleShape divTable(sf::Vector2f(histW - 26.0f, 1.0f));
+        divTable.setPosition(histX + 13.0f, headerY + 17.0f);
+        divTable.setFillColor(sf::Color(140, 102, 48, 120));
+        window.draw(divTable);
+
+        // Calculate rounds
+        size_t totalMoves = lichSu.size();
+        size_t totalRounds = (totalMoves + 1) / 2;
+        size_t maxDisplay = 8;
+        size_t startRound = (totalRounds > maxDisplay) ? (totalRounds - maxDisplay) : 0;
+        float rowY = headerY + 22.0f;
+
+        for (size_t r = startRound; r < totalRounds; ++r) {
+            if ((r - startRound) % 2 == 1) {
+                sf::RectangleShape strip(sf::Vector2f(histW - 24.0f, 20.0f));
+                strip.setPosition(histX + 12.0f, rowY - 1.0f);
+                strip.setFillColor(sf::Color(255, 236, 196, 12));
                 window.draw(strip);
             }
 
-            bool isRedMove = (lichSu[i].mauQuan == Mau::DO);
-            sf::CircleShape dot(3.0f);
-            dot.setPosition(histX + 16.0f, textY + 6.0f);
-            dot.setFillColor(isRedMove ? sf::Color(215, 68, 56) : sf::Color(135, 185, 165));
-            window.draw(dot);
+            // Col 0: Round number
+            sf::Text rNum;
+            rNum.setFont(font);
+            rNum.setCharacterSize(11);
+            rNum.setStyle(sf::Text::Bold);
+            rNum.setString(std::to_string(r + 1));
+            rNum.setFillColor(sf::Color(180, 160, 130));
+            rNum.setPosition(col0X, rowY);
+            window.draw(rNum);
 
-            sf::Text ndText;
-            ndText.setFont(font);
-            ndText.setCharacterSize(12);
-            ndText.setStyle(sf::Text::Bold);
-            std::string line = std::to_string(i + 1) + ". " + banCo.layMoTaNuocDi(lichSu[i], tiengViet);
-            ndText.setString(toUtf8(line));
-            ndText.setFillColor(sf::Color(230, 210, 170));
-            ndText.setPosition(histX + 27.0f, textY);
-            window.draw(ndText);
-            textY += 24.0f;
+            // Col 1: Red move
+            size_t redIdx = r * 2;
+            if (redIdx < totalMoves) {
+                std::string redDesc = banCo.layMoTaNuocDiNgan(lichSu[redIdx], tiengViet);
+                sf::Text rTxt;
+                rTxt.setFont(font);
+                rTxt.setCharacterSize(11);
+                rTxt.setString(toUtf8(redDesc));
+                rTxt.setFillColor(sf::Color(245, 140, 130));
+                sf::FloatRect tb = rTxt.getLocalBounds();
+                float maxColW = 90.0f;
+                if (tb.width > maxColW) {
+                    rTxt.setScale(maxColW / tb.width, 1.0f);
+                }
+                rTxt.setPosition(col1X, rowY);
+                window.draw(rTxt);
+            }
+
+            // Col 2: Black move
+            size_t blackIdx = r * 2 + 1;
+            if (blackIdx < totalMoves) {
+                std::string blackDesc = banCo.layMoTaNuocDiNgan(lichSu[blackIdx], tiengViet);
+                sf::Text bTxt;
+                bTxt.setFont(font);
+                bTxt.setCharacterSize(11);
+                bTxt.setString(toUtf8(blackDesc));
+                bTxt.setFillColor(sf::Color(150, 195, 245));
+                sf::FloatRect tb = bTxt.getLocalBounds();
+                float maxColW = 90.0f;
+                if (tb.width > maxColW) {
+                    bTxt.setScale(maxColW / tb.width, 1.0f);
+                }
+                bTxt.setPosition(col2X, rowY);
+                window.draw(bTxt);
+            }
+
+            rowY += 21.0f;
         }
     }
 }
@@ -6401,11 +6528,17 @@ void GameManager::veRandomLuot() {
     coinInner.setOutlineColor(sf::Color(255, 235, 120, 180));
     window.draw(coinInner);
 
+    bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Text coinTxt;
     coinTxt.setFont(fontBold);
-    coinTxt.setCharacterSize(36);
     coinTxt.setStyle(sf::Text::Bold);
-    coinTxt.setString(showRedSide ? "DO" : "DEN");
+    if (vi) {
+        coinTxt.setCharacterSize(34);
+        coinTxt.setString(toUtf8(showRedSide ? "ĐỎ" : "ĐEN"));
+    } else {
+        coinTxt.setCharacterSize(showRedSide ? 28 : 24);
+        coinTxt.setString(showRedSide ? "RED" : "BLACK");
+    }
     coinTxt.setScale(coinScaleX, 1.0f);
     coinTxt.setFillColor(sf::Color(255, 235, 120));
     tb = coinTxt.getLocalBounds();

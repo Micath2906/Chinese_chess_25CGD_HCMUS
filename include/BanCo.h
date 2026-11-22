@@ -92,4 +92,5 @@ public:
     
     // Mô tả nước đi
     std::string layMoTaNuocDi(const NuocDi& nd, bool tiengViet = true) const;
+    std::string layMoTaNuocDiNgan(const NuocDi& nd, bool tiengViet = true) const;
 };

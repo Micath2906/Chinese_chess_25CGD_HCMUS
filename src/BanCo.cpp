@@ -387,15 +387,25 @@ NuocDi BanCo::getNuocDiCuoi() const {
 }
 
 static std::string translatePieceName(const std::string& vnName, bool tiengViet) {
-    if (tiengViet) return vnName;
-    if (vnName == "Tướng") return "General";
-    if (vnName == "Sĩ") return "Advisor";
-    if (vnName == "Tượng" || vnName == "Voi") return "Elephant";
-    if (vnName == "Xe") return "Chariot";
-    if (vnName == "Pháo") return "Cannon";
-    if (vnName == "Mã") return "Horse";
-    if (vnName == "Tốt") return "Soldier";
-    return vnName;
+    if (tiengViet) {
+        if (vnName == "Tuong" || vnName == "Tướng") return "Tướng";
+        if (vnName == "Si" || vnName == "Sĩ") return "Sĩ";
+        if (vnName == "Voi" || vnName == "Tượng") return "Tượng";
+        if (vnName == "Xe") return "Xe";
+        if (vnName == "Phao" || vnName == "Pháo") return "Pháo";
+        if (vnName == "Ma" || vnName == "Mã") return "Mã";
+        if (vnName == "Tot" || vnName == "Tốt") return "Tốt";
+        return vnName;
+    } else {
+        if (vnName == "Tuong" || vnName == "Tướng") return "General";
+        if (vnName == "Si" || vnName == "Sĩ") return "Advisor";
+        if (vnName == "Voi" || vnName == "Tượng") return "Elephant";
+        if (vnName == "Xe") return "Chariot";
+        if (vnName == "Phao" || vnName == "Pháo") return "Cannon";
+        if (vnName == "Ma" || vnName == "Mã") return "Horse";
+        if (vnName == "Tot" || vnName == "Tốt") return "Soldier";
+        return vnName;
+    }
 }
 
 std::string BanCo::layMoTaNuocDi(const NuocDi& nd, bool tiengViet) const {
@@ -416,6 +426,14 @@ std::string BanCo::layMoTaNuocDi(const NuocDi& nd, bool tiengViet) const {
         }
     }
     return text;
+}
+
+std::string BanCo::layMoTaNuocDiNgan(const NuocDi& nd, bool tiengViet) const {
+    if (nd.hangBatDau < 0) return "";
+    std::string tenQ = translatePieceName(nd.tenQuan, tiengViet);
+    std::string sep = nd.quanBiAn ? "x" : "->";
+    return tenQ + " " + std::to_string(nd.hangBatDau) + "," + std::to_string(nd.cotBatDau) + 
+           sep + std::to_string(nd.hangKetThuc) + "," + std::to_string(nd.cotKetThuc);
 }
 
 bool BanCo::luuFile(const std::string& duongDan) const {
