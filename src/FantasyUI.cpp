@@ -360,9 +360,9 @@ void FantasyUI::drawButton(sf::RenderWindow& window,
         if (!isEnabled) {
             txt.setFillColor(sf::Color(140, 130, 120));
         } else if (highlighted) {
-            txt.setFillColor(sf::Color(255, 245, 140));
+            txt.setFillColor(sf::Color(255, 248, 175));
         } else {
-            txt.setFillColor(sf::Color(245, 230, 205));
+            txt.setFillColor(sf::Color(255, 230, 140));
         }
         window.draw(txt);
     }

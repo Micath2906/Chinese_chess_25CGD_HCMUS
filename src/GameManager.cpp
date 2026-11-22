@@ -1228,7 +1228,7 @@ void GameManager::khoiTaoNutTrongGame() {
     auto btnResume = std::make_unique<Button>(440.0f, 245.0f, 320.0f, 44.0f, Loc::get(LocKey::RESUME), font, [this]() {
         dongMenuPopUp();
     });
-    btnResume->setColors(sf::Color(35, 125, 75, 245), sf::Color(45, 160, 95, 255), sf::Color(25, 95, 55, 255));
+    btnResume->setColors(sf::Color(62, 42, 26, 245), sf::Color(96, 68, 40, 255), sf::Color(45, 30, 18, 255));
     inGameMenuButtons.push_back(std::move(btnResume));
 
     // Row 1 (Y=300): New Game (440, 300, 155, 40) & Draw Offer (605, 300, 155, 40)
@@ -1236,14 +1236,14 @@ void GameManager::khoiTaoNutTrongGame() {
         dongMenuPopUp();
         batDauTroChoiMoi(cheDoChoi);
     });
-    btnNew->setColors(sf::Color(55, 42, 32, 240), sf::Color(85, 65, 48, 255), sf::Color(40, 30, 22, 255));
+    btnNew->setColors(sf::Color(48, 32, 22, 240), sf::Color(76, 54, 36, 255), sf::Color(35, 22, 15, 255));
     inGameMenuButtons.push_back(std::move(btnNew));
 
     auto btnDrawOffer = std::make_unique<Button>(605.0f, 300.0f, 155.0f, 40.0f, Loc::get(LocKey::DRAW_OFFER), font, [this]() {
         dongMenuPopUp();
         thucHienXinHoa();
     });
-    btnDrawOffer->setColors(sf::Color(45, 52, 65, 240), sf::Color(65, 80, 105, 255), sf::Color(35, 40, 52, 255));
+    btnDrawOffer->setColors(sf::Color(48, 32, 22, 240), sf::Color(76, 54, 36, 255), sf::Color(35, 22, 15, 255));
     inGameMenuButtons.push_back(std::move(btnDrawOffer));
 
     // Row 2 (Y=350): Save Game (440, 350, 155, 40) & Settings (605, 350, 155, 40)
@@ -1251,7 +1251,7 @@ void GameManager::khoiTaoNutTrongGame() {
         dongMenuPopUp();
         thucHienLuuGame();
     });
-    btnSave->setColors(sf::Color(50, 48, 38, 240), sf::Color(78, 74, 58, 255), sf::Color(38, 36, 28, 255));
+    btnSave->setColors(sf::Color(48, 32, 22, 240), sf::Color(76, 54, 36, 255), sf::Color(35, 22, 15, 255));
     inGameMenuButtons.push_back(std::move(btnSave));
 
     auto btnSettings = std::make_unique<Button>(605.0f, 350.0f, 155.0f, 40.0f, Loc::get(LocKey::MENU_SETTINGS), font, [this]() {
@@ -1261,7 +1261,7 @@ void GameManager::khoiTaoNutTrongGame() {
         trangThai = TrangThai::MENU_CHINH;
         menuChinh.triggerOpenAnimation(MenuSection::SETTINGS);
     });
-    btnSettings->setColors(sf::Color(48, 55, 68, 240), sf::Color(72, 82, 102, 255), sf::Color(36, 42, 54, 255));
+    btnSettings->setColors(sf::Color(48, 32, 22, 240), sf::Color(76, 54, 36, 255), sf::Color(35, 22, 15, 255));
     inGameMenuButtons.push_back(std::move(btnSettings));
 
     // Row 3 (Y=400): Main Menu (440, 400, 320, 44)
@@ -1271,7 +1271,7 @@ void GameManager::khoiTaoNutTrongGame() {
         trangThai = TrangThai::MENU_CHINH;
         menuChinh.triggerOpenAnimation(MenuSection::PLAY);
     });
-    btnQuit->setColors(sf::Color(140, 40, 40, 245), sf::Color(175, 55, 55, 255), sf::Color(105, 28, 28, 255));
+    btnQuit->setColors(sf::Color(72, 26, 22, 240), sf::Color(102, 38, 30, 255), sf::Color(48, 18, 14, 255));
     inGameMenuButtons.push_back(std::move(btnQuit));
 }
 
@@ -4178,9 +4178,9 @@ void GameManager::vePopupKetThuc() {
 void GameManager::veMenuPopUpInGame() {
     FantasyUI::get().drawFullDimOverlay(window, sf::Color(0, 0, 0, 160));
 
-    // Stage 4: Modal W = 400.0f, H = 460.0f, centered at X = 400.0f, Y = 170.0f
+    // Modal W = 400.0f, H = 390.0f, centered at X = 400.0f, Y = 170.0f
     const float dw = 400.0f;
-    const float dh = 460.0f;
+    const float dh = 390.0f;
     const float dx = 400.0f;
     const float dy = 170.0f;
 
@@ -4197,49 +4197,51 @@ void GameManager::veMenuPopUpInGame() {
         btn->draw(window);
     }
 
-    // 4. Y = 455: Hint text "Nhấn [ESC] để quay lại ngay"
+    // 4. Y = 458: Hint text "Nhấn [ESC] để quay lại ngay"
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Text tHint;
     tHint.setFont(font);
     tHint.setCharacterSize(12);
     tHint.setStyle(sf::Text::Bold);
     tHint.setString(toUtf8(tiengViet ? "Nhấn [ESC] để quay lại ngay" : "Press [ESC] to quick resume"));
-    tHint.setFillColor(sf::Color(190, 170, 145, 220));
+    tHint.setFillColor(sf::Color(220, 195, 140, 220));
     sf::FloatRect hb = tHint.getLocalBounds();
     tHint.setOrigin(std::round(hb.left + hb.width / 2.0f), std::round(hb.top + hb.height / 2.0f));
     tHint.setPosition(1200.0f / 2.0f, 458.0f);
     window.draw(tHint);
 
-    // 5. Y = 485: Match indicator slot tray in lower space (zero dead space)
+    // 5. Y = 485: Match indicator slot tray in lower space
     float slotY = 485.0f;
-    float slotH = 75.0f;
+    float slotH = 46.0f;
     float slotW = 320.0f;
     float slotX = 440.0f;
-    FantasyUI::get().drawPanel(window, sf::FloatRect(slotX, slotY, slotW, slotH), OrientalPanelStyle::JADE_INSET);
+
+    sf::RectangleShape slotTray(sf::Vector2f(slotW, slotH));
+    slotTray.setPosition(slotX, slotY);
+    slotTray.setFillColor(sf::Color(24, 16, 12, 235));
+    slotTray.setOutlineThickness(1.5f);
+    slotTray.setOutlineColor(sf::Color(165, 125, 70, 200));
+    window.draw(slotTray);
+    ve4GocLuaChon(window, sf::Vector2f(slotX, slotY), sf::Vector2f(slotW, slotH), 1.0f, 1.2f);
 
     bool isRedTurn = (banCo.getLuotChoi() == Mau::DO);
     sf::Text tStatus;
     tStatus.setFont(fontBold);
-    tStatus.setCharacterSize(12);
+    tStatus.setCharacterSize(16);
     tStatus.setStyle(sf::Text::Bold);
     std::string turnStr = isRedTurn ? (tiengViet ? "Lượt đi: Bên Đỏ" : "Turn: Red") : (tiengViet ? "Lượt đi: Bên Đen" : "Turn: Black");
     std::string s1 = turnStr + (tiengViet ? "  •  Nước đi: " : "  •  Move: ") + std::to_string(banCo.getLichSuNuocDi().size() + 1);
     tStatus.setString(toUtf8(s1));
-    tStatus.setFillColor(isRedTurn ? sf::Color(255, 175, 160) : sf::Color(170, 215, 255));
+    tStatus.setFillColor(isRedTurn ? sf::Color(255, 215, 150) : sf::Color(235, 225, 175));
     sf::FloatRect sb = tStatus.getLocalBounds();
     tStatus.setOrigin(std::round(sb.left + sb.width / 2.0f), std::round(sb.top + sb.height / 2.0f));
-    tStatus.setPosition(1200.0f / 2.0f, slotY + 22.0f);
-    window.draw(tStatus);
+    tStatus.setPosition(1200.0f / 2.0f, std::round(slotY + slotH / 2.0f - 1.0f));
 
-    sf::Text tFooter;
-    tFooter.setFont(font);
-    tFooter.setCharacterSize(11);
-    tFooter.setString(toUtf8(tiengViet ? "[F11] Toàn màn hình  •  [M] Bật/Tắt âm" : "[F11] Fullscreen  •  [M] Mute"));
-    tFooter.setFillColor(sf::Color(170, 155, 140, 200));
-    sf::FloatRect fb = tFooter.getLocalBounds();
-    tFooter.setOrigin(std::round(fb.left + fb.width / 2.0f), std::round(fb.top + fb.height / 2.0f));
-    tFooter.setPosition(1200.0f / 2.0f, slotY + 50.0f);
-    window.draw(tFooter);
+    sf::Text shadow = tStatus;
+    shadow.setPosition(std::round(tStatus.getPosition().x + 1.2f), std::round(tStatus.getPosition().y + 1.2f));
+    shadow.setFillColor(sf::Color(10, 6, 4, 230));
+    window.draw(shadow);
+    window.draw(tStatus);
 }
 
 void GameManager::veToast() {

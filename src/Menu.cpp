@@ -407,10 +407,10 @@ void Button::draw(sf::RenderWindow& window) {
     if (!enabled) {
         drawText.setFillColor(sf::Color(130, 120, 110));
     } else if (isHighlighted) {
-        drawText.setFillColor(sf::Color(255, 245, 140));
+        drawText.setFillColor(sf::Color(255, 248, 175));
         drawText.setStyle(sf::Text::Bold);
     } else {
-        drawText.setFillColor(sf::Color(245, 230, 205));
+        drawText.setFillColor(sf::Color(255, 230, 140));
         drawText.setStyle(sf::Text::Bold);
     }
 
