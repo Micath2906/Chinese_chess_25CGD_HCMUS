@@ -58,13 +58,13 @@ FantasyUI::FantasyUI() {
 
 bool FantasyUI::init() {
     sf::Image masterImg;
-    const std::vector<std::string> prefixes = { "", "../", "../../", "resources/", "../resources/" };
+    const std::vector<std::string> prefixes = { "", "../", "../../" };
     bool ok = false;
 
     // Load xiangqi_oriental_sheet.png
     std::error_code ec;
     for (const auto& p : prefixes) {
-        std::string fullPath = p + "assets/xiangqi_oriental_sheet.png";
+        std::string fullPath = p + "assets/textures/ui/xiangqi_oriental_sheet.png";
         if (std::filesystem::exists(std::filesystem::u8path(fullPath), ec) &&
             masterImg.loadFromFile(fullPath)) {
             ok = true;

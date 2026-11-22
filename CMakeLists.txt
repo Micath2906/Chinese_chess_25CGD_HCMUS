@@ -73,13 +73,10 @@ target_link_libraries(CoTuong PRIVATE
 )
 
 # =========================
-# Copy resources and DLLs
+# Copy assets and DLLs
 # =========================
 
 add_custom_command(TARGET CoTuong POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_SOURCE_DIR}/resources"
-    "$<TARGET_FILE_DIR:CoTuong>/resources"
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_SOURCE_DIR}/assets"
     "$<TARGET_FILE_DIR:CoTuong>/assets"
@@ -91,4 +88,3 @@ add_custom_command(TARGET CoTuong POST_BUILD
     "${CMAKE_SOURCE_DIR}/CoTuong.exe"
 )
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

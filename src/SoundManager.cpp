@@ -40,39 +40,34 @@ void SoundManager::khoiTao() {
     sf::SoundBuffer tempBuf;
 
     // Move sound
-    if (loadSoundFile(tempBuf, "assets/music/dat_co.ogg") ||
-        loadSoundFile(tempBuf, "assets/dat_co.ogg") ||
-        loadSoundFile(tempBuf, "resources/sounds/move.wav")) {
+    if (loadSoundFile(tempBuf, "assets/audio/sfx/move.ogg")) {
         bufferMove = tempBuf;
         soundMove.setBuffer(bufferMove);
     }
 
     // Capture sound
-    if (loadSoundFile(tempBuf, "assets/music/an_co.ogg") ||
-        loadSoundFile(tempBuf, "assets/an_co.ogg") ||
-        loadSoundFile(tempBuf, "resources/sounds/capture.wav")) {
+    if (loadSoundFile(tempBuf, "assets/audio/sfx/capture.ogg")) {
         bufferCapture = tempBuf;
         soundCapture.setBuffer(bufferCapture);
     }
 
     // BGM sound
-    if (loadSoundFile(tempBuf, "assets/music/Golden Gleam.ogg") ||
-        loadSoundFile(tempBuf, "assets/Golden Gleam.ogg")) {
+    if (loadSoundFile(tempBuf, "assets/audio/music/golden_gleam.ogg")) {
         bufferBgm = tempBuf;
         soundBgm.setBuffer(bufferBgm);
         soundBgm.setLoop(true);
     }
 
     // Other sounds
-    if (loadSoundFile(tempBuf, "resources/sounds/check.wav")) {
+    if (loadSoundFile(tempBuf, "assets/audio/sfx/check.wav")) {
         bufferCheck = tempBuf;
         soundCheck.setBuffer(bufferCheck);
     }
-    if (loadSoundFile(tempBuf, "resources/sounds/win.wav")) {
+    if (loadSoundFile(tempBuf, "assets/audio/sfx/win.wav")) {
         bufferVictory = tempBuf;
         soundVictory.setBuffer(bufferVictory);
     }
-    if (loadSoundFile(tempBuf, "resources/sounds/select.wav")) {
+    if (loadSoundFile(tempBuf, "assets/audio/sfx/select.wav")) {
         bufferClick = tempBuf;
         soundClick.setBuffer(bufferClick);
     }

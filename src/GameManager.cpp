@@ -138,40 +138,33 @@ void GameManager::khoiTao() {
 
     // Load fonts (prioritize thick, readable bold fonts for UI legibility)
     tryLoadFontCandidates(fontVnBold, {
-        "assets/font/arialbd.ttf",
-        "resources/fonts/arialbd.ttf",
         "C:/Windows/Fonts/arialbd.ttf",
         "C:/Windows/Fonts/segoeuib.ttf",
-        "resources/fonts/arial.ttf",
-        "C:/Windows/Fonts/arial.ttf"
+        "assets/fonts/NomNaTong-Regular.ttf",
+        "assets/fonts/ViaodaLibre-Regular.ttf"
     });
 
     tryLoadFontCandidates(fontEnBold, {
-        "assets/font/arialbd.ttf",
-        "resources/fonts/arialbd.ttf",
+        "assets/fonts/PixeloidSansBold.ttf",
         "C:/Windows/Fonts/arialbd.ttf",
-        "assets/font/PixeloidSansBold.ttf",
-        "resources/fonts/PixeloidSansBold.ttf",
         "C:/Windows/Fonts/segoeuib.ttf"
     });
 
     tryLoadFontCandidates(fontVn, {
-        "resources/fonts/arial.ttf",
+        "assets/fonts/NomNaTong-Regular.ttf",
+        "assets/fonts/ViaodaLibre-Regular.ttf",
         "C:/Windows/Fonts/arial.ttf",
-        "C:/Windows/Fonts/segoeui.ttf",
-        "assets/font/NomNaTong-Regular.ttf"
+        "C:/Windows/Fonts/segoeui.ttf"
     });
 
     tryLoadFontCandidates(fontEn, {
-        "resources/fonts/arial.ttf",
-        "C:/Windows/Fonts/arial.ttf",
-        "assets/font/PixeloidSans.ttf",
-        "resources/fonts/PixeloidSans.ttf"
+        "assets/fonts/PixeloidSans.ttf",
+        "assets/fonts/ViaodaLibre-Regular.ttf",
+        "C:/Windows/Fonts/arial.ttf"
     });
 
     tryLoadFontCandidates(fontHan, {
-        "assets/font/NomNaTong-Regular.ttf",
-        "resources/fonts/NomNaTong-Regular.ttf"
+        "assets/fonts/NomNaTong-Regular.ttf"
     });
 
     taiTextures();
@@ -2572,18 +2565,15 @@ void GameManager::taiTextures() {
 
     // Load background pixel art texture
     tryLoadTextureCandidates(textureBackground, {
-        "assets/xiangqi_background_pavilion.png",
-        "../assets/xiangqi_background_pavilion.png",
-        "resources/textures/background.png",
-        "resources/textures/background_game.png"
+        "assets/textures/backgrounds/xiangqi_background_pavilion.png",
+        "../assets/textures/backgrounds/xiangqi_background_pavilion.png"
     });
     textureBackground.setSmooth(true);
 
     // Load background
     tryLoadTextureCandidates(texturePlayBg, {
-        "assets/xiangqi_background_pavilion.png",
-        "../assets/xiangqi_background_pavilion.png",
-        "resources/textures/background play.jpg"
+        "assets/textures/backgrounds/xiangqi_background_pavilion.png",
+        "../assets/textures/backgrounds/xiangqi_background_pavilion.png"
     });
     texturePlayBg.setSmooth(true);
 
@@ -2591,9 +2581,8 @@ void GameManager::taiTextures() {
     {
         sf::Image imgBanCo;
         if (tryLoadImageCandidates(imgBanCo, {
-                "assets/bancofinal.png",
-                "../assets/bancofinal.png",
-                "resources/textures/ban_co.png"
+                "assets/textures/board/board.png",
+                "../assets/textures/board/board.png"
             })) {
             
             // Explicit color mask required by user
@@ -2619,9 +2608,9 @@ void GameManager::taiTextures() {
 
     auto loadPieceSafe = [](sf::Texture& tex, const std::string& filename) {
         const std::vector<std::string> prefixes = {
-            "resources/textures/pieces/",
-            "../resources/textures/pieces/",
-            "../../resources/textures/pieces/"
+            "assets/textures/pieces/",
+            "../assets/textures/pieces/",
+            "../../assets/textures/pieces/"
         };
         for (const auto& p : prefixes) {
             std::string fullPath = p + filename;
@@ -2681,11 +2670,11 @@ void GameManager::taiTextures() {
 void GameManager::taiAvatarTextures() {
     if (daTaiAvatarTextures) return;
     const std::string paths[5] = {
-        "assets/avatar/images/emoji_cho_ava_03.png",
-        "assets/avatar/images/emoji_cho_ava_07.png",
-        "assets/avatar/images/emoji_cho_ava_10.png",
-        "assets/avatar/images/emoji_cho_ava_18.png",
-        "assets/avatar/images/emoji_cho_ava_24.png"
+        "assets/textures/avatars/emoji_cho_ava_03.png",
+        "assets/textures/avatars/emoji_cho_ava_07.png",
+        "assets/textures/avatars/emoji_cho_ava_10.png",
+        "assets/textures/avatars/emoji_cho_ava_18.png",
+        "assets/textures/avatars/emoji_cho_ava_24.png"
     };
     for (int i = 0; i < 5; ++i) {
         if (fileExistsUtf8(paths[i])) {

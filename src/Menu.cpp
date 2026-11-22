@@ -56,12 +56,10 @@ static bool loadFontSafe(sf::Font& font, const std::string& path) {
 
 MenuAssets::MenuAssets() {
     // Background
-    loadTexSafe(cleanBg, "assets/xiangqi_background_pavilion.png", true, false) ||
-    loadTexSafe(cleanBg, "resources/textures/background.png", true, false);
+    loadTexSafe(cleanBg, "assets/textures/backgrounds/xiangqi_background_pavilion.png", true, false);
 
-    // Legacy TravelBook cover/page textures removed; scroll/ebony 9-slice panels are drawn via FantasyUI.
-    // Remaining UI icons/toggles still load from the sprite pack directory.
-    const std::string bookDir = "assets/Complete_UI_Book_Styles_Pack_Free/Complete_UI_Book_Styles_Pack_Free_v1.0/01_TravelBookLite/Sprites/";
+    // Remaining UI icons/toggles load from the travelbook sprite pack directory.
+    const std::string bookDir = "assets/textures/ui/travelbook/";
 
     loadTexSafe(frameNormal, bookDir + "UI_TravelBook_Frame01a.png", false);
     loadTexSafe(frameHover, bookDir + "UI_TravelBook_FrameSelect01a.png", false);
@@ -95,33 +93,26 @@ MenuAssets::MenuAssets() {
     loadTexSafe(cursorNormal, bookDir + "UI_TravelBook_Cursor01c.png", false);
     loadTexSafe(cursorPressed, bookDir + "UI_TravelBook_Cursor01d.png", false);
     loadTexSafe(selectCorners, bookDir + "UI_TravelBook_Select01a.png", false);
-    loadTexSafe(playBg, "assets/xiangqi_background_pavilion.png", true, false) ||
-    loadTexSafe(playBg, "resources/textures/background play.jpg", true, false);
+    loadTexSafe(playBg, "assets/textures/backgrounds/xiangqi_background_pavilion.png", true, false);
 
     // Load fonts (prioritize thick, readable bold fonts for UI clarity)
-    fontVnBoldLoaded = loadFontSafe(fontVnBold, "assets/font/arialbd.ttf") ||
-                       loadFontSafe(fontVnBold, "resources/fonts/arialbd.ttf") ||
-                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/arialbd.ttf") ||
+    fontVnBoldLoaded = loadFontSafe(fontVnBold, "C:/Windows/Fonts/arialbd.ttf") ||
                        loadFontSafe(fontVnBold, "C:/Windows/Fonts/segoeuib.ttf") ||
-                       loadFontSafe(fontVnBold, "resources/fonts/arial.ttf") ||
-                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/arial.ttf");
+                       loadFontSafe(fontVnBold, "assets/fonts/NomNaTong-Regular.ttf") ||
+                       loadFontSafe(fontVnBold, "assets/fonts/ViaodaLibre-Regular.ttf");
 
-    fontEnBoldLoaded = loadFontSafe(fontEnBold, "assets/font/arialbd.ttf") ||
-                       loadFontSafe(fontEnBold, "resources/fonts/arialbd.ttf") ||
+    fontEnBoldLoaded = loadFontSafe(fontEnBold, "assets/fonts/PixeloidSansBold.ttf") ||
                        loadFontSafe(fontEnBold, "C:/Windows/Fonts/arialbd.ttf") ||
-                       loadFontSafe(fontEnBold, "assets/font/PixeloidSansBold.ttf") ||
-                       loadFontSafe(fontEnBold, "resources/fonts/PixeloidSansBold.ttf") ||
                        loadFontSafe(fontEnBold, "C:/Windows/Fonts/segoeuib.ttf");
 
-    fontVnLoaded = loadFontSafe(fontVn, "resources/fonts/arial.ttf") ||
+    fontVnLoaded = loadFontSafe(fontVn, "assets/fonts/NomNaTong-Regular.ttf") ||
+                   loadFontSafe(fontVn, "assets/fonts/ViaodaLibre-Regular.ttf") ||
                    loadFontSafe(fontVn, "C:/Windows/Fonts/arial.ttf") ||
-                   loadFontSafe(fontVn, "C:/Windows/Fonts/segoeui.ttf") ||
-                   loadFontSafe(fontVn, "C:/Windows/Fonts/tahoma.ttf");
+                   loadFontSafe(fontVn, "C:/Windows/Fonts/segoeui.ttf");
 
-    fontEnLoaded = loadFontSafe(fontEn, "resources/fonts/arial.ttf") ||
-                   loadFontSafe(fontEn, "C:/Windows/Fonts/arial.ttf") ||
-                   loadFontSafe(fontEn, "assets/font/PixeloidSans.ttf") ||
-                   loadFontSafe(fontEn, "resources/fonts/PixeloidSans.ttf");
+    fontEnLoaded = loadFontSafe(fontEn, "assets/fonts/PixeloidSans.ttf") ||
+                   loadFontSafe(fontEn, "assets/fonts/ViaodaLibre-Regular.ttf") ||
+                   loadFontSafe(fontEn, "C:/Windows/Fonts/arial.ttf");
 
     // Font aliases
     vnFont = fontVn;
