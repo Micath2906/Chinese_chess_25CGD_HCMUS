@@ -4307,6 +4307,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
     auto& mAssets = getMenuAssets();
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Font& f = mAssets.vnFontLoaded ? mAssets.vnFont : font;
+    sf::Font& fBold = mAssets.fontBoldLoaded ? mAssets.fontBold : fontBold;
 
     // 1. Top Horizontal Mode Tab Bar inside Dashboard (X=160, Y=120, W=880, H=560)
     // Visual order: [PvP Mode] [Player vs AI] [Demo Match] while preserving playSetupMode IDs (1, 0, 2)
@@ -4378,18 +4379,18 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     auto addCycleRow = [&](float y, const std::string& valText,
                            std::function<void()> onPrev, std::function<void()> onNext) {
-        auto bPrev = std::make_unique<Button>(ctrlX, y, arrowW, rowH, "<", f, std::move(onPrev));
-        bPrev->setCharacterSize(15);
+        auto bPrev = std::make_unique<Button>(ctrlX, y, arrowW, rowH, "<", fBold, std::move(onPrev));
+        bPrev->setCharacterSize(16);
         bPrev->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
         playSetupButtons.push_back(std::move(bPrev));
 
-        auto bVal = std::make_unique<Button>(ctrlX + arrowW + 3.0f, y, valW, rowH, valText, f, onNext);
-        bVal->setCharacterSize(14);
+        auto bVal = std::make_unique<Button>(ctrlX + arrowW + 3.0f, y, valW, rowH, valText, fBold, onNext);
+        bVal->setCharacterSize(15);
         bVal->setColors(sf::Color(255, 232, 165), sf::Color(255, 244, 195), sf::Color(255, 250, 224));
         playSetupButtons.push_back(std::move(bVal));
 
-        auto bNext = std::make_unique<Button>(ctrlX + arrowW + 3.0f + valW + 3.0f, y, arrowW, rowH, ">", f, std::move(onNext));
-        bNext->setCharacterSize(15);
+        auto bNext = std::make_unique<Button>(ctrlX + arrowW + 3.0f + valW + 3.0f, y, arrowW, rowH, ">", fBold, std::move(onNext));
+        bNext->setCharacterSize(16);
         bNext->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
         playSetupButtons.push_back(std::move(bNext));
     };
@@ -4458,28 +4459,30 @@ void GameManager::khoiTaoPlaySetupButtons() {
     };
 
     auto addAvatarRow = [&](float y, int& charIdx) {
-        auto avaPrev = std::make_unique<Button>(360.0f, y, 26.0f, 32.0f, "<", f, [this, &charIdx]() {
+        auto avaPrev = std::make_unique<Button>(360.0f, y, 26.0f, 32.0f, "<", fBold, [this, &charIdx]() {
             soundManager.play(SoundType::CLICK);
             charIdx = (charIdx + Loc::getCharCount() - 1) % Loc::getCharCount();
             khoiTaoPlaySetupButtons();
         });
+        avaPrev->setCharacterSize(16);
         avaPrev->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
         playSetupButtons.push_back(std::move(avaPrev));
 
-        auto avaVal = std::make_unique<Button>(389.0f, y, 118.0f, 32.0f, Loc::getCharName(charIdx), f, [this, &charIdx]() {
+        auto avaVal = std::make_unique<Button>(389.0f, y, 118.0f, 32.0f, Loc::getCharName(charIdx), fBold, [this, &charIdx]() {
             soundManager.play(SoundType::CLICK);
             charIdx = (charIdx + 1) % Loc::getCharCount();
             khoiTaoPlaySetupButtons();
         });
-        avaVal->setCharacterSize(13);
+        avaVal->setCharacterSize(15);
         avaVal->setColors(sf::Color(248, 238, 212), sf::Color(255, 232, 160), sf::Color(255, 250, 224));
         playSetupButtons.push_back(std::move(avaVal));
 
-        auto avaNext = std::make_unique<Button>(510.0f, y, 26.0f, 32.0f, ">", f, [this, &charIdx]() {
+        auto avaNext = std::make_unique<Button>(510.0f, y, 26.0f, 32.0f, ">", fBold, [this, &charIdx]() {
             soundManager.play(SoundType::CLICK);
             charIdx = (charIdx + 1) % Loc::getCharCount();
             khoiTaoPlaySetupButtons();
         });
+        avaNext->setCharacterSize(16);
         avaNext->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
         playSetupButtons.push_back(std::move(avaNext));
     };
@@ -4552,10 +4555,15 @@ void GameManager::khoiTaoPlaySetupButtons() {
     }
 
     // 3. Bottom Dashboard Action Bar
+    // Symmetrical layout: Back button left-aligned to 188.0f, Primary CTA right-aligned to 1012.0f
+    const float btmY = 614.0f;
+    const float btmH = 46.0f;
+    const float rightMargin = 1012.0f;
+
     if (playSetupMode == 1) {
         if (pvpSetupStep == 1) {
-            auto backBtn = std::make_unique<Button>(188.0f, 616.0f, 136.0f, 42.0f,
-                tiengViet ? "Quay Lại" : "Back", f, [this]() {
+            auto backBtn = std::make_unique<Button>(188.0f, btmY, 136.0f, btmH,
+                tiengViet ? "Quay Lại" : "Back", fBold, [this]() {
                 soundManager.play(SoundType::CLICK);
                 trangThai = TrangThai::MENU_CHINH;
                 menuChinh.triggerOpenAnimation(MenuSection::PLAY);
@@ -4564,8 +4572,9 @@ void GameManager::khoiTaoPlaySetupButtons() {
             backBtn->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
             playSetupButtons.push_back(std::move(backBtn));
 
-            auto nextBtn = std::make_unique<Button>(460.0f, 612.0f, 330.0f, 50.0f,
-                tiengViet ? "TIẾP THEO (NGƯỜI CHƠI 2) >>" : "NEXT (PLAYER 2) >>", f, [this]() {
+            const float nextW = 200.0f;
+            auto nextBtn = std::make_unique<Button>(rightMargin - nextW, btmY, nextW, btmH,
+                tiengViet ? "TIẾP THEO" : "NEXT", fBold, [this]() {
                 soundManager.play(SoundType::CLICK);
                 pvpSetupStep = 2;
                 khoiTaoPlaySetupButtons();
@@ -4575,18 +4584,19 @@ void GameManager::khoiTaoPlaySetupButtons() {
             nextBtn->setColors(sf::Color(255, 236, 175), sf::Color(255, 248, 210), sf::Color(255, 255, 235));
             playSetupButtons.push_back(std::move(nextBtn));
         } else {
-            auto backBtn = std::make_unique<Button>(188.0f, 616.0f, 210.0f, 42.0f,
-                tiengViet ? "<< Quay Lại (P1)" : "<< Back (P1)", f, [this]() {
+            auto backBtn = std::make_unique<Button>(188.0f, btmY, 136.0f, btmH,
+                tiengViet ? "Quay Lại" : "Back", fBold, [this]() {
                 soundManager.play(SoundType::CLICK);
                 pvpSetupStep = 1;
                 khoiTaoPlaySetupButtons();
             });
-            backBtn->setCharacterSize(15);
+            backBtn->setCharacterSize(16);
             backBtn->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
             playSetupButtons.push_back(std::move(backBtn));
 
-            auto rollBtn = std::make_unique<Button>(460.0f, 612.0f, 340.0f, 50.0f,
-                tiengViet ? "TIẾP TỤC: RANDOM LƯỢT ĐI >>" : "PROCEED: ROLL TURN ORDER >>", f, [this]() {
+            const float rollW = 250.0f;
+            auto rollBtn = std::make_unique<Button>(rightMargin - rollW, btmY, rollW, btmH,
+                tiengViet ? "RANDOM LƯỢT ĐI >>" : "ROLL TURN ORDER >>", fBold, [this]() {
                 soundManager.play(SoundType::CLICK);
                 cheDoChoi = CheDoChoi::HAI_NGUOI;
                 khoiTaoRandomLuotScene();
@@ -4598,8 +4608,8 @@ void GameManager::khoiTaoPlaySetupButtons() {
             playSetupButtons.push_back(std::move(rollBtn));
         }
     } else {
-        auto backBtn = std::make_unique<Button>(188.0f, 616.0f, 136.0f, 42.0f,
-            tiengViet ? "Quay Lại" : "Back", f, [this]() {
+        auto backBtn = std::make_unique<Button>(188.0f, btmY, 136.0f, btmH,
+            tiengViet ? "Quay Lại" : "Back", fBold, [this]() {
             soundManager.play(SoundType::CLICK);
             trangThai = TrangThai::MENU_CHINH;
             menuChinh.triggerOpenAnimation(MenuSection::PLAY);
@@ -4611,8 +4621,9 @@ void GameManager::khoiTaoPlaySetupButtons() {
         std::string startLabel = (playSetupMode == 2)
             ? (tiengViet ? "BẮT ĐẦU MÔ PHỎNG" : "START DEMO")
             : (tiengViet ? "TIẾP TỤC: RANDOM LƯỢT >>" : "PROCEED: ROLL TURN >>");
+        const float startW = (playSetupMode == 2) ? 220.0f : 260.0f;
 
-        auto startBtn = std::make_unique<Button>(460.0f, 612.0f, 290.0f, 50.0f, startLabel, f, [this, tiengViet]() {
+        auto startBtn = std::make_unique<Button>(rightMargin - startW, btmY, startW, btmH, startLabel, fBold, [this, tiengViet]() {
             soundManager.play(SoundType::CLICK);
             if (playSetupMode == 0) {
                 cheDoChoi = CheDoChoi::VOI_MAY;
@@ -4626,7 +4637,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
                 batDauTroChoiMoi(CheDoChoi::DEMO_2XE_2VOI);
             }
         });
-        startBtn->setCharacterSize(17);
+        startBtn->setCharacterSize(16);
         startBtn->setSelected(true);
         startBtn->setColors(sf::Color(255, 236, 175), sf::Color(255, 248, 210), sf::Color(255, 255, 235));
         playSetupButtons.push_back(std::move(startBtn));
@@ -5017,9 +5028,7 @@ void GameManager::vePlaySetup() {
     sumBody.setPosition(762.0f, 412.0f);
     window.draw(sumBody);
 
-    // 4. Bottom Action Bar Gold Frame around primary Start Match CTA + Interactive Buttons
-    ve4GocLuaChon(window, sf::Vector2f(460.0f, 612.0f), sf::Vector2f(280.0f, 50.0f), 2.0f, 2.0f);
-
+    // 4. Interactive Action Buttons
     for (auto& btn : playSetupButtons) {
         btn->draw(window);
     }
@@ -6188,18 +6197,22 @@ void GameManager::khoiTaoRandomLuotScene() {
     rollAngle = 0.0f;
     rollWinner = 0;
 
+    auto& assets = getMenuAssets();
+    sf::Font& fBold = assets.fontBoldLoaded ? assets.fontBold : fontBold;
+
     btnRoll = std::make_unique<Button>(
         460.0f, 650.0f, 280.0f, 52.0f,
-        Loc::get(LocKey::RANDOM_BTN_ROLL), font,
+        Loc::get(LocKey::RANDOM_BTN_ROLL), fBold,
         [this]() {
             batDauRandomRoll();
         }
     );
+    btnRoll->setCharacterSize(18);
     btnRoll->setColors(sf::Color(190, 45, 45), sf::Color(225, 65, 65), sf::Color(140, 30, 30));
 
     btnStartFromRoll = std::make_unique<Button>(
         320.0f, 650.0f, 260.0f, 52.0f,
-        Loc::get(LocKey::RANDOM_BTN_START), font,
+        Loc::get(LocKey::RANDOM_BTN_START), fBold,
         [this]() {
             soundManager.play(SoundType::CLICK);
             if (cheDoChoi == CheDoChoi::HAI_NGUOI) {
@@ -6211,20 +6224,22 @@ void GameManager::khoiTaoRandomLuotScene() {
             }
         }
     );
+    btnStartFromRoll->setCharacterSize(18);
     btnStartFromRoll->setColors(sf::Color(40, 130, 60), sf::Color(55, 170, 80), sf::Color(30, 95, 45));
 
     btnReroll = std::make_unique<Button>(
         620.0f, 650.0f, 260.0f, 52.0f,
-        Loc::get(LocKey::RANDOM_BTN_REROLL), font,
+        Loc::get(LocKey::RANDOM_BTN_REROLL), fBold,
         [this]() {
             batDauRandomRoll();
         }
     );
+    btnReroll->setCharacterSize(18);
     btnReroll->setColors(sf::Color(50, 70, 110), sf::Color(70, 100, 155), sf::Color(35, 50, 80));
 
     btnBackFromRoll = std::make_unique<Button>(
         40.0f, 35.0f, 150.0f, 42.0f,
-        Loc::get(LocKey::BACK), font,
+        Loc::get(LocKey::BACK), fBold,
         [this]() {
             soundManager.play(SoundType::CLICK);
             if (cheDoChoi == CheDoChoi::HAI_NGUOI) {
@@ -6236,6 +6251,7 @@ void GameManager::khoiTaoRandomLuotScene() {
             }
         }
     );
+    btnBackFromRoll->setCharacterSize(16);
 }
 
 void GameManager::batDauRandomRoll() {
@@ -6253,6 +6269,7 @@ void GameManager::capNhatRandomRoll(float dt) {
         rollAngle += 840.0f * dt;
         if (rollTimer <= 0.0f) {
             rollTimer = 0.0f;
+            rollAngle = 0.0f;
             isRandomRolling = false;
             rollFinished = true;
             soundManager.play(SoundType::CAPTURE);
@@ -6263,25 +6280,30 @@ void GameManager::capNhatRandomRoll(float dt) {
 void GameManager::veRandomLuot() {
     FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 85));
 
+    auto& assets = getMenuAssets();
+    bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
+    sf::Font& fBold = assets.fontBoldLoaded ? assets.fontBold : fontBold;
+
     // 1. Header Title & Subtitle
     sf::Text title;
-    title.setFont(fontBold);
+    title.setFont(fBold);
     title.setCharacterSize(38);
     title.setStyle(sf::Text::Bold);
     title.setString(toUtf8(Loc::get(LocKey::RANDOM_TITLE)));
     title.setFillColor(sf::Color(240, 190, 70));
     sf::FloatRect tb = title.getLocalBounds();
-    title.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+    title.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
     title.setPosition(window.getSize().x / 2.0f, 52.0f);
     window.draw(title);
 
     sf::Text subtitle;
-    subtitle.setFont(font);
-    subtitle.setCharacterSize(15);
+    subtitle.setFont(fBold);
+    subtitle.setCharacterSize(16);
+    subtitle.setStyle(sf::Text::Bold);
     subtitle.setString(toUtf8(Loc::get(LocKey::RANDOM_SUBTITLE)));
-    subtitle.setFillColor(sf::Color(180, 195, 215));
+    subtitle.setFillColor(sf::Color(200, 215, 235));
     tb = subtitle.getLocalBounds();
-    subtitle.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+    subtitle.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
     subtitle.setPosition(window.getSize().x / 2.0f, 92.0f);
     window.draw(subtitle);
 
@@ -6353,23 +6375,25 @@ void GameManager::veRandomLuot() {
     window.draw(np1);
 
     sf::Text rp1;
-    rp1.setFont(font);
-    rp1.setCharacterSize(15);
+    rp1.setFont(fBold);
+    rp1.setCharacterSize(18);
+    rp1.setStyle(sf::Text::Bold);
     rp1.setString(toUtf8("[" + Loc::getCharName(p1Char) + "]"));
-    rp1.setFillColor(sf::Color(240, 200, 110));
+    rp1.setFillColor(sf::Color(255, 222, 130));
     tb = rp1.getLocalBounds();
-    rp1.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    rp1.setPosition(260.0f, 375.0f);
+    rp1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+    rp1.setPosition(260.0f, 380.0f);
     window.draw(rp1);
 
     sf::Text ap1;
-    ap1.setFont(font);
-    ap1.setCharacterSize(12);
+    ap1.setFont(fBold);
+    ap1.setCharacterSize(15);
+    ap1.setStyle(sf::Text::Bold);
     ap1.setString(toUtf8(layTenPieceAura(p1AuraChoice)));
-    ap1.setFillColor(sf::Color(165, 185, 210));
+    ap1.setFillColor(sf::Color(215, 235, 255));
     tb = ap1.getLocalBounds();
-    ap1.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    ap1.setPosition(260.0f, 400.0f);
+    ap1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+    ap1.setPosition(260.0f, 412.0f);
     window.draw(ap1);
 
     // Left Result Status
@@ -6458,23 +6482,25 @@ void GameManager::veRandomLuot() {
     window.draw(np2);
 
     sf::Text rp2;
-    rp2.setFont(font);
-    rp2.setCharacterSize(15);
+    rp2.setFont(fBold);
+    rp2.setCharacterSize(18);
+    rp2.setStyle(sf::Text::Bold);
     rp2.setString(toUtf8("[" + Loc::getCharName(p2Char) + "]"));
-    rp2.setFillColor(sf::Color(240, 200, 110));
+    rp2.setFillColor(sf::Color(255, 222, 130));
     tb = rp2.getLocalBounds();
-    rp2.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    rp2.setPosition(940.0f, 375.0f);
+    rp2.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+    rp2.setPosition(940.0f, 380.0f);
     window.draw(rp2);
 
     sf::Text ap2;
-    ap2.setFont(font);
-    ap2.setCharacterSize(12);
+    ap2.setFont(fBold);
+    ap2.setCharacterSize(15);
+    ap2.setStyle(sf::Text::Bold);
     ap2.setString(toUtf8(layTenPieceAura(p2AuraChoice)));
-    ap2.setFillColor(sf::Color(165, 185, 210));
+    ap2.setFillColor(sf::Color(215, 235, 255));
     tb = ap2.getLocalBounds();
-    ap2.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
-    ap2.setPosition(940.0f, 400.0f);
+    ap2.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+    ap2.setPosition(940.0f, 412.0f);
     window.draw(ap2);
 
     // Right Result Status
@@ -6525,11 +6551,31 @@ void GameManager::veRandomLuot() {
     sf::Vector2f coinPos(600.0f, 320.0f);
     float coinBaseR = 60.0f;
     float cosVal = std::cos(rollAngle * 0.0174533f);
-    float coinScaleX = std::abs(cosVal);
-    if (coinScaleX < 0.08f) coinScaleX = 0.08f;
+    float coinScaleX = isRandomRolling ? std::max(0.08f, std::abs(cosVal)) : 1.0f;
 
-    bool showRedSide = isRandomRolling ? (cosVal >= 0.0f) : (rollFinished ? (rollWinner == 0) : true);
+    bool showRedSide = isRandomRolling ? (cosVal >= 0.0f) : (rollWinner == 0);
 
+    // Decorative Coin Label Badge
+    sf::Text coinBadge;
+    coinBadge.setFont(fBold);
+    coinBadge.setCharacterSize(15);
+    coinBadge.setStyle(sf::Text::Bold);
+    coinBadge.setString(toUtf8(vi ? "[ ĐỒNG XU LƯỢT ĐI ]" : "[ TURN COIN ]"));
+    coinBadge.setFillColor(sf::Color(220, 195, 130));
+    tb = coinBadge.getLocalBounds();
+    coinBadge.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+    coinBadge.setPosition(coinPos.x, coinPos.y - 82.0f);
+    window.draw(coinBadge);
+
+    // Coin Drop Shadow
+    sf::CircleShape coinShadow(coinBaseR);
+    coinShadow.setOrigin(coinBaseR, coinBaseR);
+    coinShadow.setPosition(coinPos.x + 2.0f, coinPos.y + 4.0f);
+    coinShadow.setScale(coinScaleX, 1.0f);
+    coinShadow.setFillColor(sf::Color(0, 0, 0, 95));
+    window.draw(coinShadow);
+
+    // Main Coin Medallion
     sf::CircleShape coin(coinBaseR);
     coin.setOrigin(coinBaseR, coinBaseR);
     coin.setPosition(coinPos);
@@ -6548,9 +6594,8 @@ void GameManager::veRandomLuot() {
     coinInner.setOutlineColor(sf::Color(255, 235, 120, 180));
     window.draw(coinInner);
 
-    bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Text coinTxt;
-    coinTxt.setFont(fontBold);
+    coinTxt.setFont(fBold);
     coinTxt.setStyle(sf::Text::Bold);
     if (vi) {
         coinTxt.setCharacterSize(34);
@@ -6562,9 +6607,41 @@ void GameManager::veRandomLuot() {
     coinTxt.setScale(coinScaleX, 1.0f);
     coinTxt.setFillColor(sf::Color(255, 235, 120));
     tb = coinTxt.getLocalBounds();
-    coinTxt.setOrigin(tb.left + tb.width / 2.0f, tb.top + tb.height / 2.0f);
+    coinTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
     coinTxt.setPosition(coinPos.x, coinPos.y - 2.0f);
     window.draw(coinTxt);
+
+    // Dynamic result subtitle below coin
+    sf::Text coinResultHint;
+    coinResultHint.setFont(fBold);
+    coinResultHint.setCharacterSize(15);
+    coinResultHint.setStyle(sf::Text::Bold);
+    if (isRandomRolling) {
+        coinResultHint.setString(toUtf8(vi ? "Đang tung đồng xu..." : "Rolling..."));
+        coinResultHint.setFillColor(sf::Color(220, 220, 160));
+    } else if (rollFinished) {
+        if (cheDoChoi == CheDoChoi::HAI_NGUOI) {
+            if (rollWinner == 0) {
+                coinResultHint.setString(toUtf8(vi ? "-> Người chơi 1 đi trước (Đỏ)" : "-> Player 1 moves first (Red)"));
+            } else {
+                coinResultHint.setString(toUtf8(vi ? "-> Người chơi 2 đi trước (Đỏ)" : "-> Player 2 moves first (Red)"));
+            }
+        } else {
+            if (rollWinner == 0) {
+                coinResultHint.setString(toUtf8(vi ? "-> Bạn đi trước (Đỏ)" : "-> You move first (Red)"));
+            } else {
+                coinResultHint.setString(toUtf8(vi ? "-> Máy đi trước (Đỏ)" : "-> AI moves first (Red)"));
+            }
+        }
+        coinResultHint.setFillColor(sf::Color(255, 225, 130));
+    } else {
+        coinResultHint.setString(toUtf8(vi ? "Bấm để tung lượt đi" : "Click to roll turn"));
+        coinResultHint.setFillColor(sf::Color(170, 185, 205));
+    }
+    tb = coinResultHint.getLocalBounds();
+    coinResultHint.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+    coinResultHint.setPosition(coinPos.x, coinPos.y + 82.0f);
+    window.draw(coinResultHint);
 
     // 5. Action Buttons
     if (!isRandomRolling) {

@@ -638,44 +638,44 @@ void Menu::capNhatNutTrangPhai() {
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Font& f = getMenuFont(tiengViet, true);
 
-    // Symmetrical Right Panel at (640, 160, 300, 480) -> inner (rx = 665, rw = 250)
-    const float rx = 665.0f;
-    const float rw = 250.0f;
+    // Symmetrical Right Panel at (625, 148, 360, 540) -> inner (rx = 645, rw = 320)
+    const float rx = 645.0f;
+    const float rw = 320.0f;
 
     // Play section
     if (activeSection == MenuSection::PLAY) {
-        const float playX = 670.0f;
-        const float playW = 240.0f;
-        const float playH = 44.0f;
-        const float playY = 266.0f;
-        const float stepY = 56.0f;
+        const float playX = 657.0f;
+        const float playW = 296.0f;
+        const float playH = 48.0f;
+        const float playY = 256.0f;
+        const float stepY = 62.0f;
 
         rightPageButtons.emplace_back(playX, playY, playW, playH,
             tiengViet ? "Đấu 2 Người (PvP)" : "Two Players (PvP)", f, [this]() {
             if (onPlayPvp) onPlayPvp();
         });
         rightPageButtons.back().setIcon(&assets.iconPlay);
-        rightPageButtons.back().setCharacterSize(15);
+        rightPageButtons.back().setCharacterSize(16);
 
         rightPageButtons.emplace_back(playX, playY + stepY, playW, playH,
             tiengViet ? "Đấu Với Máy (PvAI)" : "Player vs AI", f, [this]() {
             if (onPlayPvai) onPlayPvai();
         });
         rightPageButtons.back().setIcon(&assets.iconLoad);
-        rightPageButtons.back().setCharacterSize(15);
+        rightPageButtons.back().setCharacterSize(16);
 
         rightPageButtons.emplace_back(playX, playY + stepY * 2.0f, playW, playH,
             tiengViet ? "Xem Máy Đấu (Demo)" : "Demo Match", f, [this]() {
             if (onPlayDemo) onPlayDemo();
         });
         rightPageButtons.back().setIcon(&assets.iconInfo);
-        rightPageButtons.back().setCharacterSize(15);
+        rightPageButtons.back().setCharacterSize(16);
     }
     // Load section
     else if (activeSection == MenuSection::LOAD) {
         for (int i = 0; i < 3; ++i) {
-            float slotY = 252.0f + static_cast<float>(i) * 74.0f;
-            rightPageButtons.emplace_back(rx, slotY, rw, 66.0f, "", f, [this, i]() {
+            float slotY = 252.0f + static_cast<float>(i) * 82.0f;
+            rightPageButtons.emplace_back(rx, slotY, rw, 72.0f, "", f, [this, i]() {
                 currentSlot = i;
                 if (onSelectSlot) onSelectSlot(i);
                 capNhatNutTrangPhai();
@@ -685,16 +685,16 @@ void Menu::capNhatNutTrangPhai() {
             }
         }
 
-        rightPageButtons.emplace_back(rx, 496.0f, 120.0f, 44.0f, tiengViet ? "Vào Ván" : "Load Game", f, [this]() {
+        rightPageButtons.emplace_back(rx, 512.0f, 152.0f, 46.0f, tiengViet ? "Vào Ván" : "Load Game", f, [this]() {
             if (onLoadSlot) onLoadSlot(currentSlot);
         });
-        rightPageButtons.back().setCharacterSize(14);
+        rightPageButtons.back().setCharacterSize(15);
 
-        rightPageButtons.emplace_back(rx + 130.0f, 496.0f, 120.0f, 44.0f, tiengViet ? "Xóa Lưu" : "Delete", f, [this]() {
+        rightPageButtons.emplace_back(rx + 168.0f, 512.0f, 152.0f, 46.0f, tiengViet ? "Xóa Lưu" : "Delete", f, [this]() {
             if (onDeleteSlot) onDeleteSlot(currentSlot);
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setCharacterSize(14);
+        rightPageButtons.back().setCharacterSize(15);
     }
     // Settings section
     else if (activeSection == MenuSection::SETTINGS) {
@@ -702,121 +702,121 @@ void Menu::capNhatNutTrangPhai() {
             ? std::vector<std::string>{ "Âm thanh", "Đồ họa", "Trò chơi", "Phím" }
             : std::vector<std::string>{ "Audio", "Graphics", "Game", "Keys" };
         for (int i = 0; i < 4; ++i) {
-            float tx = 660.0f + static_cast<float>(i) * 66.0f;
-            rightPageButtons.emplace_back(tx, 248.0f, 62.0f, 32.0f, tabNames[i], f, [this, i]() {
+            float tx = 645.0f + static_cast<float>(i) * 81.0f;
+            rightPageButtons.emplace_back(tx, 250.0f, 76.0f, 34.0f, tabNames[i], f, [this, i]() {
                 settingsSubTab = i;
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(12);
+            rightPageButtons.back().setCharacterSize(13);
             if (settingsSubTab == i) {
                 rightPageButtons.back().setSelected(true);
             }
         }
 
         if (settingsSubTab == 0) { // Audio
-            rightPageButtons.emplace_back(670.0f, 492.0f, 240.0f, 38.0f,
+            rightPageButtons.emplace_back(657.0f, 524.0f, 296.0f, 40.0f,
                 tiengViet ? "Nghe Thử Tiếng Cờ" : "Test Chess Sound", f, [this]() {
                 if (onTestSound) onTestSound();
             });
-            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.back().setCharacterSize(14);
         } else if (settingsSubTab == 1) { // Graphics
             std::string themeStr = getSettingStatusStr ? getSettingStatusStr(3) : (tiengViet ? "Gỗ Cổ" : "Classic");
-            rightPageButtons.emplace_back(670.0f, 304.0f, 240.0f, 42.0f,
+            rightPageButtons.emplace_back(657.0f, 312.0f, 296.0f, 44.0f,
                 (tiengViet ? "Bàn: " : "Board: ") + themeStr, f, [this]() {
                 if (onToggleBoardTheme) onToggleBoardTheme();
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.back().setCharacterSize(14);
 
             std::string atmStr = getSettingStatusStr ? getSettingStatusStr(5) : (tiengViet ? "Lá Trúc" : "Bamboo");
-            rightPageButtons.emplace_back(670.0f, 360.0f, 240.0f, 42.0f,
+            rightPageButtons.emplace_back(657.0f, 370.0f, 296.0f, 44.0f,
                 (tiengViet ? "Hiệu ứng: " : "FX: ") + atmStr, f, [this]() {
                 if (onToggleAtmosphere) onToggleAtmosphere();
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.back().setCharacterSize(14);
 
             std::string winStr = getSettingStatusStr ? getSettingStatusStr(6) : (tiengViet ? "Toàn MH" : "Full");
-            rightPageButtons.emplace_back(670.0f, 416.0f, 240.0f, 42.0f,
+            rightPageButtons.emplace_back(657.0f, 428.0f, 296.0f, 44.0f,
                 (tiengViet ? "Màn hình: " : "Mode: ") + winStr, f, [this]() {
                 if (onToggleWindowMode) onToggleWindowMode();
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.back().setCharacterSize(14);
         } else if (settingsSubTab == 2) { // Gameplay
             std::string langStr = getSettingStatusStr ? getSettingStatusStr(7) : (tiengViet ? "Tiếng Việt" : "English");
-            rightPageButtons.emplace_back(670.0f, 304.0f, 240.0f, 42.0f,
+            rightPageButtons.emplace_back(657.0f, 312.0f, 296.0f, 44.0f,
                 (tiengViet ? "Ngôn ngữ: " : "Lang: ") + langStr, f, [this]() {
                 if (onToggleLang) onToggleLang();
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.back().setCharacterSize(14);
 
             std::string aiStr = getSettingStatusStr ? getSettingStatusStr(8) : (tiengViet ? "450ms" : "450ms");
-            rightPageButtons.emplace_back(670.0f, 360.0f, 240.0f, 42.0f,
+            rightPageButtons.emplace_back(657.0f, 370.0f, 296.0f, 44.0f,
                 (tiengViet ? "Độ trễ AI: " : "AI Delay: ") + aiStr, f, [this]() {
                 if (onToggleAiDelay) onToggleAiDelay();
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.back().setCharacterSize(14);
 
             std::string chkStr = getSettingStatusStr ? getSettingStatusStr(9) : (tiengViet ? "BẬT" : "ON");
-            rightPageButtons.emplace_back(670.0f, 416.0f, 240.0f, 42.0f,
+            rightPageButtons.emplace_back(657.0f, 428.0f, 296.0f, 44.0f,
                 (tiengViet ? "Báo chiếu: " : "Check: ") + chkStr, f, [this]() {
                 if (onToggleCheckAlarm) onToggleCheckAlarm();
                 capNhatNutTrangPhai();
             });
-            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.back().setCharacterSize(14);
         } else if (settingsSubTab == 3) { // Controls
-            rightPageButtons.emplace_back(668.0f, 492.0f, 118.0f, 38.0f, tiengViet ? "Phím WASD" : "WASD Keys", f, [this]() {
+            rightPageButtons.emplace_back(657.0f, 508.0f, 142.0f, 40.0f, tiengViet ? "Phím WASD" : "WASD Keys", f, [this]() {
                 if (onPresetWasd) onPresetWasd();
             });
-            rightPageButtons.back().setCharacterSize(12);
-            rightPageButtons.emplace_back(794.0f, 492.0f, 118.0f, 38.0f, tiengViet ? "Mũi tên" : "Arrow Keys", f, [this]() {
+            rightPageButtons.back().setCharacterSize(13);
+            rightPageButtons.emplace_back(811.0f, 508.0f, 142.0f, 40.0f, tiengViet ? "Mũi tên" : "Arrow Keys", f, [this]() {
                 if (onPresetArrows) onPresetArrows();
             });
-            rightPageButtons.back().setCharacterSize(12);
+            rightPageButtons.back().setCharacterSize(13);
         }
 
-        rightPageButtons.emplace_back(rx, 552.0f, 120.0f, 44.0f, tiengViet ? "Áp dụng" : "Apply", f, [this]() {
+        rightPageButtons.emplace_back(rx, 590.0f, 152.0f, 46.0f, tiengViet ? "Áp dụng" : "Apply", f, [this]() {
             if (onApplySettings) onApplySettings();
         });
-        rightPageButtons.back().setCharacterSize(13);
+        rightPageButtons.back().setCharacterSize(14);
 
-        rightPageButtons.emplace_back(rx + 130.0f, 552.0f, 120.0f, 44.0f, tiengViet ? "Mặc định" : "Restore", f, [this]() {
+        rightPageButtons.emplace_back(rx + 168.0f, 590.0f, 152.0f, 46.0f, tiengViet ? "Mặc định" : "Restore", f, [this]() {
             if (onRestoreDefaults) onRestoreDefaults();
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setCharacterSize(13);
+        rightPageButtons.back().setCharacterSize(14);
     }
     // Info section
     else if (activeSection == MenuSection::INFO) {
-        rightPageButtons.emplace_back(rx, 248.0f, 120.0f, 34.0f, tiengViet ? "Kiến trúc" : "OOP Design", f, [this]() {
+        rightPageButtons.emplace_back(rx, 250.0f, 152.0f, 36.0f, tiengViet ? "Kiến trúc" : "OOP Design", f, [this]() {
             infoSubTab = 0;
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setCharacterSize(13);
+        rightPageButtons.back().setCharacterSize(14);
         if (infoSubTab == 0) rightPageButtons.back().setSelected(true);
 
-        rightPageButtons.emplace_back(rx + 130.0f, 248.0f, 120.0f, 34.0f, tiengViet ? "Luật 7 Quân" : "Piece Rules", f, [this]() {
+        rightPageButtons.emplace_back(rx + 168.0f, 250.0f, 152.0f, 36.0f, tiengViet ? "Luật 7 Quân" : "Piece Rules", f, [this]() {
             infoSubTab = 1;
             capNhatNutTrangPhai();
         });
-        rightPageButtons.back().setCharacterSize(13);
+        rightPageButtons.back().setCharacterSize(14);
         if (infoSubTab == 1) rightPageButtons.back().setSelected(true);
     }
     // Exit section
     else if (activeSection == MenuSection::EXIT) {
-        rightPageButtons.emplace_back(rx, 500.0f, 120.0f, 44.0f, tiengViet ? "Thoát" : "Exit", f, [this]() {
+        rightPageButtons.emplace_back(rx, 532.0f, 152.0f, 48.0f, tiengViet ? "Thoát" : "Exit", f, [this]() {
             if (onConfirmExit) onConfirmExit();
         });
-        rightPageButtons.back().setCharacterSize(14);
+        rightPageButtons.back().setCharacterSize(15);
 
-        rightPageButtons.emplace_back(rx + 130.0f, 500.0f, 120.0f, 44.0f, tiengViet ? "Ở Lại" : "Stay", f, [this]() {
+        rightPageButtons.emplace_back(rx + 168.0f, 532.0f, 152.0f, 48.0f, tiengViet ? "Ở Lại" : "Stay", f, [this]() {
             if (onReturnToGame) onReturnToGame();
             else setSection(MenuSection::PLAY);
         });
-        rightPageButtons.back().setCharacterSize(14);
+        rightPageButtons.back().setCharacterSize(15);
     }
 }
 
@@ -824,9 +824,9 @@ void Menu::update(const sf::Vector2i& mousePos) {
     bool mouseMoved = (mousePos != mousePosCache);
     mousePosCache = mousePos;
 
-    // Drag slider inside 1200x800 right panel (barX = 666, barW = 148)
+    // Drag slider inside 1200x800 right panel (barX = 657, barW = 170)
     if (draggingSlider != -1 && isFullyOpen() && activeSection == MenuSection::SETTINGS && settingsSubTab == 0) {
-        float val = std::clamp((static_cast<float>(mousePos.x) - 666.0f) / 148.0f * 100.0f, 0.0f, 100.0f);
+        float val = std::clamp((static_cast<float>(mousePos.x) - 657.0f) / 170.0f * 100.0f, 0.0f, 100.0f);
         if (draggingSlider == 0 && onSetMasterVolume) onSetMasterVolume(val);
         else if (draggingSlider == 1 && onSetBgmVolume) onSetBgmVolume(val);
         else if (draggingSlider == 2 && onSetSfxVolume) onSetSfxVolume(val);
@@ -912,12 +912,12 @@ void Menu::handleMouseDown(const sf::Vector2i& mousePos) {
     if (!isFullyOpen()) return;
     if (activeSection == MenuSection::SETTINGS && settingsSubTab == 0) {
         for (int i = 0; i < 3; ++i) {
-            float rowY = 298.0f + static_cast<float>(i) * 52.0f;
-            if (mousePos.x >= 660 && mousePos.x <= 820 &&
+            float rowY = 308.0f + static_cast<float>(i) * 54.0f;
+            if (mousePos.x >= 650 && mousePos.x <= 835 &&
                 mousePos.y >= static_cast<int>(rowY + 18.0f) &&
-                mousePos.y <= static_cast<int>(rowY + 42.0f)) {
+                mousePos.y <= static_cast<int>(rowY + 44.0f)) {
                 draggingSlider = i;
-                float val = std::clamp((static_cast<float>(mousePos.x) - 666.0f) / 148.0f * 100.0f, 0.0f, 100.0f);
+                float val = std::clamp((static_cast<float>(mousePos.x) - 657.0f) / 170.0f * 100.0f, 0.0f, 100.0f);
                 if (i == 0 && onSetMasterVolume) onSetMasterVolume(val);
                 else if (i == 1 && onSetBgmVolume) onSetBgmVolume(val);
                 else if (i == 2 && onSetSfxVolume) onSetSfxVolume(val);
@@ -947,7 +947,7 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
             return;
         }
 
-        // Single centered panel click (450, 160, 300, 480)
+        // Single centered panel click (420, 148, 360, 540)
         if (isBookClosed) {
             for (size_t i = 0; i < buttons.size() && i < 5; ++i) {
                 if (buttons[i].contains(mousePos)) {
@@ -956,7 +956,7 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
                 }
             }
 
-            sf::FloatRect closedRect(450.0f, 160.0f, 300.0f, 480.0f);
+            sf::FloatRect closedRect(420.0f, 148.0f, 360.0f, 540.0f);
             if (closedRect.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
                 triggerOpenAnimation(MenuSection::PLAY);
                 return;
@@ -964,8 +964,8 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
             return;
         }
 
-        // Twin panels open: collapse/back button top-left of left panel (260, 160, 300, 480)
-        sf::FloatRect backBtnRect(272.0f, 174.0f, 28.0f, 28.0f);
+        // Twin panels open: collapse/back button top-left of left panel (215, 148, 360, 540)
+        sf::FloatRect backBtnRect(231.0f, 164.0f, 32.0f, 32.0f);
         if (backBtnRect.contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
             if (onReturnToGame) {
                 onReturnToGame();
@@ -988,22 +988,22 @@ void Menu::handleClick(const sf::Vector2i& mousePos) {
         if (activeSection == MenuSection::SETTINGS && settingsSubTab == 0) {
             currentFocus = MenuFocus::SUB_MENU;
             for (int i = 0; i < 3; ++i) {
-                float rowY = 298.0f + static_cast<float>(i) * 52.0f;
-                if (sf::FloatRect(866.0f, rowY - 2.0f, 48.0f, 28.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                float rowY = 308.0f + static_cast<float>(i) * 54.0f;
+                if (sf::FloatRect(890.0f, rowY - 2.0f, 56.0f, 30.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
                     if (i == 0 && onToggleMasterSound) onToggleMasterSound();
                     else if (i == 1 && onToggleBgm) onToggleBgm();
                     else if (i == 2 && onToggleSfx) onToggleSfx();
                     return;
                 }
-                if (sf::FloatRect(660.0f, rowY + 18.0f, 160.0f, 24.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    float val = std::clamp((static_cast<float>(mousePos.x) - 666.0f) / 148.0f * 100.0f, 0.0f, 100.0f);
+                if (sf::FloatRect(655.0f, rowY + 18.0f, 180.0f, 26.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                    float val = std::clamp((static_cast<float>(mousePos.x) - 657.0f) / 170.0f * 100.0f, 0.0f, 100.0f);
                     if (i == 0 && onSetMasterVolume) onSetMasterVolume(val);
                     else if (i == 1 && onSetBgmVolume) onSetBgmVolume(val);
                     else if (i == 2 && onSetSfxVolume) onSetSfxVolume(val);
                     return;
                 }
             }
-            if (sf::FloatRect(866.0f, 454.0f, 48.0f, 28.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+            if (sf::FloatRect(890.0f, 474.0f, 56.0f, 30.0f).contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
                 if (onToggleCheckAlarm) onToggleCheckAlarm();
                 return;
             }
@@ -1042,16 +1042,16 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     // Dusk atmospheric vignette covering 100% of physical window pixels
     fui.drawFullDimOverlay(window, sf::Color(10, 8, 14, 48));
 
-    // 1. Hanging Oriental Signboard Header: X = 400, Y = 60, W = 400, H = 60
-    const float titleX = 400.0f;
-    const float titleY = 60.0f;
-    const float titleW = 400.0f;
-    const float titleH = 60.0f;
+    // 1. Hanging Oriental Signboard Header: X = 370, Y = 46, W = 460, H = 64
+    const float titleX = 370.0f;
+    const float titleY = 46.0f;
+    const float titleW = 460.0f;
+    const float titleH = 64.0f;
 
     // Brass hanging chains suspending signboard from top beam
     const sf::Color brassChainCol(175, 138, 62, 225);
     const sf::Color chainShadowCol(20, 12, 6, 180);
-    for (float cxChain : { 446.0f, 754.0f }) {
+    for (float cxChain : { 416.0f, 784.0f }) {
         sf::RectangleShape chainShadow(sf::Vector2f(4.0f, titleY + 4.0f));
         chainShadow.setPosition(cxChain - 1.0f, 0.0f);
         chainShadow.setFillColor(chainShadowCol);
@@ -1091,7 +1091,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     sf::Text gameTitleShadow;
     gameTitleShadow.setFont(fBold);
     gameTitleShadow.setString(toUtf8(mainTitleStr));
-    gameTitleShadow.setCharacterSize(30);
+    gameTitleShadow.setCharacterSize(32);
     gameTitleShadow.setStyle(sf::Text::Bold);
     gameTitleShadow.setFillColor(sf::Color(12, 6, 4, 230));
     sf::FloatRect gtsb = gameTitleShadow.getLocalBounds();
@@ -1102,7 +1102,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     sf::Text gameTitle;
     gameTitle.setFont(fBold);
     gameTitle.setString(toUtf8(mainTitleStr));
-    gameTitle.setCharacterSize(30);
+    gameTitle.setCharacterSize(32);
     gameTitle.setStyle(sf::Text::Bold);
     gameTitle.setFillColor(sf::Color(255, 222, 105));
     sf::FloatRect gtb = gameTitle.getLocalBounds();
@@ -1110,7 +1110,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     gameTitle.setPosition(std::round(titleX + titleW / 2.0f), std::round(titleY + titleH / 2.0f));
     window.draw(gameTitle);
 
-    // Subtle dynasty subtitle below signboard (above Y=160 panels)
+    // Subtle dynasty subtitle below signboard (above Y=148 panels)
     std::string subTitleStr = tiengViet ? "TƯỢNG KỲ KỲ PHỔ  •  ĐỒ ÁN OOP HCMUS" : "ANCIENT XIANGQI  •  SCROLL PAVILION";
     sf::Text gameSubShadow;
     gameSubShadow.setFont(f);
@@ -1120,21 +1120,21 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     gameSubShadow.setFillColor(sf::Color(10, 6, 4, 230));
     sf::FloatRect gssb = gameSubShadow.getLocalBounds();
     gameSubShadow.setOrigin(std::round(gssb.left + gssb.width / 2.0f), std::round(gssb.top + gssb.height / 2.0f));
-    gameSubShadow.setPosition(601.0f, 137.0f);
+    gameSubShadow.setPosition(601.0f, 124.0f);
     window.draw(gameSubShadow);
 
     sf::Text gameSub = gameSubShadow;
     gameSub.setFillColor(sf::Color(242, 214, 155));
-    gameSub.setPosition(600.0f, 136.0f);
+    gameSub.setPosition(600.0f, 123.0f);
     window.draw(gameSub);
 
-    const float panelY = 160.0f;
-    const float panelW = 300.0f;
-    const float panelH = 480.0f;
-    const float btnW = 240.0f;
-    const float btnH = 44.0f;
-    const float startBtnY = 266.0f;
-    const float btnSpacing = 56.0f;
+    const float panelY = 148.0f;
+    const float panelW = 360.0f;
+    const float panelH = 540.0f;
+    const float btnW = 296.0f;
+    const float btnH = 48.0f;
+    const float startBtnY = 256.0f;
+    const float btnSpacing = 62.0f;
 
     const std::vector<std::string> mainBtnLabels = {
         tiengViet ? "CHƠI MỚI" : "Play",
@@ -1181,9 +1181,9 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     auto drawLeftPanelContents = [&](float px, bool activeState) {
         if (fui.isLoaded()) {
             fui.drawRibbonTitle(window, px + panelW / 2.0f + (activeState ? 6.0f : 0.0f), panelY + 28.0f,
-                                activeState ? 216.0f : 236.0f, 44.0f,
+                                activeState ? 240.0f : 260.0f, 46.0f,
                                 tiengViet ? "DANH MỤC" : "MAIN MENU",
-                                fBold, 17, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+                                fBold, 18, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
         } else {
             sf::Text hdr;
             hdr.setFont(fBold);
@@ -1197,8 +1197,8 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             window.draw(hdr);
         }
 
-        sf::RectangleShape sepTop(sf::Vector2f(236.0f, 1.5f));
-        sepTop.setPosition(px + 32.0f, panelY + 86.0f);
+        sf::RectangleShape sepTop(sf::Vector2f(300.0f, 1.5f));
+        sepTop.setPosition(px + 30.0f, panelY + 92.0f);
         sepTop.setFillColor(sf::Color(190, 150, 75, 160));
         window.draw(sepTop);
 
@@ -1207,7 +1207,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             buttons[i].setSize(btnW, btnH);
             buttons[i].setPosition(btnX, startBtnY + static_cast<float>(i) * btnSpacing);
             buttons[i].setLabel(mainBtnLabels[i]);
-            buttons[i].setCharacterSize(16);
+            buttons[i].setCharacterSize(18);
             if (!activeState) {
                 buttons[i].setSelected(keyboardNavActive && static_cast<int>(i) == coverIndex);
             } else {
@@ -1217,8 +1217,8 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             buttons[i].draw(window);
         }
 
-        sf::RectangleShape sepBot(sf::Vector2f(236.0f, 1.5f));
-        sepBot.setPosition(px + 32.0f, 558.0f);
+        sf::RectangleShape sepBot(sf::Vector2f(300.0f, 1.5f));
+        sepBot.setPosition(px + 30.0f, 576.0f);
         sepBot.setFillColor(sf::Color(190, 150, 75, 140));
         window.draw(sepBot);
 
@@ -1227,17 +1227,17 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         hintTxt.setString(toUtf8(activeState
             ? (tiengViet ? "[A/D] Chuyển bảng" : "[A/D] Switch Panel")
             : (tiengViet ? "[Enter] Mở Bảng" : "[Enter] Unfold Menu")));
-        hintTxt.setCharacterSize(13);
+        hintTxt.setCharacterSize(14);
         hintTxt.setFillColor(sf::Color(225, 200, 150));
         sf::FloatRect htb = hintTxt.getLocalBounds();
         hintTxt.setOrigin(std::round(htb.left + htb.width / 2.0f), std::round(htb.top + htb.height / 2.0f));
-        hintTxt.setPosition(std::round(px + panelW / 2.0f), 592.0f);
+        hintTxt.setPosition(std::round(px + panelW / 2.0f), 608.0f);
         window.draw(hintTxt);
     };
 
-    // 2. Closed State: Single Vertical Panel Centered (X = 450, Y = 160, W = 300, H = 480)
+    // 2. Closed State: Single Vertical Panel Centered (X = 420, Y = 148, W = 360, H = 540)
     if (isBookClosed && bookProgress <= 0.0f) {
-        const float centerX = 450.0f;
+        const float centerX = 420.0f;
 
         sf::RectangleShape shadow(sf::Vector2f(panelW, panelH));
         shadow.setPosition(centerX + 8.0f, panelY + 8.0f);
@@ -1247,11 +1247,11 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         drawEbonyOrFallback(sf::FloatRect(centerX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
         drawLeftPanelContents(centerX, false);
     }
-    // 3. Animating Twin Panels Unfold / Collapse (450 -> 260 & 640)
+    // 3. Animating Twin Panels Unfold / Collapse (420 -> 215 & 625)
     else if (isBookOpening || isBookClosing || bookProgress < 0.7f) {
         float t = 1.0f - std::pow(1.0f - std::clamp(bookProgress, 0.0f, 1.0f), 3.0f);
-        float leftX = 450.0f - 190.0f * t;
-        float rightX = 450.0f + 190.0f * t;
+        float leftX = 420.0f - 205.0f * t;
+        float rightX = 420.0f + 205.0f * t;
 
         // Right panel unfolds symmetrically from behind
         sf::RectangleShape shadowR(sf::Vector2f(panelW, panelH));
@@ -1260,7 +1260,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         window.draw(shadowR);
         drawEbonyOrFallback(sf::FloatRect(rightX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
 
-        // Left panel slides to X = 260
+        // Left panel slides to X = 215
         sf::RectangleShape shadowL(sf::Vector2f(panelW, panelH));
         shadowL.setPosition(leftX + 8.0f, panelY + 8.0f);
         shadowL.setFillColor(sf::Color(0, 0, 0, 110));
@@ -1269,11 +1269,11 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         drawLeftPanelContents(leftX, false);
     }
     // 4. Expanded Symmetrical Twin Panels:
-    //    Left  = (260, 160, 300, 480)
-    //    Right = (640, 160, 300, 480)
+    //    Left  = (215, 148, 360, 540)
+    //    Right = (625, 148, 360, 540)
     else {
-        const float leftX = 260.0f;
-        const float rightX = 640.0f;
+        const float leftX = 215.0f;
+        const float rightX = 625.0f;
 
         // Shadows
         sf::RectangleShape shadowL(sf::Vector2f(panelW, panelH));
@@ -1290,11 +1290,11 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         drawEbonyOrFallback(sf::FloatRect(leftX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
         drawEbonyOrFallback(sf::FloatRect(rightX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
 
-        // Left Panel Back/Collapse icon at (272, 174, 28, 28)
-        sf::FloatRect backBtnRect(272.0f, 174.0f, 28.0f, 28.0f);
+        // Left Panel Back/Collapse icon at (231, 164, 32, 32)
+        sf::FloatRect backBtnRect(231.0f, 164.0f, 32.0f, 32.0f);
         bool hoverBack = backBtnRect.contains(static_cast<float>(mousePosCache.x), static_cast<float>(mousePosCache.y));
-        sf::RectangleShape backBox(sf::Vector2f(28.0f, 28.0f));
-        backBox.setPosition(272.0f, 174.0f);
+        sf::RectangleShape backBox(sf::Vector2f(32.0f, 32.0f));
+        backBox.setPosition(231.0f, 164.0f);
         backBox.setFillColor(hoverBack ? sf::Color(70, 46, 26, 240) : sf::Color(38, 25, 16, 220));
         backBox.setOutlineThickness(1.5f);
         backBox.setOutlineColor(hoverBack ? sf::Color(255, 215, 100) : sf::Color(180, 140, 65));
@@ -1304,25 +1304,25 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             sf::Sprite spArrow(assets.iconArrow);
             sf::Vector2u asz = assets.iconArrow.getSize();
             spArrow.setOrigin(asz.x / 2.0f, asz.y / 2.0f);
-            spArrow.setPosition(286.0f, 188.0f);
-            spArrow.setScale(-1.2f, 1.2f);
+            spArrow.setPosition(247.0f, 180.0f);
+            spArrow.setScale(-1.3f, 1.3f);
             spArrow.setColor(hoverBack ? sf::Color(255, 225, 110) : sf::Color(225, 190, 130));
             window.draw(spArrow);
         } else {
             sf::Text backGlyph;
             backGlyph.setFont(fBold);
             backGlyph.setString(toUtf8("<"));
-            backGlyph.setCharacterSize(16);
+            backGlyph.setCharacterSize(18);
             backGlyph.setFillColor(hoverBack ? sf::Color(255, 225, 110) : sf::Color(225, 190, 130));
             sf::FloatRect bgb = backGlyph.getLocalBounds();
             backGlyph.setOrigin(std::round(bgb.left + bgb.width / 2.0f), std::round(bgb.top + bgb.height / 2.0f));
-            backGlyph.setPosition(286.0f, 188.0f);
+            backGlyph.setPosition(247.0f, 180.0f);
             window.draw(backGlyph);
         }
 
         if (hoverBack) {
-            sf::RectangleShape tipBg(sf::Vector2f(106.0f, 24.0f));
-            tipBg.setPosition(260.0f, 134.0f);
+            sf::RectangleShape tipBg(sf::Vector2f(116.0f, 26.0f));
+            tipBg.setPosition(220.0f, 126.0f);
             tipBg.setFillColor(sf::Color(22, 15, 10, 235));
             tipBg.setOutlineThickness(1.0f);
             tipBg.setOutlineColor(sf::Color(210, 170, 75));
@@ -1331,11 +1331,11 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             sf::Text tipTxt;
             tipTxt.setFont(fBold);
             tipTxt.setString(toUtf8(tiengViet ? "Thu gọn [ESC]" : "Collapse [ESC]"));
-            tipTxt.setCharacterSize(12);
+            tipTxt.setCharacterSize(13);
             tipTxt.setFillColor(sf::Color(255, 228, 125));
             sf::FloatRect ttb = tipTxt.getLocalBounds();
             tipTxt.setOrigin(std::round(ttb.left + ttb.width / 2.0f), std::round(ttb.top + ttb.height / 2.0f));
-            tipTxt.setPosition(313.0f, 146.0f);
+            tipTxt.setPosition(278.0f, 139.0f);
             window.draw(tipTxt);
         }
 
@@ -1351,8 +1351,8 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         else if (activeSection == MenuSection::EXIT) rightTitleStr = tiengViet ? "THOÁT GAME" : "EXIT GAME";
 
         if (fui.isLoaded()) {
-            fui.drawRibbonTitle(window, rightX + panelW / 2.0f, panelY + 28.0f, 236.0f, 44.0f,
-                                rightTitleStr, fBold, 16, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
+            fui.drawRibbonTitle(window, rightX + panelW / 2.0f, panelY + 28.0f, 260.0f, 46.0f,
+                                rightTitleStr, fBold, 18, sf::Color(255, 240, 210), sf::Color(190, 50, 35));
         } else {
             sf::Text rTitle;
             rTitle.setFont(fBold);
@@ -1366,13 +1366,13 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             window.draw(rTitle);
         }
 
-        const float rx = 665.0f;
-        const float rw = 250.0f;
-        const float rightCenterX = rightX + panelW / 2.0f; // 790.0f
+        const float rx = 645.0f;
+        const float rw = 320.0f;
+        const float rightCenterX = rightX + panelW / 2.0f; // 805.0f
 
         if (activeSection == MenuSection::PLAY) {
-            sf::RectangleShape sepR(sf::Vector2f(236.0f, 1.5f));
-            sepR.setPosition(rightX + 32.0f, panelY + 86.0f);
+            sf::RectangleShape sepR(sf::Vector2f(300.0f, 1.5f));
+            sepR.setPosition(rightX + 30.0f, panelY + 92.0f);
             sepR.setFillColor(sf::Color(190, 150, 75, 160));
             window.draw(sepR);
 
@@ -1381,7 +1381,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             }
 
             // Mode preview card below the 3 cards (eliminates dead space)
-            drawEbonyOrFallback(sf::FloatRect(652.0f, 442.0f, 276.0f, 178.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+            drawEbonyOrFallback(sf::FloatRect(645.0f, 444.0f, 320.0f, 220.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
 
             int previewMode = 0;
             for (size_t i = 0; i < rightPageButtons.size() && i < 3; ++i) {
@@ -1409,10 +1409,10 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     : "Watch two AI engines play\nautonomously in real time.\nStudy classic endgames.";
             }
 
-            drawParchmentHeader(mHead, rightCenterX, 468.0f, 20, true);
+            drawParchmentHeader(mHead, rightCenterX, 474.0f, 22, true);
 
-            sf::RectangleShape pLine(sf::Vector2f(226.0f, 2.0f));
-            pLine.setPosition(rightCenterX - 113.0f, 490.0f);
+            sf::RectangleShape pLine(sf::Vector2f(270.0f, 2.0f));
+            pLine.setPosition(rightCenterX - 135.0f, 498.0f);
             pLine.setFillColor(sf::Color(45, 25, 15, 160));
             window.draw(pLine);
 
@@ -1422,10 +1422,10 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             mdTxt.setCharacterSize(16);
             mdTxt.setStyle(sf::Text::Bold);
             mdTxt.setFillColor(sf::Color(35, 18, 10));
-            mdTxt.setLineSpacing(1.22f);
+            mdTxt.setLineSpacing(1.25f);
             sf::FloatRect mdb = mdTxt.getLocalBounds();
             mdTxt.setOrigin(std::round(mdb.left + mdb.width / 2.0f), std::round(mdb.top + mdb.height / 2.0f));
-            mdTxt.setPosition(rightCenterX, 554.0f);
+            mdTxt.setPosition(rightCenterX, 566.0f);
             window.draw(mdTxt);
         }
         else if (activeSection == MenuSection::LOAD) {
@@ -1435,7 +1435,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             }
 
             for (int i = 0; i < 3; ++i) {
-                float slotY = 252.0f + static_cast<float>(i) * 74.0f;
+                float slotY = 252.0f + static_cast<float>(i) * 82.0f;
                 std::string headerStr = (tiengViet ? "Ô LƯU " : "SAVE SLOT ") + std::to_string(i + 1);
                 std::string descStr = getSlotInfoStr ? getSlotInfoStr(i, 0) : (tiengViet ? "(Ô lưu trống)" : "(Empty slot)");
                 std::string subStr = getSlotInfoStr ? getSlotInfoStr(i, 1) : "";
@@ -1443,29 +1443,29 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 sf::Text sHeader;
                 sHeader.setFont(fBold);
                 sHeader.setString(toUtf8(headerStr));
-                sHeader.setCharacterSize(15);
+                sHeader.setCharacterSize(16);
                 sHeader.setStyle(sf::Text::Bold);
                 sHeader.setFillColor(currentSlot == i ? sf::Color(255, 225, 105) : sf::Color(235, 200, 125));
-                sHeader.setPosition(rx + 12.0f, slotY + 5.0f);
+                sHeader.setPosition(rx + 16.0f, slotY + 6.0f);
                 window.draw(sHeader);
 
                 sf::Text sDesc;
                 sDesc.setFont(fBold);
                 sDesc.setString(toUtf8(descStr));
-                sDesc.setCharacterSize(14);
+                sDesc.setCharacterSize(15);
                 sDesc.setStyle(sf::Text::Bold);
                 sDesc.setFillColor(descStr.find("(") != std::string::npos ? sf::Color(200, 195, 175) : sf::Color(245, 236, 215));
-                sDesc.setPosition(rx + 12.0f, slotY + 24.0f);
+                sDesc.setPosition(rx + 16.0f, slotY + 28.0f);
                 window.draw(sDesc);
 
                 if (!subStr.empty()) {
                     sf::Text sSub;
                     sSub.setFont(fBold);
                     sSub.setString(toUtf8(subStr));
-                    sSub.setCharacterSize(13);
+                    sSub.setCharacterSize(14);
                     sSub.setStyle(sf::Text::Bold);
                     sSub.setFillColor(sf::Color(205, 225, 205));
-                    sSub.setPosition(rx + 12.0f, slotY + 43.0f);
+                    sSub.setPosition(rx + 16.0f, slotY + 48.0f);
                     window.draw(sSub);
                 }
             }
@@ -1478,12 +1478,12 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             lHint.setFillColor(sf::Color(235, 210, 160));
             sf::FloatRect lhb = lHint.getLocalBounds();
             lHint.setOrigin(std::round(lhb.left + lhb.width / 2.0f), std::round(lhb.top + lhb.height / 2.0f));
-            lHint.setPosition(rightCenterX, 584.0f);
+            lHint.setPosition(rightCenterX, 592.0f);
             window.draw(lHint);
         }
         else if (activeSection == MenuSection::SETTINGS) {
             // Aged Xuan Parchment inset for active settings tab content
-            drawEbonyOrFallback(sf::FloatRect(652.0f, 286.0f, 276.0f, 254.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+            drawEbonyOrFallback(sf::FloatRect(645.0f, 294.0f, 320.0f, 282.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
 
             if (settingsSubTab == 0) { // Audio
                 const std::vector<std::string> audioLabels = {
@@ -1505,7 +1505,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 };
 
                 for (int i = 0; i < 3; ++i) {
-                    float rowY = 298.0f + static_cast<float>(i) * 52.0f;
+                    float rowY = 308.0f + static_cast<float>(i) * 54.0f;
 
                     sf::Text aLabel;
                     aLabel.setFont(fBold);
@@ -1513,14 +1513,14 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     aLabel.setCharacterSize(16);
                     aLabel.setStyle(sf::Text::Bold);
                     aLabel.setFillColor(sf::Color(35, 18, 10));
-                    aLabel.setPosition(664.0f, rowY - 1.0f);
+                    aLabel.setPosition(657.0f, rowY - 1.0f);
                     window.draw(aLabel);
 
                     // Value Badge
-                    float badgeX = 824.0f;
+                    float badgeX = 840.0f;
                     float badgeY = rowY;
-                    float badgeW = 38.0f;
-                    float badgeH = 22.0f;
+                    float badgeW = 42.0f;
+                    float badgeH = 24.0f;
                     sf::RectangleShape rBadge(sf::Vector2f(badgeW, badgeH));
                     rBadge.setPosition(badgeX, badgeY);
                     rBadge.setFillColor(sf::Color(246, 236, 215));
@@ -1540,10 +1540,10 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     window.draw(valText);
 
                     // Toggle Switch
-                    float toggleX = 870.0f;
+                    float toggleX = 896.0f;
                     float toggleY = rowY;
-                    float toggleW = 40.0f;
-                    float toggleH = 22.0f;
+                    float toggleW = 46.0f;
+                    float toggleH = 24.0f;
                     const sf::Texture& tTex = curToggles[i] ? assets.toggleOn : assets.toggleOff;
                     if (tTex.getSize().x > 0) {
                         sf::Sprite spToggle(tTex);
@@ -1559,9 +1559,9 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     }
 
                     // Slider Bar Track cleanly beneath label
-                    float barX = 664.0f;
-                    float barY = rowY + 26.0f;
-                    float barW = 152.0f;
+                    float barX = 657.0f;
+                    float barY = rowY + 28.0f;
+                    float barW = 170.0f;
                     float barH = 10.0f;
                     if (assets.bar.getSize().x > 0) {
                         sf::Sprite spBar(assets.bar);
@@ -1611,21 +1611,21 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 }
 
                 // Check alarm row
-                float chkRowY = 456.0f;
+                float chkRowY = 478.0f;
                 sf::Text chkLabel;
                 chkLabel.setFont(fBold);
                 chkLabel.setString(toUtf8(tiengViet ? "Báo chiếu" : "Check Alert"));
                 chkLabel.setCharacterSize(16);
                 chkLabel.setStyle(sf::Text::Bold);
                 chkLabel.setFillColor(sf::Color(35, 18, 10));
-                chkLabel.setPosition(664.0f, chkRowY);
+                chkLabel.setPosition(657.0f, chkRowY);
                 window.draw(chkLabel);
 
                 std::string chkStr = getSettingStatusStr ? getSettingStatusStr(9) : (tiengViet ? "BẬT" : "ON");
                 bool chkOn = (chkStr == "BẬT" || chkStr == "ON");
 
-                sf::RectangleShape rChkBadge(sf::Vector2f(40.0f, 22.0f));
-                rChkBadge.setPosition(822.0f, chkRowY);
+                sf::RectangleShape rChkBadge(sf::Vector2f(44.0f, 24.0f));
+                rChkBadge.setPosition(840.0f, chkRowY);
                 rChkBadge.setFillColor(sf::Color(246, 236, 215));
                 rChkBadge.setOutlineThickness(1.5f);
                 rChkBadge.setOutlineColor(sf::Color(45, 25, 15));
@@ -1639,15 +1639,15 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 chkValText.setFillColor(chkOn ? sf::Color(175, 25, 20) : sf::Color(35, 18, 10));
                 sf::FloatRect ctb = chkValText.getLocalBounds();
                 chkValText.setOrigin(std::round(ctb.left + ctb.width / 2.0f), std::round(ctb.top + ctb.height / 2.0f));
-                chkValText.setPosition(842.0f, chkRowY + 11.0f);
+                chkValText.setPosition(862.0f, chkRowY + 12.0f);
                 window.draw(chkValText);
 
                 const sf::Texture& chkTex = chkOn ? assets.toggleOn : assets.toggleOff;
                 if (chkTex.getSize().x > 0) {
                     sf::Sprite spToggle(chkTex);
-                    spToggle.setPosition(870.0f, chkRowY);
-                    spToggle.setScale(40.0f / static_cast<float>(chkTex.getSize().x),
-                                      22.0f / static_cast<float>(chkTex.getSize().y));
+                    spToggle.setPosition(896.0f, chkRowY);
+                    spToggle.setScale(46.0f / static_cast<float>(chkTex.getSize().x),
+                                      24.0f / static_cast<float>(chkTex.getSize().y));
                     window.draw(spToggle);
                 }
             }
@@ -1661,14 +1661,14 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 gNote.setLineSpacing(1.25f);
                 sf::FloatRect gnb = gNote.getLocalBounds();
                 gNote.setOrigin(std::round(gnb.left + gnb.width / 2.0f), std::round(gnb.top + gnb.height / 2.0f));
-                gNote.setPosition(rightCenterX, 502.0f);
+                gNote.setPosition(rightCenterX, 518.0f);
                 window.draw(gNote);
             }
             else if (settingsSubTab == 3) { // Controls
-                drawParchmentHeader(tiengViet ? "ĐIỀU KHIỂN" : "BOARD CONTROLS", 666.0f, 300.0f, 20, false);
+                drawParchmentHeader(tiengViet ? "ĐIỀU KHIỂN" : "BOARD CONTROLS", 657.0f, 308.0f, 20, false);
 
-                sf::RectangleShape div(sf::Vector2f(248.0f, 2.0f));
-                div.setPosition(666.0f, 328.0f);
+                sf::RectangleShape div(sf::Vector2f(296.0f, 2.0f));
+                div.setPosition(657.0f, 336.0f);
                 div.setFillColor(sf::Color(45, 25, 15, 150));
                 window.draw(div);
 
@@ -1691,7 +1691,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     cTxt.setCharacterSize(16);
                     cTxt.setStyle(sf::Text::Bold);
                     cTxt.setFillColor(sf::Color(35, 18, 10));
-                    cTxt.setPosition(666.0f, 340.0f + static_cast<float>(i) * 29.0f);
+                    cTxt.setPosition(657.0f, 348.0f + static_cast<float>(i) * 30.0f);
                     window.draw(cTxt);
                 }
 
@@ -1701,7 +1701,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 promptTxt.setCharacterSize(16);
                 promptTxt.setStyle(sf::Text::Bold);
                 promptTxt.setFillColor(sf::Color(175, 25, 20));
-                promptTxt.setPosition(666.0f, 464.0f);
+                promptTxt.setPosition(657.0f, 474.0f);
                 window.draw(promptTxt);
             }
 
@@ -1710,10 +1710,10 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             }
         }
         else if (activeSection == MenuSection::INFO) {
-            drawEbonyOrFallback(sf::FloatRect(652.0f, 288.0f, 276.0f, 326.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+            drawEbonyOrFallback(sf::FloatRect(645.0f, 296.0f, 320.0f, 370.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
 
             if (infoSubTab == 0) {
-                drawParchmentHeader(tiengViet ? "ĐỒ ÁN OOP 2026" : "OOP PROJECT 2026", 666.0f, 300.0f, 20, false);
+                drawParchmentHeader(tiengViet ? "ĐỒ ÁN OOP 2026" : "OOP PROJECT 2026", 657.0f, 308.0f, 20, false);
 
                 sf::Text h2;
                 h2.setFont(fBold);
@@ -1721,15 +1721,15 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 h2.setCharacterSize(16);
                 h2.setStyle(sf::Text::Bold);
                 h2.setFillColor(sf::Color(35, 18, 10));
-                h2.setPosition(666.0f, 326.0f);
+                h2.setPosition(657.0f, 334.0f);
                 window.draw(h2);
 
-                sf::RectangleShape div(sf::Vector2f(248.0f, 2.0f));
-                div.setPosition(666.0f, 354.0f);
+                sf::RectangleShape div(sf::Vector2f(296.0f, 2.0f));
+                div.setPosition(657.0f, 362.0f);
                 div.setFillColor(sf::Color(45, 25, 15, 150));
                 window.draw(div);
 
-                drawParchmentHeader(tiengViet ? "MẪU THIẾT KẾ:" : "DESIGN PATTERNS:", 666.0f, 364.0f, 18, false);
+                drawParchmentHeader(tiengViet ? "MẪU THIẾT KẾ:" : "DESIGN PATTERNS:", 657.0f, 372.0f, 18, false);
 
                 const std::vector<std::string> patterns = tiengViet ? std::vector<std::string>{
                     "1. State: Luồng ván & menu",
@@ -1752,7 +1752,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     pTxt.setCharacterSize(16);
                     pTxt.setStyle(sf::Text::Bold);
                     pTxt.setFillColor(sf::Color(35, 18, 10));
-                    pTxt.setPosition(666.0f, 392.0f + static_cast<float>(i) * 32.0f);
+                    pTxt.setPosition(657.0f, 402.0f + static_cast<float>(i) * 33.0f);
                     window.draw(pTxt);
                 }
 
@@ -1764,13 +1764,13 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 techTxt.setFillColor(sf::Color(115, 45, 20));
                 sf::FloatRect tb = techTxt.getLocalBounds();
                 techTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-                techTxt.setPosition(rightCenterX, 586.0f);
+                techTxt.setPosition(rightCenterX, 616.0f);
                 window.draw(techTxt);
             } else {
-                drawParchmentHeader(tiengViet ? "LUẬT 7 QUÂN CỜ" : "XIANGQI RULES", 666.0f, 298.0f, 20, false);
+                drawParchmentHeader(tiengViet ? "LUẬT 7 QUÂN CỜ" : "XIANGQI RULES", 657.0f, 308.0f, 20, false);
 
-                sf::RectangleShape div(sf::Vector2f(248.0f, 2.0f));
-                div.setPosition(666.0f, 326.0f);
+                sf::RectangleShape div(sf::Vector2f(296.0f, 2.0f));
+                div.setPosition(657.0f, 336.0f);
                 div.setFillColor(sf::Color(45, 25, 15, 150));
                 window.draw(div);
 
@@ -1799,7 +1799,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                     rTxt.setCharacterSize(16);
                     rTxt.setStyle(sf::Text::Bold);
                     rTxt.setFillColor(sf::Color(35, 18, 10));
-                    rTxt.setPosition(666.0f, 340.0f + static_cast<float>(i) * 35.0f);
+                    rTxt.setPosition(657.0f, 348.0f + static_cast<float>(i) * 36.0f);
                     window.draw(rTxt);
                 }
             }
@@ -1809,21 +1809,21 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             }
         }
         else if (activeSection == MenuSection::EXIT) {
-            drawEbonyOrFallback(sf::FloatRect(652.0f, 250.0f, 276.0f, 236.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+            drawEbonyOrFallback(sf::FloatRect(645.0f, 254.0f, 320.0f, 260.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
 
             sf::CircleShape exitRing(34.0f);
             exitRing.setFillColor(sf::Color(225, 198, 158));
             exitRing.setOutlineThickness(2.5f);
             exitRing.setOutlineColor(sf::Color(175, 25, 20));
             exitRing.setOrigin(34.0f, 34.0f);
-            exitRing.setPosition(rightCenterX, 316.0f);
+            exitRing.setPosition(rightCenterX, 320.0f);
             window.draw(exitRing);
 
             if (assets.iconExit.getSize().x > 0) {
                 sf::Sprite ic(assets.iconExit);
                 sf::Vector2u isz = assets.iconExit.getSize();
                 ic.setOrigin(isz.x / 2.0f, isz.y / 2.0f);
-                ic.setPosition(rightCenterX, 316.0f);
+                ic.setPosition(rightCenterX, 320.0f);
                 ic.setScale(1.4f, 1.4f);
                 window.draw(ic);
             }
@@ -1834,13 +1834,13 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 ? "Bạn chắc chắn muốn thoát?\nThiết lập đã lưu sẽ được giữ."
                 : "Are you sure you want to exit?\nSaved settings will be kept.";
             eTxt.setString(toUtf8(q));
-            eTxt.setCharacterSize(16);
+            eTxt.setCharacterSize(17);
             eTxt.setStyle(sf::Text::Bold);
             eTxt.setFillColor(sf::Color(35, 18, 10));
             eTxt.setLineSpacing(1.28f);
             sf::FloatRect etb = eTxt.getLocalBounds();
             eTxt.setOrigin(std::round(etb.left + etb.width / 2.0f), std::round(etb.top + etb.height / 2.0f));
-            eTxt.setPosition(rightCenterX, 418.0f);
+            eTxt.setPosition(rightCenterX, 428.0f);
             window.draw(eTxt);
 
             for (auto& btn : rightPageButtons) {

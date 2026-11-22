@@ -321,9 +321,9 @@ std::string Loc::get(LocKey key) {
         case LocKey::ILLEGAL_MOVE:
             return vi ? "NƯỚC ĐI KHÔNG HỢP LỆ!" : "ILLEGAL MOVE!";
         case LocKey::PVP_BTN_NEXT_P2:
-            return vi ? "TIẾP THEO (NGƯỜI CHƠI 2) >>" : "NEXT (PLAYER 2) >>";
+            return vi ? "TIẾP THEO" : "NEXT";
         case LocKey::PVP_BTN_BACK_P1:
-            return vi ? "<< QUAY LẠI (NGƯỜI CHƠI 1)" : "<< BACK (PLAYER 1)";
+            return vi ? "Quay Lại" : "Back";
     }
 
     return "";
