@@ -2315,9 +2315,15 @@ void GameManager::xuLyLuotAI(float dt) {
                 bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi());
                 if (banCo.getKetThuc()) {
                     if (banCo.getNguoiThang() == Mau::HOA) {
-                        lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
-                            ? "Không còn nước đi hợp lệ (Hòa cờ)."
-                            : "No legal moves left (Draw).";
+                        if (banCo.isHoaDoLapLai()) {
+                            lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
+                                ? "Hòa cờ do lặp lại nước đi 3 lần!"
+                                : "Draw by threefold repetition rule!";
+                        } else {
+                            lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
+                                ? "Không còn nước đi hợp lệ (Hòa cờ)."
+                                : "No legal moves left (Draw).";
+                        }
                         soundManager.play(SoundType::CLICK);
                     } else if (banCo.getNguoiThang() == aiPlayerSide) {
                         lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
@@ -2413,9 +2419,15 @@ void GameManager::diChuyenQuan(int hang, int cot) {
             bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi());
             if (banCo.getKetThuc()) {
                 if (banCo.getNguoiThang() == Mau::HOA) {
-                    lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
-                        ? "Không còn nước đi hợp lệ (Hòa cờ theo luật)."
-                        : "No legal moves left (Draw).";
+                    if (banCo.isHoaDoLapLai()) {
+                        lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
+                            ? "Hòa cờ do lặp lại nước đi 3 lần!"
+                            : "Draw by threefold repetition rule!";
+                    } else {
+                        lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
+                            ? "Không còn nước đi hợp lệ (Hòa cờ theo luật)."
+                            : "No legal moves left (Draw).";
+                    }
                     soundManager.play(SoundType::CLICK);
                 } else {
                     lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
@@ -3534,10 +3546,18 @@ void GameManager::veThanhBenTrai() {
     sf::Color turnColor = isRedTurn ? sf::Color(245, 120, 110) : sf::Color(135, 185, 245);
 
     bool inCheck = banCo.kiemTraChieuTuong();
-    std::string sStatus = inCheck
-        ? (tiengViet ? "CHIẾU TƯỚNG!" : "CHECK!")
-        : (tiengViet ? "Bình thường" : "Normal");
-    sf::Color statusColor = inCheck ? sf::Color(255, 75, 75) : sf::Color(145, 215, 145);
+    std::string sStatus;
+    sf::Color statusColor;
+    if (banCo.isHoaDoLapLai()) {
+        sStatus = tiengViet ? "Hòa (Lặp 3 nước)" : "Draw (Repetition)";
+        statusColor = sf::Color(255, 205, 90);
+    } else if (inCheck) {
+        sStatus = tiengViet ? "CHIẾU TƯỚNG!" : "CHECK!";
+        statusColor = sf::Color(255, 75, 75);
+    } else {
+        sStatus = tiengViet ? "Bình thường" : "Normal";
+        statusColor = sf::Color(145, 215, 145);
+    }
 
     int redCap = 0, blackCap = 0;
     for (const auto& q : banCo.getCacQuan()) {

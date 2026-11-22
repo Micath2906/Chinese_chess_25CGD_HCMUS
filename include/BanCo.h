@@ -32,10 +32,14 @@ private:
     std::vector<std::shared_ptr<QuanCo>> cacQuan;
     std::vector<NuocDi> lichSuNuocDi;
     std::vector<NuocDi> lichSuRedo;
-    
+    std::vector<std::string> lichSuTrangThai;
+    bool hoaDoLapLai;
+
     Mau luotChoi;
     bool ketThuc;
     Mau nguoiThang;
+
+    bool kiemTraNuocDiLapLaiCuaNguoiChoi(Mau mau) const;
     
 public:
     BanCo();
@@ -93,4 +97,12 @@ public:
     // Mô tả nước đi
     std::string layMoTaNuocDi(const NuocDi& nd, bool tiengViet = true) const;
     std::string layMoTaNuocDiNgan(const NuocDi& nd, bool tiengViet = true) const;
+
+    // Luật lặp lại nước đi (Threefold Repetition)
+    std::string layChuoiTrangThai() const;
+    int demSoLanLapTrangThai(const std::string& state) const;
+    bool kiemTraLapLai3Nuoc() const;
+    bool isHoaDoLapLai() const { return hoaDoLapLai; }
+    void setHoaDoLapLai(bool val) { hoaDoLapLai = val; }
+    const std::vector<std::string>& getLichSuTrangThai() const { return lichSuTrangThai; }
 };

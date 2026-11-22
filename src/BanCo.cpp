@@ -32,13 +32,15 @@ namespace {
     };
 }
 
-BanCo::BanCo() : luotChoi(Mau::DO), ketThuc(false), nguoiThang(Mau::DO) {
+BanCo::BanCo() : luotChoi(Mau::DO), ketThuc(false), nguoiThang(Mau::DO), hoaDoLapLai(false) {
     khoiTaoBanCo();
 }
 
 BanCo::BanCo(const BanCo& other)
     : lichSuNuocDi(other.lichSuNuocDi),
       lichSuRedo(other.lichSuRedo),
+      lichSuTrangThai(other.lichSuTrangThai),
+      hoaDoLapLai(other.hoaDoLapLai),
       luotChoi(other.luotChoi),
       ketThuc(other.ketThuc),
       nguoiThang(other.nguoiThang) {
@@ -54,6 +56,8 @@ BanCo& BanCo::operator=(const BanCo& other) {
     if (this != &other) {
         lichSuNuocDi = other.lichSuNuocDi;
         lichSuRedo = other.lichSuRedo;
+        lichSuTrangThai = other.lichSuTrangThai;
+        hoaDoLapLai = other.hoaDoLapLai;
         luotChoi = other.luotChoi;
         ketThuc = other.ketThuc;
         nguoiThang = other.nguoiThang;
@@ -72,6 +76,8 @@ void BanCo::khoiTaoBanCo() {
     cacQuan.clear();
     lichSuNuocDi.clear();
     lichSuRedo.clear();
+    lichSuTrangThai.clear();
+    hoaDoLapLai = false;
     
     // Quan Do (hang 9 o duoi)
     cacQuan.push_back(std::make_shared<Xe>(9, 0, Mau::DO));
@@ -112,12 +118,16 @@ void BanCo::khoiTaoBanCo() {
     for (int i = 0; i < 9; i += 2) {
         cacQuan.push_back(std::make_shared<Tot>(3, i, Mau::DEN));
     }
+
+    lichSuTrangThai.push_back(layChuoiTrangThai());
 }
 
 void BanCo::khoiTao2XeVa2Voi() {
     cacQuan.clear();
     lichSuNuocDi.clear();
     lichSuRedo.clear();
+    lichSuTrangThai.clear();
+    hoaDoLapLai = false;
 
     // Setup 2 Xe and 2 Voi
     cacQuan.push_back(std::make_shared<Xe>(9, 0, Mau::DO));
@@ -128,6 +138,7 @@ void BanCo::khoiTao2XeVa2Voi() {
     luotChoi = Mau::DO;
     ketThuc = false;
     nguoiThang = Mau::DO;
+    lichSuTrangThai.push_back(layChuoiTrangThai());
 }
 
 void BanCo::lamMoi() {
@@ -135,6 +146,7 @@ void BanCo::lamMoi() {
     luotChoi = Mau::DO;
     ketThuc = false;
     nguoiThang = Mau::DO;
+    hoaDoLapLai = false;
 }
 
 
@@ -288,8 +300,18 @@ bool BanCo::diChuyen(int hangBD, int cotBD, int hangKT, int cotKT) {
     // Chuyen luot choi
     luotChoi = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
     
+    // Luu trang thai ban co de kiem tra lap nuoc
+    std::string stateHienTai = layChuoiTrangThai();
+    lichSuTrangThai.push_back(stateHienTai);
+
+    // Kiem tra luat lap lai 3 nuoc -> Xu hoa
+    if (kiemTraLapLai3Nuoc()) {
+        ketThuc = true;
+        nguoiThang = Mau::HOA;
+        hoaDoLapLai = true;
+    }
     // Check checkmate or stalemate
-    if (!coNuocDiHopLe(luotChoi)) {
+    else if (!coNuocDiHopLe(luotChoi)) {
         ketThuc = true;
         if (kiemTraChieu(luotChoi)) {
             // Đang bị chiếu mà không còn nước đi hợp lệ -> Chiếu bí! Bên chiếu thắng
@@ -337,6 +359,10 @@ bool BanCo::hoanTac() {
     
     lichSuRedo.push_back(nuocDiCuoi);
     luotChoi = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
+    if (!lichSuTrangThai.empty()) {
+        lichSuTrangThai.pop_back();
+    }
+    hoaDoLapLai = false;
     ketThuc = false;
     return true;
 }
@@ -359,7 +385,13 @@ bool BanCo::diTiep() {
     
     luotChoi = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
     
-    if (!coNuocDiHopLe(luotChoi)) {
+    std::string stateHienTai = layChuoiTrangThai();
+    lichSuTrangThai.push_back(stateHienTai);
+    if (kiemTraLapLai3Nuoc()) {
+        ketThuc = true;
+        nguoiThang = Mau::HOA;
+        hoaDoLapLai = true;
+    } else if (!coNuocDiHopLe(luotChoi)) {
         ketThuc = true;
         if (kiemTraChieu(luotChoi)) {
             nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
@@ -512,5 +544,92 @@ bool BanCo::docFile(const std::string& duongDan) {
         }
     }
     
+    lichSuTrangThai.clear();
+    hoaDoLapLai = false;
+    lichSuTrangThai.push_back(layChuoiTrangThai());
+
     return true;
+}
+
+std::string BanCo::layChuoiTrangThai() const {
+    std::string s(91, '.');
+    for (const auto& q : cacQuan) {
+        if (!q || q->getDaBiAn()) continue;
+        int idx = q->getHang() * 9 + q->getCot();
+        if (idx >= 0 && idx < 90) {
+            char c = '?';
+            std::string ten = q->layTen();
+            if (ten == "Tuong") c = 'K';
+            else if (ten == "Si") c = 'A';
+            else if (ten == "Voi") c = 'B';
+            else if (ten == "Xe") c = 'R';
+            else if (ten == "Phao") c = 'C';
+            else if (ten == "Ma") c = 'N';
+            else if (ten == "Tot") c = 'P';
+            
+            if (q->getMau() == Mau::DEN) {
+                c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            }
+            s[idx] = c;
+        }
+    }
+    s[90] = (luotChoi == Mau::DO) ? 'R' : 'B';
+    return s;
+}
+
+int BanCo::demSoLanLapTrangThai(const std::string& state) const {
+    int count = 0;
+    for (const auto& s : lichSuTrangThai) {
+        if (s == state) {
+            count++;
+        }
+    }
+    return count;
+}
+
+bool BanCo::kiemTraNuocDiLapLaiCuaNguoiChoi(Mau mau) const {
+    std::vector<NuocDi> nuocCuaMau;
+    for (const auto& nd : lichSuNuocDi) {
+        if (nd.mauQuan == mau) {
+            nuocCuaMau.push_back(nd);
+        }
+    }
+    if (nuocCuaMau.size() < 6) return false;
+    size_t n = nuocCuaMau.size();
+
+    const auto& m1 = nuocCuaMau[n - 6];
+    const auto& m2 = nuocCuaMau[n - 5];
+    const auto& m3 = nuocCuaMau[n - 4];
+    const auto& m4 = nuocCuaMau[n - 3];
+    const auto& m5 = nuocCuaMau[n - 2];
+    const auto& m6 = nuocCuaMau[n - 1];
+
+    auto sameMove = [](const NuocDi& a, const NuocDi& b) {
+        return a.hangBatDau == b.hangBatDau && a.cotBatDau == b.cotBatDau &&
+               a.hangKetThuc == b.hangKetThuc && a.cotKetThuc == b.cotKetThuc;
+    };
+
+    auto isReverseMove = [](const NuocDi& a, const NuocDi& b) {
+        return a.hangBatDau == b.hangKetThuc && a.cotBatDau == b.cotKetThuc &&
+               a.hangKetThuc == b.hangBatDau && a.cotKetThuc == b.cotBatDau;
+    };
+
+    if (isReverseMove(m1, m2) &&
+        sameMove(m1, m3) && sameMove(m2, m4) &&
+        sameMove(m1, m5) && sameMove(m2, m6)) {
+        return true;
+    }
+    return false;
+}
+
+bool BanCo::kiemTraLapLai3Nuoc() const {
+    if (lichSuTrangThai.empty()) return false;
+    const std::string& curState = lichSuTrangThai.back();
+    if (demSoLanLapTrangThai(curState) >= 3) {
+        return true;
+    }
+    if (kiemTraNuocDiLapLaiCuaNguoiChoi(Mau::DO) || kiemTraNuocDiLapLaiCuaNguoiChoi(Mau::DEN)) {
+        return true;
+    }
+    return false;
 }
