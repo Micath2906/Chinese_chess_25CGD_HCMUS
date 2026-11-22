@@ -1,9 +1,8 @@
 #include "SoundManager.h"
+#include "AssetManager.h"
 #include <algorithm>
 #include <cstdlib>
-#include <vector>
 #include <string>
-#include <filesystem>
 
 SoundManager::SoundManager()
     : amThanhBat(true),
@@ -14,61 +13,43 @@ SoundManager::SoundManager()
     bgmVolume(50.0f) {
 }
 
-// Find sound file
-static bool loadSoundFile(sf::SoundBuffer& buf, const std::string& relativePath) {
-    const std::vector<std::string> prefixes = {
-        "",
-        "../",
-        "../../",
-        "../../../",
-        "../../../../"
-    };
-    std::error_code ec;
-    for (const auto& prefix : prefixes) {
-        std::string fullPath = prefix + relativePath;
-        if (std::filesystem::exists(std::filesystem::u8path(fullPath), ec) &&
-            buf.loadFromFile(fullPath)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void SoundManager::khoiTao() {
-    sinhAmThanh(); // Fallback sounds
+    sinhAmThanh(); // Fallback synthetic sounds in case audio file is unavailable
 
-    sf::SoundBuffer tempBuf;
+    auto& am = AssetManager::get();
 
     // Move sound
-    if (loadSoundFile(tempBuf, "assets/audio/sfx/move.ogg")) {
-        bufferMove = tempBuf;
+    bufferMove = am.sound(SoundId::MOVE);
+    if (bufferMove.getSampleCount() > 0) {
         soundMove.setBuffer(bufferMove);
     }
 
     // Capture sound
-    if (loadSoundFile(tempBuf, "assets/audio/sfx/capture.ogg")) {
-        bufferCapture = tempBuf;
+    bufferCapture = am.sound(SoundId::CAPTURE);
+    if (bufferCapture.getSampleCount() > 0) {
         soundCapture.setBuffer(bufferCapture);
     }
 
     // BGM sound
-    if (loadSoundFile(tempBuf, "assets/audio/music/golden_gleam.ogg")) {
-        bufferBgm = tempBuf;
+    std::string bgmPath = am.getMusicPath(MusicId::BGM_MAIN);
+    if (!bgmPath.empty() && bufferBgm.loadFromFile(bgmPath)) {
         soundBgm.setBuffer(bufferBgm);
         soundBgm.setLoop(true);
     }
 
     // Other sounds
-    if (loadSoundFile(tempBuf, "assets/audio/sfx/check.wav")) {
-        bufferCheck = tempBuf;
+    bufferCheck = am.sound(SoundId::CHECK);
+    if (bufferCheck.getSampleCount() > 0) {
         soundCheck.setBuffer(bufferCheck);
     }
-    if (loadSoundFile(tempBuf, "assets/audio/sfx/win.wav")) {
-        bufferVictory = tempBuf;
+
+    bufferVictory = am.sound(SoundId::WIN);
+    if (bufferVictory.getSampleCount() > 0) {
         soundVictory.setBuffer(bufferVictory);
     }
-    if (loadSoundFile(tempBuf, "assets/audio/sfx/select.wav")) {
-        bufferClick = tempBuf;
+
+    bufferClick = am.sound(SoundId::SELECT);
+    if (bufferClick.getSampleCount() > 0) {
         soundClick.setBuffer(bufferClick);
     }
 

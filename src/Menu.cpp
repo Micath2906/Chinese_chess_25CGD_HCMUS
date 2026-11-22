@@ -1,124 +1,71 @@
 #include "Menu.h"
 #include "FantasyUI.h"
+#include "AssetManager.h"
 #include <iostream>
 #include <vector>
 #include <cmath>
 #include <iomanip>
 #include <sstream>
-#include <filesystem>
-
-static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth = false, bool maskWhite = true) {
-    const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
-    std::error_code ec;
-    for (const auto& p : prefixes) {
-        std::string fullPath = p + path;
-        if (!std::filesystem::exists(std::filesystem::u8path(fullPath), ec)) {
-            continue;
-        }
-        sf::Image img;
-        if (img.loadFromFile(fullPath)) {
-            if (maskWhite) {
-                bool hasAlpha = false;
-                sf::Vector2u sz = img.getSize();
-                for (unsigned int y = 0; y < sz.y && !hasAlpha; ++y) {
-                    for (unsigned int x = 0; x < sz.x; ++x) {
-                        if (img.getPixel(x, y).a < 250) {
-                            hasAlpha = true;
-                            break;
-                        }
-                    }
-                }
-                if (!hasAlpha) {
-                    img.createMaskFromColor(sf::Color::White);
-                }
-            }
-            if (tex.loadFromImage(img)) {
-                tex.setSmooth(smooth);
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-static bool loadFontSafe(sf::Font& font, const std::string& path) {
-    const std::vector<std::string> prefixes = { "", "../", "../../", "../../../", "../../../../" };
-    std::error_code ec;
-    for (const auto& p : prefixes) {
-        std::string fullPath = p + path;
-        if (std::filesystem::exists(std::filesystem::u8path(fullPath), ec) &&
-            font.loadFromFile(fullPath)) {
-            return true;
-        }
-    }
-    return false;
-}
 
 MenuAssets::MenuAssets() {
+    auto& am = AssetManager::get();
+
     // Background
-    loadTexSafe(cleanBg, "assets/textures/backgrounds/xiangqi_background_pavilion.png", true, false);
+    cleanBg = am.texture(TextureId::BACKGROUND_PAVILION);
+    playBg  = am.texture(TextureId::BACKGROUND_PAVILION);
 
-    // Remaining UI icons/toggles load from the travelbook sprite pack directory.
-    const std::string bookDir = "assets/textures/ui/travelbook/";
-
-    loadTexSafe(frameNormal, bookDir + "UI_TravelBook_Frame01a.png", false);
-    loadTexSafe(frameHover, bookDir + "UI_TravelBook_FrameSelect01a.png", false);
-    loadTexSafe(framePressed, bookDir + "UI_TravelBook_FrameSelect01b.png", false);
-    loadTexSafe(marker, bookDir + "UI_TravelBook_Marker01a.png", false);
-    loadTexSafe(decLine, bookDir + "UI_TravelBook_Line01a.png", false);
+    // TravelBook UI Sprites
+    frameNormal   = am.texture(TextureId::TB_FRAME_01A);
+    frameHover    = am.texture(TextureId::TB_FRAME_SELECT_01A);
+    framePressed  = am.texture(TextureId::TB_FRAME_SELECT_01B);
+    marker        = am.texture(TextureId::TB_MARKER_01A);
+    decLine       = am.texture(TextureId::TB_LINE_01A);
 
     // Menu icons
-    loadTexSafe(iconPlay, bookDir + "UI_TravelBook_IconPlay01a.png", false);
-    loadTexSafe(iconLoad, bookDir + "UI_TravelBook_IconRestart01a.png", false);
-    loadTexSafe(iconSettings, bookDir + "UI_TravelBook_IconGear01a.png", false);
-    loadTexSafe(iconInfo, bookDir + "UI_TravelBook_IconStar01a.png", false);
-    loadTexSafe(iconExit, bookDir + "UI_TravelBook_IconCross01a.png", false);
-    loadTexSafe(iconArrow, bookDir + "UI_TravelBook_IconArrow01a.png", false);
+    iconPlay      = am.texture(TextureId::TB_ICON_PLAY_01A);
+    iconLoad      = am.texture(TextureId::TB_ICON_RESTART_01A);
+    iconSettings  = am.texture(TextureId::TB_ICON_GEAR_01A);
+    iconInfo      = am.texture(TextureId::TB_ICON_STAR_01A);
+    iconExit      = am.texture(TextureId::TB_ICON_CROSS_01A);
+    iconArrow     = am.texture(TextureId::TB_ICON_ARROW_01A);
 
     // Controls
-    loadTexSafe(bar, bookDir + "UI_TravelBook_Bar01a.png", false);
-    loadTexSafe(fill, bookDir + "UI_TravelBook_Fill01a.png", false);
-    loadTexSafe(handle, bookDir + "UI_TravelBook_Handle03a.png", false);
-    loadTexSafe(buttonValue, bookDir + "UI_TravelBook_ButtonValue01a.png", false);
-    loadTexSafe(toggleOn, bookDir + "UI_TravelBook_Toggle03a.png", false);
-    loadTexSafe(toggleOff, bookDir + "UI_TravelBook_Toggle03b.png", false);
-    loadTexSafe(padLB, bookDir + "UI_TravelBook_GamepadLB01a.png", false);
-    loadTexSafe(padRB, bookDir + "UI_TravelBook_GamepadRB01a.png", false);
-    loadTexSafe(padL, bookDir + "UI_TravelBook_GamepadL01a.png", false);
-    loadTexSafe(padB, bookDir + "UI_TravelBook_GamepadB01a.png", false);
-    loadTexSafe(padA, bookDir + "UI_TravelBook_GamepadA01a.png", false);
-    loadTexSafe(slotBg, bookDir + "UI_TravelBook_Slot01a.png", false);
+    bar           = am.texture(TextureId::TB_BAR_01A);
+    fill          = am.texture(TextureId::TB_FILL_01A);
+    handle        = am.texture(TextureId::TB_HANDLE_03A);
+    buttonValue   = am.texture(TextureId::TB_BUTTON_VALUE_01A);
+    toggleOn      = am.texture(TextureId::TB_TOGGLE_03A);
+    toggleOff     = am.texture(TextureId::TB_TOGGLE_03B);
+    padLB         = am.texture(TextureId::TB_GAMEPAD_LB_01A);
+    padRB         = am.texture(TextureId::TB_GAMEPAD_RB_01A);
+    padL          = am.texture(TextureId::TB_GAMEPAD_L_01A);
+    padB          = am.texture(TextureId::TB_GAMEPAD_B_01A);
+    padA          = am.texture(TextureId::TB_GAMEPAD_A_01A);
+    slotBg        = am.texture(TextureId::TB_SLOT_01A);
 
     // Cursor and background
-    loadTexSafe(cursorNormal, bookDir + "UI_TravelBook_Cursor01c.png", false);
-    loadTexSafe(cursorPressed, bookDir + "UI_TravelBook_Cursor01d.png", false);
-    loadTexSafe(selectCorners, bookDir + "UI_TravelBook_Select01a.png", false);
-    loadTexSafe(playBg, "assets/textures/backgrounds/xiangqi_background_pavilion.png", true, false);
+    cursorNormal  = am.texture(TextureId::TB_CURSOR_01C);
+    cursorPressed = am.texture(TextureId::TB_CURSOR_01D);
+    selectCorners = am.texture(TextureId::TB_SELECT_01A);
 
-    // Load fonts (prioritize thick, readable bold fonts for UI clarity)
-    fontVnBoldLoaded = loadFontSafe(fontVnBold, "C:/Windows/Fonts/arialbd.ttf") ||
-                       loadFontSafe(fontVnBold, "C:/Windows/Fonts/segoeuib.ttf") ||
-                       loadFontSafe(fontVnBold, "assets/fonts/NomNaTong-Regular.ttf") ||
-                       loadFontSafe(fontVnBold, "assets/fonts/ViaodaLibre-Regular.ttf");
+    // Fonts
+    fontVnBold = am.getBoldFont(true);
+    fontVnBoldLoaded = true;
 
-    fontEnBoldLoaded = loadFontSafe(fontEnBold, "assets/fonts/PixeloidSansBold.ttf") ||
-                       loadFontSafe(fontEnBold, "C:/Windows/Fonts/arialbd.ttf") ||
-                       loadFontSafe(fontEnBold, "C:/Windows/Fonts/segoeuib.ttf");
+    fontEnBold = am.getBoldFont(false);
+    fontEnBoldLoaded = true;
 
-    fontVnLoaded = loadFontSafe(fontVn, "assets/fonts/NomNaTong-Regular.ttf") ||
-                   loadFontSafe(fontVn, "assets/fonts/ViaodaLibre-Regular.ttf") ||
-                   loadFontSafe(fontVn, "C:/Windows/Fonts/arial.ttf") ||
-                   loadFontSafe(fontVn, "C:/Windows/Fonts/segoeui.ttf");
+    fontVn = am.getFont(true, false);
+    fontVnLoaded = true;
 
-    fontEnLoaded = loadFontSafe(fontEn, "assets/fonts/PixeloidSans.ttf") ||
-                   loadFontSafe(fontEn, "assets/fonts/ViaodaLibre-Regular.ttf") ||
-                   loadFontSafe(fontEn, "C:/Windows/Fonts/arial.ttf");
+    fontEn = am.getFont(false, false);
+    fontEnLoaded = true;
 
     // Font aliases
     vnFont = fontVn;
     vnFontLoaded = fontVnLoaded;
-    fontBold = fontVnBoldLoaded ? fontVnBold : (fontEnBoldLoaded ? fontEnBold : fontVn);
-    fontBoldLoaded = fontVnBoldLoaded || fontEnBoldLoaded || fontVnLoaded;
+    fontBold = fontVnBold;
+    fontBoldLoaded = true;
     globalFont = fontBold;
     fontLoaded = fontBoldLoaded;
 }
@@ -129,15 +76,7 @@ MenuAssets& getMenuAssets() {
 }
 
 sf::Font& getMenuFont(bool tiengViet, bool bold) {
-    auto& assets = getMenuAssets();
-    if (tiengViet) {
-        if (bold && assets.fontVnBoldLoaded) return assets.fontVnBold;
-        if (assets.fontVnLoaded) return assets.fontVn;
-    }
-    if (bold && assets.fontEnBoldLoaded) return assets.fontEnBold;
-    if (assets.fontEnLoaded) return assets.fontEn;
-    if (assets.fontVnLoaded) return assets.fontVn;
-    return assets.fontEn;
+    return const_cast<sf::Font&>(AssetManager::get().getFont(tiengViet, bold));
 }
 
 void veNenMenuGiaoDien(sf::RenderWindow& window) {
@@ -442,7 +381,8 @@ Menu::Menu()
 }
 
 bool Menu::loadFont(const std::string& fontPath) {
-    return loadFontSafe(font, fontPath);
+    if (font.loadFromFile(fontPath)) return true;
+    return font.loadFromFile(AssetManager::get().resolvePath(fontPath));
 }
 
 void Menu::setFont(const sf::Font& f) {

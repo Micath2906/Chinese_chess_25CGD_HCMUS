@@ -1,39 +1,8 @@
 #include "FantasyUI.h"
+#include "AssetManager.h"
 #include "Menu.h"
 #include <algorithm>
 #include <cmath>
-#include <filesystem>
-
-static bool loadTexSafe(sf::Texture& tex, const std::string& path, bool smooth = false) {
-    const std::vector<std::string> prefixes = { "", "../", "../../" };
-    std::error_code ec;
-    for (const auto& p : prefixes) {
-        std::string fullPath = p + path;
-        if (!std::filesystem::exists(std::filesystem::u8path(fullPath), ec)) {
-            continue;
-        }
-        sf::Image img;
-        if (img.loadFromFile(fullPath)) {
-            bool hasAlpha = false;
-            sf::Vector2u sz = img.getSize();
-            for (unsigned int y = 0; y < sz.y && !hasAlpha; ++y) {
-                for (unsigned int x = 0; x < sz.x; ++x) {
-                    if (img.getPixel(x, y).a < 250) {
-                        hasAlpha = true;
-                        break;
-                    }
-                }
-            }
-            if (!hasAlpha) {
-                img.createMaskFromColor(sf::Color::White);
-            }
-            tex.loadFromImage(img);
-            tex.setSmooth(smooth);
-            return true;
-        }
-    }
-    return false;
-}
 
 FantasyUI& FantasyUI::get() {
     static FantasyUI instance;
@@ -57,28 +26,13 @@ FantasyUI::FantasyUI() {
 }
 
 bool FantasyUI::init() {
-    sf::Image masterImg;
-    const std::vector<std::string> prefixes = { "", "../", "../../" };
-    bool ok = false;
-
-    // Load xiangqi_oriental_sheet.png
-    std::error_code ec;
-    for (const auto& p : prefixes) {
-        std::string fullPath = p + "assets/textures/ui/xiangqi_oriental_sheet.png";
-        if (std::filesystem::exists(std::filesystem::u8path(fullPath), ec) &&
-            masterImg.loadFromFile(fullPath)) {
-            ok = true;
-            break;
-        }
-    }
-
-    if (ok) {
-        // Zero-white-box: mask pure white backgrounds if any
-        masterImg.createMaskFromColor(sf::Color(255, 255, 255));
-        texFantasy.loadFromImage(masterImg);
-        texFantasy.setSmooth(false); // Sharp pixel art
+    const sf::Texture& sheet = AssetManager::get().texture(TextureId::ORIENTAL_SHEET);
+    if (sheet.getSize().x > 0) {
+        texFantasy = sheet;
+        texFantasy.setSmooth(false);
         texMasterSpritesheet = texFantasy;
         texMedieval = texFantasy;
+        loaded = true;
     }
 
     // Initialize Atlas Rects (Stage 1.1)
@@ -105,7 +59,6 @@ bool FantasyUI::init() {
     rcSlotWood    = rcParchment;
     rcRibbon      = rcRibbonHeader;
 
-    loaded = ok;
     return loaded;
 }
 

@@ -9,40 +9,9 @@
 #include <fstream>
 #include "Localization.h"
 #include "FantasyUI.h"
+#include "AssetManager.h"
 
 namespace fs = std::filesystem;
-
-static bool fileExistsUtf8(const std::string& path) {
-    std::error_code ec;
-    return fs::exists(fs::u8path(path), ec);
-}
-
-static bool tryLoadFontCandidates(sf::Font& font, const std::initializer_list<const char*> paths) {
-    for (const char* p : paths) {
-        if (fileExistsUtf8(p) && font.loadFromFile(p)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool tryLoadTextureCandidates(sf::Texture& tex, const std::initializer_list<const char*> paths) {
-    for (const char* p : paths) {
-        if (fileExistsUtf8(p) && tex.loadFromFile(p)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool tryLoadImageCandidates(sf::Image& img, const std::initializer_list<const char*> paths) {
-    for (const char* p : paths) {
-        if (fileExistsUtf8(p) && img.loadFromFile(p)) {
-            return true;
-        }
-    }
-    return false;
-}
 
 static std::string layThoiGianHienTai() {
     auto now = std::chrono::system_clock::now();
@@ -136,36 +105,13 @@ void GameManager::khoiTao() {
         ));
     }
 
-    // Load fonts (prioritize thick, readable bold fonts for UI legibility)
-    tryLoadFontCandidates(fontVnBold, {
-        "C:/Windows/Fonts/arialbd.ttf",
-        "C:/Windows/Fonts/segoeuib.ttf",
-        "assets/fonts/NomNaTong-Regular.ttf",
-        "assets/fonts/ViaodaLibre-Regular.ttf"
-    });
-
-    tryLoadFontCandidates(fontEnBold, {
-        "assets/fonts/PixeloidSansBold.ttf",
-        "C:/Windows/Fonts/arialbd.ttf",
-        "C:/Windows/Fonts/segoeuib.ttf"
-    });
-
-    tryLoadFontCandidates(fontVn, {
-        "assets/fonts/NomNaTong-Regular.ttf",
-        "assets/fonts/ViaodaLibre-Regular.ttf",
-        "C:/Windows/Fonts/arial.ttf",
-        "C:/Windows/Fonts/segoeui.ttf"
-    });
-
-    tryLoadFontCandidates(fontEn, {
-        "assets/fonts/PixeloidSans.ttf",
-        "assets/fonts/ViaodaLibre-Regular.ttf",
-        "C:/Windows/Fonts/arial.ttf"
-    });
-
-    tryLoadFontCandidates(fontHan, {
-        "assets/fonts/NomNaTong-Regular.ttf"
-    });
+    // Load fonts via AssetManager
+    auto& am = AssetManager::get();
+    fontVnBold = am.getBoldFont(true);
+    fontEnBold = am.getBoldFont(false);
+    fontVn     = am.getFont(true, false);
+    fontEn     = am.getFont(false, false);
+    fontHan    = am.font(FontId::NOM_NA_TONG);
 
     taiTextures();
     soundManager.khoiTao();
@@ -2563,126 +2509,33 @@ sf::Vector2f GameManager::chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot) {
 void GameManager::taiTextures() {
     daTaiTextures = false;
 
-    // Load background pixel art texture
-    tryLoadTextureCandidates(textureBackground, {
-        "assets/textures/backgrounds/xiangqi_background_pavilion.png",
-        "../assets/textures/backgrounds/xiangqi_background_pavilion.png"
-    });
-    textureBackground.setSmooth(true);
+    auto& am = AssetManager::get();
 
-    // Load background
-    tryLoadTextureCandidates(texturePlayBg, {
-        "assets/textures/backgrounds/xiangqi_background_pavilion.png",
-        "../assets/textures/backgrounds/xiangqi_background_pavilion.png"
-    });
-    texturePlayBg.setSmooth(true);
+    textureBackground = am.texture(TextureId::BACKGROUND_PAVILION);
+    texturePlayBg     = am.texture(TextureId::BACKGROUND_PAVILION);
+    textureBanCo      = am.texture(TextureId::BOARD);
 
-    // Load board texture (Strict Alpha Masking)
-    {
-        sf::Image imgBanCo;
-        if (tryLoadImageCandidates(imgBanCo, {
-                "assets/textures/board/board.png",
-                "../assets/textures/board/board.png"
-            })) {
-            
-            // Explicit color mask required by user
-            imgBanCo.createMaskFromColor(sf::Color::White);
-            sf::Vector2u sz = imgBanCo.getSize();
-            for (unsigned y = 0; y < sz.y; ++y) {
-                for (unsigned x = 0; x < sz.x; ++x) {
-                    sf::Color px = imgBanCo.getPixel(x, y);
-                    if (px.r >= 238 && px.g >= 238 && px.b >= 238) {
-                        imgBanCo.setPixel(x, y, sf::Color::Transparent);
-                    }
-                }
-            }
-            textureBanCo.loadFromImage(imgBanCo);
-            textureBanCo.setSmooth(true);
+    // Board parameters (centered on 1200x800)
+    kichThuocO = 68.0f;
+    offsetX    = 328.0f;
+    offsetY    = 110.0f;
 
-            // Board parameters (centered on 1200x800)
-            kichThuocO = 68.0f;
-            offsetX    = 328.0f;
-            offsetY    = 110.0f;
-        }
+    // Load pieces
+    const std::vector<std::string> pieceTypes = { "Tuong", "Si", "Voi", "Ma", "Xe", "Phao", "Tot" };
+    for (const auto& t : pieceTypes) {
+        textureQuanDo[t]  = am.getPieceTexture(t, Mau::DO);
+        textureQuanDen[t] = am.getPieceTexture(t, Mau::DEN);
     }
 
-    auto loadPieceSafe = [](sf::Texture& tex, const std::string& filename) {
-        const std::vector<std::string> prefixes = {
-            "assets/textures/pieces/",
-            "../assets/textures/pieces/",
-            "../../assets/textures/pieces/"
-        };
-        for (const auto& p : prefixes) {
-            std::string fullPath = p + filename;
-            if (!fileExistsUtf8(fullPath)) {
-                continue;
-            }
-            sf::Image img;
-            if (img.loadFromFile(fullPath)) {
-                bool hasAlpha = false;
-                sf::Vector2u sz = img.getSize();
-                for (unsigned int y = 0; y < sz.y && !hasAlpha; ++y) {
-                    for (unsigned int x = 0; x < sz.x; ++x) {
-                        if (img.getPixel(x, y).a < 250) {
-                            hasAlpha = true;
-                            break;
-                        }
-                    }
-                }
-                if (!hasAlpha) {
-                    img.createMaskFromColor(sf::Color::White);
-                }
-                tex.loadFromImage(img);
-                tex.setSmooth(true);
-                return true;
-            }
-        }
-        return false;
-    };
-
-    // Load red pieces
-    loadPieceSafe(textureQuanDo["Tuong"], "r_tuong.png");
-    loadPieceSafe(textureQuanDo["Si"], "r_si.png");
-    loadPieceSafe(textureQuanDo["Voi"], "r_voi.png");
-    loadPieceSafe(textureQuanDo["Ma"], "r_ma.png");
-    loadPieceSafe(textureQuanDo["Xe"], "r_xe.png");
-    loadPieceSafe(textureQuanDo["Phao"], "r_phao.png");
-    loadPieceSafe(textureQuanDo["Tot"], "r_tot.png");
-
-    // Load black pieces
-    loadPieceSafe(textureQuanDen["Tuong"], "b_tuong.png");
-    loadPieceSafe(textureQuanDen["Si"], "b_si.png");
-    loadPieceSafe(textureQuanDen["Voi"], "b_voi.png");
-    loadPieceSafe(textureQuanDen["Ma"], "b_ma.png");
-    loadPieceSafe(textureQuanDen["Xe"], "b_xe.png");
-    loadPieceSafe(textureQuanDen["Phao"], "b_phao.png");
-    loadPieceSafe(textureQuanDen["Tot"], "b_tot.png");
-
-    for (auto& p : textureQuanDo) p.second.setSmooth(true);
-    for (auto& p : textureQuanDen) p.second.setSmooth(true);
-
-    if (textureQuanDo["Tuong"].getSize().x > 0 && textureQuanDen["Tuong"].getSize().x > 0) {
-        daTaiTextures = true;
-    }
     taiAvatarTextures();
+    daTaiTextures = true;
 }
 
 void GameManager::taiAvatarTextures() {
     if (daTaiAvatarTextures) return;
-    const std::string paths[5] = {
-        "assets/textures/avatars/emoji_cho_ava_03.png",
-        "assets/textures/avatars/emoji_cho_ava_07.png",
-        "assets/textures/avatars/emoji_cho_ava_10.png",
-        "assets/textures/avatars/emoji_cho_ava_18.png",
-        "assets/textures/avatars/emoji_cho_ava_24.png"
-    };
+    auto& am = AssetManager::get();
     for (int i = 0; i < 5; ++i) {
-        if (fileExistsUtf8(paths[i])) {
-            avatarTextures[i].loadFromFile(paths[i]);
-        } else if (fileExistsUtf8("../" + paths[i])) {
-            avatarTextures[i].loadFromFile("../" + paths[i]);
-        }
-        avatarTextures[i].setSmooth(false);
+        avatarTextures[i] = am.getAvatarTexture(i);
     }
     daTaiAvatarTextures = true;
 }
