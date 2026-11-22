@@ -13,16 +13,17 @@ FantasyUI& FantasyUI::get() {
 }
 
 FantasyUI::FantasyUI() {
-    rcBtnNorm     = sf::IntRect(679, 382, 59, 148);
-    rcBtnHov      = sf::IntRect(800, 382, 58, 148);
-    rcBtnSlimNorm = sf::IntRect(679, 382, 59, 148);
-    rcBtnSlimHov  = sf::IntRect(800, 382, 58, 148);
-    rcSqNorm      = sf::IntRect(679, 382, 59, 59);
-    rcSqHov       = sf::IntRect(800, 382, 58, 58);
-
-    rcPanelOrnate = sf::IntRect(894, 220, 104, 145);
-    rcSlotWood    = sf::IntRect(692, 780, 305, 126);
-    rcRibbon      = sf::IntRect(551, 46, 79, 171);
+    rcPanelEbony   = UIAtlas::PanelEbony.toIntRect();
+    rcParchment    = UIAtlas::Parchment.toIntRect();
+    rcRibbonHeader = UIAtlas::RibbonHeader.toIntRect();
+    rcBtnNormal    = UIAtlas::ButtonNormal.toIntRect();
+    rcBtnHover     = UIAtlas::ButtonHover.toIntRect();
+    rcBtnPressed   = UIAtlas::ButtonPressed.toIntRect();
+    rcIconUndo     = UIAtlas::IconUndo.toIntRect();
+    rcIconRedo     = UIAtlas::IconRedo.toIntRect();
+    rcIconDraw     = UIAtlas::IconDraw.toIntRect();
+    rcIconResign   = UIAtlas::IconResign.toIntRect();
+    rcIncenseStick = UIAtlas::IncenseStick.toIntRect();
 }
 
 bool FantasyUI::init() {
@@ -35,29 +36,17 @@ bool FantasyUI::init() {
         loaded = true;
     }
 
-    // Initialize Atlas Rects (Stage 1.1)
-    rcPanelEbony   = sf::IntRect(0, 0, 192, 192);
-    rcParchment    = sf::IntRect(200, 0, 160, 160);
-    rcRibbonHeader = sf::IntRect(370, 0, 260, 54);
-    rcBtnNormal    = sf::IntRect(0, 200, 220, 50);
-    rcBtnHover     = sf::IntRect(0, 260, 220, 50);
-    rcBtnPressed   = sf::IntRect(0, 320, 220, 50);
-    rcIconUndo     = sf::IntRect(230, 200, 48, 48);
-    rcIconRedo     = sf::IntRect(285, 200, 48, 48);
-    rcIconDraw     = sf::IntRect(340, 200, 48, 48);
-    rcIconResign   = sf::IntRect(395, 200, 48, 48);
-    rcIncenseStick = sf::IntRect(0, 380, 320, 24);
-
-    // Backward compatible rect aliases
-    rcBtnNorm     = rcBtnNormal;
-    rcBtnHov      = rcBtnHover;
-    rcBtnSlimNorm = rcBtnNormal;
-    rcBtnSlimHov  = rcBtnHover;
-    rcSqNorm      = rcIconUndo;
-    rcSqHov       = rcIconUndo;
-    rcPanelOrnate = rcPanelEbony;
-    rcSlotWood    = rcParchment;
-    rcRibbon      = rcRibbonHeader;
+    rcPanelEbony   = UIAtlas::PanelEbony.toIntRect();
+    rcParchment    = UIAtlas::Parchment.toIntRect();
+    rcRibbonHeader = UIAtlas::RibbonHeader.toIntRect();
+    rcBtnNormal    = UIAtlas::ButtonNormal.toIntRect();
+    rcBtnHover     = UIAtlas::ButtonHover.toIntRect();
+    rcBtnPressed   = UIAtlas::ButtonPressed.toIntRect();
+    rcIconUndo     = UIAtlas::IconUndo.toIntRect();
+    rcIconRedo     = UIAtlas::IconRedo.toIntRect();
+    rcIconDraw     = UIAtlas::IconDraw.toIntRect();
+    rcIconResign   = UIAtlas::IconResign.toIntRect();
+    rcIncenseStick = UIAtlas::IncenseStick.toIntRect();
 
     return loaded;
 }

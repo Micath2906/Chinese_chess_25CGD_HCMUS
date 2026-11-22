@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
+#include "UIAtlas.h"
 
 enum class OrientalPanelStyle {
     EBONY_WOOD,       // Gỗ mun viền đồng mây (thay cho ORNATE_WOOD)
@@ -104,16 +105,4 @@ public:
 private:
     FantasyUI();
     bool loaded = false;
-
-    // Slicing definitions
-    sf::IntRect rcBtnNorm;
-    sf::IntRect rcBtnHov;
-    sf::IntRect rcBtnSlimNorm;
-    sf::IntRect rcBtnSlimHov;
-    sf::IntRect rcSqNorm;
-    sf::IntRect rcSqHov;
-
-    sf::IntRect rcPanelOrnate;
-    sf::IntRect rcSlotWood;
-    sf::IntRect rcRibbon;
 };
