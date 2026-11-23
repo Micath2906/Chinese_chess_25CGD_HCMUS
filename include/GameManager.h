@@ -56,6 +56,12 @@ enum class PieceStyle {
     INTERNATIONAL
 };
 
+enum class TitleSubMenu {
+    MAIN_START,
+    PLAY_LOAD,
+    MODE_SELECT
+};
+
 struct SaveSlotInfo {
     bool tonTai;
     std::string thoiGian;
@@ -244,6 +250,9 @@ private:
     sf::Clock bannerPulseClock;
 
     // Title Screen UI state
+    TitleSubMenu titleSubMenu = TitleSubMenu::MAIN_START;
+    int titleMenuIndex = 0;
+
     bool titleBtnStartHovered = false;
     bool titleBtnSettingsHovered = false;
     bool titleBtnSoundHovered = false;
@@ -252,6 +261,26 @@ private:
     sf::FloatRect titleSettingsRect;
     sf::FloatRect titleSoundRect;
     sf::FloatRect titleInfoRect;
+
+    // Submenu 1: Play & Load
+    bool titleBtnPlayHovered = false;
+    bool titleBtnLoadHovered = false;
+    bool titleBtnBackHovered = false;
+    sf::FloatRect titleBtnPlayRect;
+    sf::FloatRect titleBtnLoadRect;
+    sf::FloatRect titleBtnBackRect;
+
+    // Submenu 2: Modes & Settings
+    bool titleBtnPvpHovered = false;
+    bool titleBtnPvaiHovered = false;
+    bool titleBtnDemoHovered = false;
+    bool titleBtnSettingsMenuHovered = false;
+    bool titleBtnModeBackHovered = false;
+    sf::FloatRect titleBtnPvpRect;
+    sf::FloatRect titleBtnPvaiRect;
+    sf::FloatRect titleBtnDemoRect;
+    sf::FloatRect titleBtnSettingsMenuRect;
+    sf::FloatRect titleBtnModeBackRect;
 
 public:
     GameManager();

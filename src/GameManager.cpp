@@ -1781,18 +1781,6 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
     }
 
     if (trangThai == TrangThai::TITLE_SCREEN) {
-        if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
-            soundManager.play(SoundType::CLICK);
-            trangThai = TrangThai::MENU_CHINH;
-            menuChinh.triggerOpenAnimation(MenuSection::PLAY);
-            return;
-        }
-        if (key == sf::Keyboard::S) {
-            soundManager.play(SoundType::CLICK);
-            trangThai = TrangThai::MENU_CHINH;
-            menuChinh.triggerOpenAnimation(MenuSection::SETTINGS);
-            return;
-        }
         if (key == sf::Keyboard::M) {
             soundManager.setBgmBat(!soundManager.getBgmBat());
             soundManager.play(SoundType::CLICK);
@@ -1808,11 +1796,105 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
             menuChinh.triggerOpenAnimation(MenuSection::INFO);
             return;
         }
-        if (key == sf::Keyboard::Escape) {
-            soundManager.play(SoundType::CLICK);
-            luuCaiDat();
-            window.close();
-            return;
+
+        if (titleSubMenu == TitleSubMenu::MAIN_START) {
+            if (key == sf::Keyboard::S) {
+                soundManager.play(SoundType::CLICK);
+                trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
+                trangThai = TrangThai::SETTINGS_MENU;
+                return;
+            }
+            if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
+                soundManager.play(SoundType::CLICK);
+                titleSubMenu = TitleSubMenu::PLAY_LOAD;
+                titleMenuIndex = 0;
+                return;
+            }
+            if (key == sf::Keyboard::Escape) {
+                soundManager.play(SoundType::CLICK);
+                luuCaiDat();
+                window.close();
+                return;
+            }
+        } else if (titleSubMenu == TitleSubMenu::PLAY_LOAD) {
+            if (key == sf::Keyboard::W || key == sf::Keyboard::Up) {
+                soundManager.play(SoundType::CLICK);
+                titleMenuIndex = (titleMenuIndex + 2) % 3;
+                return;
+            }
+            if (key == sf::Keyboard::S || key == sf::Keyboard::Down) {
+                soundManager.play(SoundType::CLICK);
+                titleMenuIndex = (titleMenuIndex + 1) % 3;
+                return;
+            }
+            if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
+                soundManager.play(SoundType::CLICK);
+                if (titleMenuIndex == 0) {
+                    titleSubMenu = TitleSubMenu::MODE_SELECT;
+                    titleMenuIndex = 0;
+                } else if (titleMenuIndex == 1) {
+                    trangThaiTruocLoad = TrangThai::TITLE_SCREEN;
+                    capNhatThongTinSlots();
+                    trangThai = TrangThai::LOAD_MENU;
+                } else {
+                    titleSubMenu = TitleSubMenu::MAIN_START;
+                    titleMenuIndex = 0;
+                }
+                return;
+            }
+            if (key == sf::Keyboard::Escape) {
+                soundManager.play(SoundType::CLICK);
+                titleSubMenu = TitleSubMenu::MAIN_START;
+                titleMenuIndex = 0;
+                return;
+            }
+        } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
+            if (key == sf::Keyboard::W || key == sf::Keyboard::Up) {
+                soundManager.play(SoundType::CLICK);
+                titleMenuIndex = (titleMenuIndex + 4) % 5;
+                return;
+            }
+            if (key == sf::Keyboard::S || key == sf::Keyboard::Down) {
+                soundManager.play(SoundType::CLICK);
+                titleMenuIndex = (titleMenuIndex + 1) % 5;
+                return;
+            }
+            if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
+                soundManager.play(SoundType::CLICK);
+                if (titleMenuIndex == 0) {
+                    pvpRollBanner = "";
+                    pvpSetupStep = 1;
+                    playSetupMode = 1;
+                    khoiTaoPlaySetupButtons();
+                    trangThai = TrangThai::PVP_SETUP;
+                } else if (titleMenuIndex == 1) {
+                    aiRollBanner = "";
+                    playSetupMode = 0;
+                    khoiTaoPlaySetupButtons();
+                    trangThai = TrangThai::PVAI_SETUP;
+                } else if (titleMenuIndex == 2) {
+                    tenNguoiChoiDo = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do (Xe & Voi)" : "Red (Chariot & Elephant)";
+                    tenNguoiChoiDen = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Den (Xe & Voi)" : "Black (Chariot & Elephant)";
+                    nhanVatDo = 0;
+                    nhanVatDen = 0;
+                    playSetupMode = 2;
+                    khoiTaoPlaySetupButtons();
+                    trangThai = TrangThai::PVP_SETUP;
+                } else if (titleMenuIndex == 3) {
+                    trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
+                    trangThai = TrangThai::SETTINGS_MENU;
+                } else {
+                    titleSubMenu = TitleSubMenu::PLAY_LOAD;
+                    titleMenuIndex = 0;
+                }
+                return;
+            }
+            if (key == sf::Keyboard::Escape) {
+                soundManager.play(SoundType::CLICK);
+                titleSubMenu = TitleSubMenu::PLAY_LOAD;
+                titleMenuIndex = 0;
+                return;
+            }
         }
         return;
     }
@@ -2006,8 +2088,9 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         }
         if (trangThai == TrangThai::PVP_SETUP || trangThai == TrangThai::PVAI_SETUP) {
             soundManager.play(SoundType::CLICK);
-            trangThai = TrangThai::MENU_CHINH;
-            menuChinh.triggerOpenAnimation(MenuSection::PLAY);
+            trangThai = TrangThai::TITLE_SCREEN;
+            titleSubMenu = TitleSubMenu::MODE_SELECT;
+            titleMenuIndex = 0;
             return;
         }
         if (trangThai == TrangThai::DANG_CHOI) {
@@ -2331,8 +2414,9 @@ void GameManager::thucHienLoadGame() {
 
 void GameManager::quayLaiMenu() {
     hienMenuPopUp = false;
-    trangThai = TrangThai::MENU_CHINH;
-    menuChinh.triggerOpenAnimation();
+    trangThai = TrangThai::TITLE_SCREEN;
+    titleSubMenu = TitleSubMenu::MODE_SELECT;
+    titleMenuIndex = 0;
     soundManager.play(SoundType::CLICK);
 }
 
@@ -4318,8 +4402,9 @@ void GameManager::khoiTaoPlaySetupButtons() {
     auto backBtn = std::make_unique<Button>(188.0f, btmY, 140.0f, btmH,
         tiengViet ? "Quay Lại" : "Back", fBold, [this]() {
         soundManager.play(SoundType::CLICK);
-        trangThai = TrangThai::MENU_CHINH;
-        menuChinh.triggerOpenAnimation(MenuSection::PLAY);
+        trangThai = TrangThai::TITLE_SCREEN;
+        titleSubMenu = TitleSubMenu::MODE_SELECT;
+        titleMenuIndex = 0;
     });
     backBtn->setCharacterSize(16);
     backBtn->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
@@ -6509,27 +6594,43 @@ void GameManager::veVictoryParticles() {
 void GameManager::capNhatHoverTitleScreen(const sf::Vector2i& viTri) {
     float mx = static_cast<float>(viTri.x);
     float my = static_cast<float>(viTri.y);
-    titleBtnStartHovered    = titleStartRect.contains(mx, my);
     titleBtnSettingsHovered = titleSettingsRect.contains(mx, my);
     titleBtnSoundHovered    = titleSoundRect.contains(mx, my);
     titleBtnInfoHovered     = titleInfoRect.contains(mx, my);
+
+    if (titleSubMenu == TitleSubMenu::MAIN_START) {
+        titleBtnStartHovered = titleStartRect.contains(mx, my);
+        if (titleBtnStartHovered) titleMenuIndex = 0;
+    } else if (titleSubMenu == TitleSubMenu::PLAY_LOAD) {
+        titleBtnPlayHovered = titleBtnPlayRect.contains(mx, my);
+        titleBtnLoadHovered = titleBtnLoadRect.contains(mx, my);
+        titleBtnBackHovered = titleBtnBackRect.contains(mx, my);
+        if (titleBtnPlayHovered) titleMenuIndex = 0;
+        else if (titleBtnLoadHovered) titleMenuIndex = 1;
+        else if (titleBtnBackHovered) titleMenuIndex = 2;
+    } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
+        titleBtnPvpHovered          = titleBtnPvpRect.contains(mx, my);
+        titleBtnPvaiHovered         = titleBtnPvaiRect.contains(mx, my);
+        titleBtnDemoHovered         = titleBtnDemoRect.contains(mx, my);
+        titleBtnSettingsMenuHovered = titleBtnSettingsMenuRect.contains(mx, my);
+        titleBtnModeBackHovered     = titleBtnModeBackRect.contains(mx, my);
+        if (titleBtnPvpHovered) titleMenuIndex = 0;
+        else if (titleBtnPvaiHovered) titleMenuIndex = 1;
+        else if (titleBtnDemoHovered) titleMenuIndex = 2;
+        else if (titleBtnSettingsMenuHovered) titleMenuIndex = 3;
+        else if (titleBtnModeBackHovered) titleMenuIndex = 4;
+    }
 }
 
 void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
     float x = static_cast<float>(viTri.x);
     float y = static_cast<float>(viTri.y);
 
-    if (titleStartRect.contains(x, y)) {
-        soundManager.play(SoundType::CLICK);
-        trangThai = TrangThai::MENU_CHINH;
-        menuChinh.triggerOpenAnimation(MenuSection::PLAY);
-        return;
-    }
-
+    // 1. Bottom Corner Action Buttons
     if (titleSettingsRect.contains(x, y)) {
         soundManager.play(SoundType::CLICK);
-        trangThai = TrangThai::MENU_CHINH;
-        menuChinh.triggerOpenAnimation(MenuSection::SETTINGS);
+        trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
+        trangThai = TrangThai::SETTINGS_MENU;
         return;
     }
 
@@ -6548,6 +6649,77 @@ void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
         trangThai = TrangThai::MENU_CHINH;
         menuChinh.triggerOpenAnimation(MenuSection::INFO);
         return;
+    }
+
+    // 2. Central Action Buttons by Current Submenu
+    if (titleSubMenu == TitleSubMenu::MAIN_START) {
+        if (titleStartRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            titleSubMenu = TitleSubMenu::PLAY_LOAD;
+            titleMenuIndex = 0;
+            return;
+        }
+    } else if (titleSubMenu == TitleSubMenu::PLAY_LOAD) {
+        if (titleBtnPlayRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            titleSubMenu = TitleSubMenu::MODE_SELECT;
+            titleMenuIndex = 0;
+            return;
+        }
+        if (titleBtnLoadRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            trangThaiTruocLoad = TrangThai::TITLE_SCREEN;
+            capNhatThongTinSlots();
+            trangThai = TrangThai::LOAD_MENU;
+            return;
+        }
+        if (titleBtnBackRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            titleSubMenu = TitleSubMenu::MAIN_START;
+            titleMenuIndex = 0;
+            return;
+        }
+    } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
+        if (titleBtnPvpRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            pvpRollBanner = "";
+            pvpSetupStep = 1;
+            playSetupMode = 1;
+            khoiTaoPlaySetupButtons();
+            trangThai = TrangThai::PVP_SETUP;
+            return;
+        }
+        if (titleBtnPvaiRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            aiRollBanner = "";
+            playSetupMode = 0;
+            khoiTaoPlaySetupButtons();
+            trangThai = TrangThai::PVAI_SETUP;
+            return;
+        }
+        if (titleBtnDemoRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            tenNguoiChoiDo = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do (Xe & Voi)" : "Red (Chariot & Elephant)";
+            tenNguoiChoiDen = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Den (Xe & Voi)" : "Black (Chariot & Elephant)";
+            nhanVatDo = 0;
+            nhanVatDen = 0;
+            playSetupMode = 2;
+            khoiTaoPlaySetupButtons();
+            trangThai = TrangThai::PVP_SETUP;
+            return;
+        }
+        if (titleBtnSettingsMenuRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
+            trangThai = TrangThai::SETTINGS_MENU;
+            return;
+        }
+        if (titleBtnModeBackRect.contains(x, y)) {
+            soundManager.play(SoundType::CLICK);
+            titleSubMenu = TitleSubMenu::PLAY_LOAD;
+            titleMenuIndex = 0;
+            return;
+        }
     }
 }
 
@@ -6595,28 +6767,27 @@ void GameManager::veTitleScreen() {
         window.draw(titleText);
     }
 
-    // 2. Lacquer Red Start Button ("Bắt Đầu" / "Start")
+    // 2. Lacquer Red Button Renderer for Submenus
     const sf::Texture& btnTex = am.texture(TextureId::TITLE_BTN_FRAME);
-    if (btnTex.getSize().x > 0) {
+
+    auto drawTitleButton = [&](sf::Vector2f center, float scale, const std::string& labelText, bool hovered, sf::FloatRect& outRect) {
+        if (btnTex.getSize().x == 0) return;
         sf::Sprite btnSprite(btnTex);
         float bw = static_cast<float>(btnTex.getSize().x);
         float bh = static_cast<float>(btnTex.getSize().y);
         btnSprite.setOrigin(bw / 2.0f, bh / 2.0f);
+        btnSprite.setScale(scale, scale);
+        btnSprite.setPosition(center);
 
-        float btnCenterY = 338.0f;
-        float baseScale = 1.22f;
-        btnSprite.setScale(baseScale, baseScale);
-        btnSprite.setPosition(600.0f, btnCenterY);
+        float rw = bw * scale;
+        float rh = bh * scale;
+        outRect = sf::FloatRect(center.x - rw / 2.0f, center.y - rh / 2.0f, rw, rh);
 
-        float rw = bw * baseScale;
-        float rh = bh * baseScale;
-        titleStartRect = sf::FloatRect(600.0f - rw / 2.0f, btnCenterY - rh / 2.0f, rw, rh);
-
-        // Golden glow when hovered
-        if (titleBtnStartHovered) {
+        // Golden glow when hovered or selected
+        if (hovered) {
             sf::RectangleShape glow(sf::Vector2f(rw + 12.0f, rh + 8.0f));
             glow.setOrigin((rw + 12.0f) / 2.0f, (rh + 8.0f) / 2.0f);
-            glow.setPosition(600.0f, btnCenterY);
+            glow.setPosition(center);
             glow.setFillColor(sf::Color(255, 215, 80, 50));
             glow.setOutlineThickness(2.0f);
             glow.setOutlineColor(sf::Color(255, 230, 120, 200));
@@ -6632,22 +6803,31 @@ void GameManager::veTitleScreen() {
         // Text inside button rendered using sf::Text
         sf::Text btnText;
         btnText.setFont(isVi ? fontVnBold : fontEnBold);
-        btnText.setString(toUtf8(isVi ? "Bắt đầu" : "Start"));
-        btnText.setCharacterSize(isVi ? 24 : 26);
+        btnText.setString(toUtf8(labelText));
+        int charSize = static_cast<int>(std::round(22.0f * (scale / 1.15f)));
+        if (!isVi) charSize += 2;
+        if (labelText.length() > 20) charSize = std::max(16, charSize - 3);
+        else if (labelText.length() > 14) charSize = std::max(17, charSize - 1);
+        btnText.setCharacterSize(charSize);
         btnText.setStyle(sf::Text::Bold);
 
         sf::FloatRect bb = btnText.getLocalBounds();
+        while (bb.width > (rw - 38.0f) && charSize > 14) {
+            charSize--;
+            btnText.setCharacterSize(charSize);
+            bb = btnText.getLocalBounds();
+        }
         btnText.setOrigin(std::round(bb.left + bb.width / 2.0f), std::round(bb.top + bb.height / 2.0f));
 
         // Drop-shadow
         btnText.setFillColor(sf::Color(45, 12, 8, 230));
         btnText.setOutlineThickness(1.2f);
         btnText.setOutlineColor(sf::Color(45, 12, 8, 230));
-        btnText.setPosition(601.0f, btnCenterY + 1.0f);
+        btnText.setPosition(center.x + 1.0f, center.y + 1.0f);
         window.draw(btnText);
 
         // Main text with hover responsive palette
-        if (titleBtnStartHovered) {
+        if (hovered) {
             btnText.setFillColor(sf::Color(255, 255, 225));
             btnText.setOutlineThickness(1.5f);
             btnText.setOutlineColor(sf::Color(100, 25, 15, 255));
@@ -6656,8 +6836,49 @@ void GameManager::veTitleScreen() {
             btnText.setOutlineThickness(1.2f);
             btnText.setOutlineColor(sf::Color(75, 18, 12, 240));
         }
-        btnText.setPosition(600.0f, btnCenterY);
+        btnText.setPosition(center);
         window.draw(btnText);
+    };
+
+    if (titleSubMenu == TitleSubMenu::MAIN_START) {
+        drawTitleButton(sf::Vector2f(600.0f, 338.0f), 1.22f,
+                        isVi ? "Bắt đầu" : "Start",
+                        titleBtnStartHovered || titleMenuIndex == 0,
+                        titleStartRect);
+    } else if (titleSubMenu == TitleSubMenu::PLAY_LOAD) {
+        drawTitleButton(sf::Vector2f(600.0f, 275.0f), 1.18f,
+                        isVi ? "Chơi" : "Play",
+                        titleBtnPlayHovered || titleMenuIndex == 0,
+                        titleBtnPlayRect);
+        drawTitleButton(sf::Vector2f(600.0f, 355.0f), 1.18f,
+                        isVi ? "Tải ván đấu" : "Load Game",
+                        titleBtnLoadHovered || titleMenuIndex == 1,
+                        titleBtnLoadRect);
+        drawTitleButton(sf::Vector2f(600.0f, 435.0f), 1.08f,
+                        isVi ? "Quay lại" : "Back",
+                        titleBtnBackHovered || titleMenuIndex == 2,
+                        titleBtnBackRect);
+    } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
+        drawTitleButton(sf::Vector2f(600.0f, 235.0f), 1.04f,
+                        isVi ? "Đấu 2 Người (PvP)" : "Two Players (PvP)",
+                        titleBtnPvpHovered || titleMenuIndex == 0,
+                        titleBtnPvpRect);
+        drawTitleButton(sf::Vector2f(600.0f, 298.0f), 1.04f,
+                        isVi ? "Đấu Với Máy (AI)" : "Play vs AI",
+                        titleBtnPvaiHovered || titleMenuIndex == 1,
+                        titleBtnPvaiRect);
+        drawTitleButton(sf::Vector2f(600.0f, 361.0f), 1.04f,
+                        isVi ? "Xem Máy Đấu (Demo)" : "Watch AI Demo",
+                        titleBtnDemoHovered || titleMenuIndex == 2,
+                        titleBtnDemoRect);
+        drawTitleButton(sf::Vector2f(600.0f, 424.0f), 1.04f,
+                        isVi ? "Cài Đặt Chuyên Sâu" : "Settings",
+                        titleBtnSettingsMenuHovered || titleMenuIndex == 3,
+                        titleBtnSettingsMenuRect);
+        drawTitleButton(sf::Vector2f(600.0f, 487.0f), 0.98f,
+                        isVi ? "Quay lại" : "Back",
+                        titleBtnModeBackHovered || titleMenuIndex == 4,
+                        titleBtnModeBackRect);
     }
 
     // 3. Corner Action Buttons (Settings, Sound, Info)
