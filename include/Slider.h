@@ -55,13 +55,15 @@ public:
     }
 
     void draw(sf::RenderWindow& window) {
-        // Draw title drop shadow & text
+        // Draw title drop shadow & text with proper UTF-8 decoding
+        sf::String utf8Title = sf::String::fromUtf8(title.begin(), title.end());
+
         sf::Text labelShadow;
         labelShadow.setFont(font);
         labelShadow.setCharacterSize(14);
         labelShadow.setStyle(sf::Text::Bold);
         labelShadow.setFillColor(sf::Color(25, 12, 8, 220));
-        labelShadow.setString(title);
+        labelShadow.setString(utf8Title);
         labelShadow.setPosition(posX + 1.0f, posY - 22.0f);
         window.draw(labelShadow);
 
@@ -70,7 +72,7 @@ public:
         labelText.setCharacterSize(14);
         labelText.setStyle(sf::Text::Bold);
         labelText.setFillColor(sf::Color(250, 230, 165));
-        labelText.setString(title);
+        labelText.setString(utf8Title);
         labelText.setPosition(posX, posY - 23.0f);
         window.draw(labelText);
 

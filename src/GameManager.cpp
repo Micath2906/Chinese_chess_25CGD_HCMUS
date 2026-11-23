@@ -727,29 +727,28 @@ void GameManager::capNhatViTriNutCaiDat() {
         soundboardButtons[i]->setSize(sbW, 44.0f);
     }
 
-    // Tab 2: Gameplay (Balanced columns & proper clearances)
+    // Tab 2: Gameplay (Balanced 3x2 columns & proper clearances)
     float gpCol1X = 415.0f + offX;
     float gpCol2X = 735.0f + offX;
     float gpW = 310.0f;
     float gpH = 42.0f;
     float gpRow0 = 196.0f;
-    float gpRow1 = 258.0f;
-    float gpRow2 = 320.0f;
-    float gpRow3 = 382.0f;
-    if (settingsGameplayButtons.size() >= 4) {
-        settingsGameplayButtons[0]->setPosition(gpCol1X, gpRow0);
+    float gpRow1 = 252.0f;
+    float gpRow2 = 308.0f;
+    if (settingsGameplayButtons.size() >= 3) {
+        settingsGameplayButtons[0]->setPosition(gpCol1X, gpRow0); // Tốc độ AI
         settingsGameplayButtons[0]->setSize(gpW, gpH);
-        settingsGameplayButtons[1]->setPosition(gpCol1X, gpRow1);
+        settingsGameplayButtons[1]->setPosition(gpCol1X, gpRow1); // Báo chiếu
         settingsGameplayButtons[1]->setSize(gpW, gpH);
-        settingsGameplayButtons[2]->setPosition(gpCol1X, gpRow2);
+        settingsGameplayButtons[2]->setPosition(gpCol1X, gpRow2); // Gợi ý nước
         settingsGameplayButtons[2]->setSize(gpW, gpH);
-        settingsGameplayButtons[3]->setPosition(gpCol1X, gpRow3);
-        settingsGameplayButtons[3]->setSize(gpW, gpH);
     }
     if (settingsGameplayButtons.size() >= 6) {
-        settingsGameplayButtons[4]->setPosition(gpCol2X, gpRow0);
+        settingsGameplayButtons[4]->setPosition(gpCol2X, gpRow0); // Tọa độ bàn
         settingsGameplayButtons[4]->setSize(gpW, gpH);
-        settingsGameplayButtons[5]->setPosition(gpCol2X, gpRow1);
+        settingsGameplayButtons[3]->setPosition(gpCol2X, gpRow1); // Nước vừa đi
+        settingsGameplayButtons[3]->setSize(gpW, gpH);
+        settingsGameplayButtons[5]->setPosition(gpCol2X, gpRow2); // Hiển thị (Fullscreen)
         settingsGameplayButtons[5]->setSize(gpW, gpH);
     }
 
@@ -6579,11 +6578,11 @@ void GameManager::veSettingsMenu() {
             col2Head.setPosition(gpCol2X, 166.0f);
             window.draw(col2Head);
 
-            // Balanced Gameplay Guide Box (Fills lower panel void elegantly)
+            // Balanced Gameplay Guide Box with Dynamic Word Wrapping (Guaranteed no text overflow)
             float gpGuideX = 415.0f + offX;
-            float gpGuideY = 460.0f;
+            float gpGuideY = 372.0f;
             float gpGuideW = 630.0f;
-            float gpGuideH = 116.0f;
+            float gpGuideH = 152.0f;
 
             sf::RectangleShape gpGuideBg(sf::Vector2f(gpGuideW, gpGuideH));
             gpGuideBg.setPosition(gpGuideX, gpGuideY);
@@ -6607,20 +6606,58 @@ void GameManager::veSettingsMenu() {
             gpGuideDiv.setFillColor(sf::Color(150, 115, 60, 140));
             window.draw(gpGuideDiv);
 
+            std::vector<std::string> gpBullets = tiengViet ? std::vector<std::string>{
+                "• Hiển thị: Bật/tắt chế độ toàn màn hình hoặc cửa sổ, hiển thị hệ tọa độ 1-9 & A-J.",
+                "• Trợ giúp: Bật/tắt gợi ý nước đi hợp lệ, vòng sáng nước vừa đi và cảnh báo chiếu.",
+                "• Nhịp điệu AI: Tùy biến tốc độ suy nghĩ của máy (Tự nhiên hoặc Phản hồi tức thì)."
+            } : std::vector<std::string>{
+                "• Display: Switch between Fullscreen and Windowed mode, toggle coordinates.",
+                "• Assists: Toggle valid move dots, last move highlight, and king check alarms.",
+                "• AI Pacing: Switch between natural deliberate timing and instant responses."
+            };
+
+            const float textPadX = 18.0f;
+            const float maxTextW = gpGuideW - textPadX * 2.0f;
+            const unsigned int descCharSize = 12;
+
+            std::string fullDesc;
+            for (size_t i = 0; i < gpBullets.size(); ++i) {
+                std::istringstream iss(gpBullets[i]);
+                std::string word;
+                std::string curLine;
+                std::string wrappedBullet;
+                while (iss >> word) {
+                    std::string test = curLine.empty() ? word : (curLine + " " + word);
+                    sf::Text probe;
+                    probe.setFont(fBold);
+                    probe.setCharacterSize(descCharSize);
+                    probe.setStyle(sf::Text::Bold);
+                    probe.setString(toUtf8(test));
+                    if (probe.getLocalBounds().width > maxTextW && !curLine.empty()) {
+                        if (!wrappedBullet.empty()) wrappedBullet += "\n";
+                        wrappedBullet += curLine;
+                        curLine = "  " + word;
+                    } else {
+                        curLine = test;
+                    }
+                }
+                if (!curLine.empty()) {
+                    if (!wrappedBullet.empty()) wrappedBullet += "\n";
+                    wrappedBullet += curLine;
+                }
+
+                if (!fullDesc.empty()) fullDesc += "\n";
+                fullDesc += wrappedBullet;
+            }
+
             sf::Text gpGuideContent;
             gpGuideContent.setFont(fBold);
-            gpGuideContent.setString(toUtf8(tiengViet
-                ? "• Hiển thị: Bật/tắt chế độ toàn màn hình hoặc cửa sổ, hiển thị hệ tọa độ 1-9 & A-J.\n"
-                  "• Trợ giúp nước đi: Bật/tắt gợi ý nước đi hợp lệ, vòng sáng nước đi cuối và cảnh báo Chiếu.\n"
-                  "• Nhịp điệu AI: Tùy biến tốc độ suy nghĩ của máy (Tự nhiên hoặc Phản hồi tức thì)."
-                : "• Display: Switch between Fullscreen and Windowed mode, toggle coordinates.\n"
-                  "• Assists: Toggle valid move dots, last move highlight, and king check alarms.\n"
-                  "• AI Pacing: Switch between natural deliberate timing and instant responses."));
-            gpGuideContent.setCharacterSize(13);
+            gpGuideContent.setString(toUtf8(fullDesc));
+            gpGuideContent.setCharacterSize(descCharSize);
             gpGuideContent.setStyle(sf::Text::Bold);
-            gpGuideContent.setLineSpacing(1.28f);
+            gpGuideContent.setLineSpacing(1.35f);
             gpGuideContent.setFillColor(sf::Color(235, 220, 190));
-            gpGuideContent.setPosition(gpGuideX + 16.0f, gpGuideY + 40.0f);
+            gpGuideContent.setPosition(gpGuideX + textPadX, gpGuideY + 40.0f);
             window.draw(gpGuideContent);
 
         } else if (activeSettingsTab == SettingsTab::LANGUAGE) {
