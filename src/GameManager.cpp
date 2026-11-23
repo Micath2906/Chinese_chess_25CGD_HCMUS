@@ -504,7 +504,7 @@ void GameManager::khoiTaoTatCaMenu() {
     // Intro menu
     menuIntro.setFont(fontBold);
     menuIntro.xoaTatCaButton();
-    menuIntro.themButton(490.0f, 620.0f, 220.0f, 46.0f, Loc::get(LocKey::BACK), [this]() {
+    menuIntro.themButton(490.0f, 624.0f, 220.0f, 44.0f, Loc::get(LocKey::BACK), [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = trangThaiTruocIntro;
     });
@@ -530,7 +530,7 @@ void GameManager::capNhatNhanNut() {
         settingsTabButtons[3]->setLabel(isVi ? "ĐIỀU KHIỂN" : "CONTROLS");
     }
     if (settingsCloseBtn) settingsCloseBtn->setLabel(isVi ? "ĐÓNG" : "CLOSE");
-    if (settingsCollapseBtn) settingsCollapseBtn->setLabel(isVi ? "< THU GỌN" : "< BACK");
+    if (settingsCollapseBtn) settingsCollapseBtn->setLabel(isVi ? "Quay lại" : "Back");
 
     if (sliderMaster) sliderMaster->setTitle(Loc::get(LocKey::SETTING_MASTER_VOL));
     if (sliderSfx) sliderSfx->setTitle(Loc::get(LocKey::SETTING_SFX_VOL));
@@ -687,7 +687,7 @@ void GameManager::capNhatViTriNutCaiDat() {
         settingsCloseBtn->setSize(220.0f, 44.0f);
     }
     if (settingsCollapseBtn) {
-        settingsCollapseBtn->setPosition(123.0f, 85.0f + 635.0f - 62.0f);
+        settingsCollapseBtn->setPosition(123.0f, 645.0f);
         settingsCollapseBtn->setSize(224.0f, 44.0f);
     }
 
@@ -697,74 +697,78 @@ void GameManager::capNhatViTriNutCaiDat() {
     float offX = rightPanelX - 380.0f;
 
     // Reposition controls inside right panel
-    // Tab 1: Sound - Symmetrical full-width layout without monitor clutter
+    // Tab 1: Sound - Evenly distributed vertical spacing without monitor void
     float sW = 540.0f;
     float sX = 380.0f + (710.0f - sW) / 2.0f + offX; // 465.0f + offX
     if (sliderMaster) {
-        sliderMaster->setPosition(sX, 148.0f);
+        sliderMaster->setPosition(sX, 180.0f);
         sliderMaster->setWidth(sW);
     }
     if (settingsAudioButtons.size() >= 2) {
-        settingsAudioButtons[0]->setPosition(sX, 214.0f);
-        settingsAudioButtons[0]->setSize(sW, 40.0f);
+        settingsAudioButtons[0]->setPosition(sX, 228.0f);
+        settingsAudioButtons[0]->setSize(sW, 42.0f);
     }
     if (sliderSfx) {
-        sliderSfx->setPosition(sX, 280.0f);
+        sliderSfx->setPosition(sX, 312.0f);
         sliderSfx->setWidth(sW);
     }
     if (settingsAudioButtons.size() >= 2) {
-        settingsAudioButtons[1]->setPosition(sX, 346.0f);
-        settingsAudioButtons[1]->setSize(sW, 40.0f);
+        settingsAudioButtons[1]->setPosition(sX, 360.0f);
+        settingsAudioButtons[1]->setSize(sW, 42.0f);
     }
     if (sliderBgm) {
-        sliderBgm->setPosition(sX, 412.0f);
+        sliderBgm->setPosition(sX, 444.0f);
         sliderBgm->setWidth(sW);
     }
 
-    float sbY = 512.0f;
+    float sbY = 534.0f;
     float sbW = 98.0f;
     float sbGap = 12.5f;
     for (size_t i = 0; i < soundboardButtons.size(); ++i) {
         soundboardButtons[i]->setPosition(sX + i * (sbW + sbGap), sbY);
-        soundboardButtons[i]->setSize(sbW, 40.0f);
+        soundboardButtons[i]->setSize(sbW, 44.0f);
     }
 
-    // Tab 2: Gameplay (Two balanced columns: Rules & AI | Display & Atmosphere)
+    // Tab 2: Gameplay (Balanced columns & proper clearances)
     float gpCol1X = 415.0f + offX;
     float gpCol2X = 735.0f + offX;
     float gpW = 310.0f;
     float gpH = 42.0f;
-    float gpStep = 56.0f;
+    float gpRow0 = 196.0f;
+    float gpRow1 = 258.0f;
+    float gpRow2 = 320.0f;
+    float gpRow3 = 382.0f;
     if (settingsGameplayButtons.size() >= 4) {
-        settingsGameplayButtons[0]->setPosition(gpCol1X, 192.0f);
+        settingsGameplayButtons[0]->setPosition(gpCol1X, gpRow0);
         settingsGameplayButtons[0]->setSize(gpW, gpH);
-        settingsGameplayButtons[1]->setPosition(gpCol1X, 192.0f + gpStep);
+        settingsGameplayButtons[1]->setPosition(gpCol1X, gpRow1);
         settingsGameplayButtons[1]->setSize(gpW, gpH);
-        settingsGameplayButtons[2]->setPosition(gpCol1X, 192.0f + gpStep * 2.0f);
+        settingsGameplayButtons[2]->setPosition(gpCol1X, gpRow2);
         settingsGameplayButtons[2]->setSize(gpW, gpH);
-        settingsGameplayButtons[3]->setPosition(gpCol1X, 192.0f + gpStep * 3.0f);
+        settingsGameplayButtons[3]->setPosition(gpCol1X, gpRow3);
         settingsGameplayButtons[3]->setSize(gpW, gpH);
     }
     if (settingsGameplayButtons.size() >= 7) {
-        settingsGameplayButtons[4]->setPosition(gpCol2X, 192.0f);
+        settingsGameplayButtons[4]->setPosition(gpCol2X, gpRow0);
         settingsGameplayButtons[4]->setSize(gpW, gpH);
-        settingsGameplayButtons[5]->setPosition(gpCol2X, 192.0f + gpStep);
+        settingsGameplayButtons[5]->setPosition(gpCol2X, gpRow1);
         settingsGameplayButtons[5]->setSize(gpW, gpH);
-        settingsGameplayButtons[6]->setPosition(gpCol2X, 192.0f + gpStep * 2.0f);
+        settingsGameplayButtons[6]->setPosition(gpCol2X, gpRow2);
         settingsGameplayButtons[6]->setSize(gpW, gpH);
     }
     if (sliderAtmosphere) {
-        sliderAtmosphere->setPosition(gpCol2X, 192.0f + gpStep * 3.0f + 6.0f);
+        sliderAtmosphere->setPosition(gpCol2X, 406.0f);
         sliderAtmosphere->setWidth(gpW);
     }
 
-    // Tab 3: Language (Two Imperial Decree Parchment Cards)
+    // Tab 3: Language (Full-height Imperial Decree Parchment Cards)
     if (settingsLanguageButtons.size() >= 2) {
         float langCardW = 310.0f;
-        float langCardH = 290.0f;
-        settingsLanguageButtons[0]->setPosition(415.0f + offX, 185.0f);
+        float langCardH = 345.0f;
+        float langCardY = 175.0f;
+        settingsLanguageButtons[0]->setPosition(415.0f + offX, langCardY);
         settingsLanguageButtons[0]->setSize(langCardW, langCardH);
-        settingsLanguageButtons[1]->setPosition(735.0f + offX, 185.0f);
+        settingsLanguageButtons[1]->setPosition(735.0f + offX, langCardY);
         settingsLanguageButtons[1]->setSize(langCardW, langCardH);
     }
 
@@ -773,18 +777,18 @@ void GameManager::capNhatViTriNutCaiDat() {
     float pGap = 8.0f;
     float pX = 415.0f + offX;
     if (settingsControlButtons.size() >= 10) {
-        settingsControlButtons[7]->setPosition(pX, 190.0f);
-        settingsControlButtons[7]->setSize(pW, 38.0f);
-        settingsControlButtons[8]->setPosition(pX + pW + pGap, 190.0f);
-        settingsControlButtons[8]->setSize(pW, 38.0f);
-        settingsControlButtons[9]->setPosition(pX + (pW + pGap) * 2.0f, 190.0f);
-        settingsControlButtons[9]->setSize(pW, 38.0f);
+        settingsControlButtons[7]->setPosition(pX, 184.0f);
+        settingsControlButtons[7]->setSize(pW, 40.0f);
+        settingsControlButtons[8]->setPosition(pX + pW + pGap, 184.0f);
+        settingsControlButtons[8]->setSize(pW, 40.0f);
+        settingsControlButtons[9]->setPosition(pX + (pW + pGap) * 2.0f, 184.0f);
+        settingsControlButtons[9]->setSize(pW, 40.0f);
 
         float kCol1X = 415.0f + offX;
         float kCol2X = 735.0f + offX;
         float kW = 310.0f;
-        float kH = 38.0f;
-        float kStep = 46.0f;
+        float kH = 40.0f;
+        float kStep = 50.0f;
         for (int a = 0; a < 4; ++a) {
             settingsControlButtons[a]->setPosition(kCol1X, 274.0f + a * kStep);
             settingsControlButtons[a]->setSize(kW, kH);
@@ -866,7 +870,7 @@ void GameManager::khoiTaoDashboardSettings() {
     settingsCloseBtn->setColors(sf::Color(240, 220, 180), sf::Color(255, 240, 190), sf::Color(255, 250, 210));
 
     // Collapse button (when slid to left)
-    settingsCollapseBtn = std::make_unique<Button>(0.0f, 0.0f, 224.0f, 44.0f, isVi ? "< THU GỌN" : "< BACK", fBold, [this]() {
+    settingsCollapseBtn = std::make_unique<Button>(0.0f, 0.0f, 224.0f, 44.0f, isVi ? "Quay lại" : "Back", fBold, [this]() {
         soundManager.play(SoundType::CLICK);
         settingsDetailOpen = false;
         rebindingAction = KeyAction::COUNT;
@@ -4896,7 +4900,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
     const float btmH = 46.0f;
 
     auto backBtn = std::make_unique<Button>(142.0f, btmY, 160.0f, btmH,
-        tiengViet ? "QUAY LẠI" : "BACK", fBold, [this]() {
+        tiengViet ? "Quay lại" : "Back", fBold, [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::TITLE_SCREEN;
         titleSubMenu = TitleSubMenu::MODE_SELECT;
@@ -4914,7 +4918,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     if (playSetupMode == 1) {
         auto nextBtn = std::make_unique<Button>(818.0f, btmY, 240.0f, btmH,
-            tiengViet ? "TIẾP THEO >>" : "NEXT >>", fBold, [this, trimStr, tiengViet]() {
+            tiengViet ? "Tiếp theo" : "Next", fBold, [this, trimStr, tiengViet]() {
             soundManager.play(SoundType::CLICK);
             std::string n1 = trimStr(inputP1Name->getValue());
             std::string n2 = trimStr(inputP2Name->getValue());
@@ -4938,8 +4942,8 @@ void GameManager::khoiTaoPlaySetupButtons() {
     } else {
         bool needsRoll = (aiFirstChoice == 2);
         std::string actLabel = needsRoll
-            ? (tiengViet ? "TIẾP THEO >>" : "NEXT >>")
-            : (tiengViet ? "VÀO TRẬN ĐẤU >>" : "START MATCH >>");
+            ? (tiengViet ? "Tiếp theo" : "Next")
+            : (tiengViet ? "Vào trận đấu" : "Start Match");
 
         auto actBtn = std::make_unique<Button>(818.0f, btmY, 240.0f, btmH, actLabel, fBold, [this, trimStr, tiengViet, needsRoll]() {
             soundManager.play(SoundType::CLICK);
@@ -6110,7 +6114,7 @@ void GameManager::veSettingsMenu() {
             sbTitle.setStyle(sf::Text::Bold);
             sbTitle.setString(toUtf8(tiengViet ? "THỬ NGHIỆM ÂM THANH" : "SOUNDBOARD AUDIO TEST"));
             sbTitle.setFillColor(sf::Color(255, 220, 130));
-            sbTitle.setPosition(sX, 478.0f);
+            sbTitle.setPosition(sX, 504.0f);
             window.draw(sbTitle);
 
             for (auto& btn : soundboardButtons) btn->draw(window);
@@ -6138,14 +6142,55 @@ void GameManager::veSettingsMenu() {
             col2Head.setPosition(gpCol2X, 166.0f);
             window.draw(col2Head);
 
-            // Note: "all gameplay" note box removed per Task 5!
+            // Balanced Gameplay Guide Box (Fills lower panel void elegantly)
+            float gpGuideX = 415.0f + offX;
+            float gpGuideY = 460.0f;
+            float gpGuideW = 630.0f;
+            float gpGuideH = 116.0f;
+
+            sf::RectangleShape gpGuideBg(sf::Vector2f(gpGuideW, gpGuideH));
+            gpGuideBg.setPosition(gpGuideX, gpGuideY);
+            gpGuideBg.setFillColor(sf::Color(24, 18, 13, 235));
+            gpGuideBg.setOutlineThickness(1.2f);
+            gpGuideBg.setOutlineColor(sf::Color(150, 115, 60, 160));
+            window.draw(gpGuideBg);
+            ve4GocLuaChon(window, sf::Vector2f(gpGuideX, gpGuideY), sf::Vector2f(gpGuideW, gpGuideH), 1.0f, 1.0f);
+
+            sf::Text gpGuideTitle;
+            gpGuideTitle.setFont(fBold);
+            gpGuideTitle.setString(toUtf8(tiengViet ? "HƯỚNG DẪN TÙY CHỌN TRẬN ĐẤU" : "GAMEPLAY & DISPLAY GUIDE"));
+            gpGuideTitle.setCharacterSize(13);
+            gpGuideTitle.setStyle(sf::Text::Bold);
+            gpGuideTitle.setFillColor(sf::Color(255, 220, 120));
+            gpGuideTitle.setPosition(gpGuideX + 16.0f, gpGuideY + 12.0f);
+            window.draw(gpGuideTitle);
+
+            sf::RectangleShape gpGuideDiv(sf::Vector2f(gpGuideW - 32.0f, 1.0f));
+            gpGuideDiv.setPosition(gpGuideX + 16.0f, gpGuideY + 32.0f);
+            gpGuideDiv.setFillColor(sf::Color(150, 115, 60, 140));
+            window.draw(gpGuideDiv);
+
+            sf::Text gpGuideContent;
+            gpGuideContent.setFont(f);
+            gpGuideContent.setString(toUtf8(tiengViet
+                ? "• Khí quyển: Điều chỉnh mật độ hiệu ứng cánh hoa, lá tre và đốm sáng trên bàn cờ.\n"
+                  "• Trợ giúp nước đi: Bật/tắt gợi ý nước đi hợp lệ, vòng sáng nước đi cuối và cảnh báo Chiếu.\n"
+                  "• Nhịp điệu AI: Tùy biến tốc độ suy nghĩ của máy (Tự nhiên hoặc Phản hồi tức thì)."
+                : "• Atmosphere: Adjust density of ambient falling leaves, petals, and embers on the board.\n"
+                  "• Assists: Toggle valid move dots, last move highlight, and king check alarms.\n"
+                  "• AI Pacing: Switch between natural deliberate timing and instant responses."));
+            gpGuideContent.setCharacterSize(12);
+            gpGuideContent.setLineSpacing(1.24f);
+            gpGuideContent.setFillColor(sf::Color(220, 205, 175));
+            gpGuideContent.setPosition(gpGuideX + 16.0f, gpGuideY + 40.0f);
+            window.draw(gpGuideContent);
 
         } else if (activeSettingsTab == SettingsTab::LANGUAGE) {
             float card1X = 415.0f + offX;
             float card2X = 735.0f + offX;
-            float cardY = 185.0f;
+            float cardY = 175.0f;
             float cardW = 310.0f;
-            float cardH = 290.0f;
+            float cardH = 345.0f;
 
             auto drawLangCardDecor = [&](float cx, bool isCurrent, const std::string& title, const std::string& sub,
                                         const std::string& desc1, const std::string& desc2, const std::string& desc3,
@@ -6160,7 +6205,7 @@ void GameManager::veSettingsMenu() {
                 ve4GocLuaChon(window, sf::Vector2f(cx, cardY), sf::Vector2f(cardW, cardH), 1.2f, 1.2f);
 
                 // Header Band
-                sf::RectangleShape hBand(sf::Vector2f(cardW - 16.0f, 32.0f));
+                sf::RectangleShape hBand(sf::Vector2f(cardW - 16.0f, 36.0f));
                 hBand.setPosition(cx + 8.0f, cardY + 8.0f);
                 hBand.setFillColor(headerTint);
                 hBand.setOutlineThickness(1.0f);
@@ -6175,7 +6220,7 @@ void GameManager::veSettingsMenu() {
                 t.setFillColor(isCurrent ? sf::Color(255, 245, 205) : sf::Color(240, 225, 185));
                 sf::FloatRect tb = t.getLocalBounds();
                 t.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-                t.setPosition(cx + cardW / 2.0f, cardY + 24.0f);
+                t.setPosition(cx + cardW / 2.0f, cardY + 26.0f);
                 window.draw(t);
 
                 sf::Text st;
@@ -6185,11 +6230,11 @@ void GameManager::veSettingsMenu() {
                 st.setFillColor(sf::Color(225, 185, 105));
                 sf::FloatRect stb = st.getLocalBounds();
                 st.setOrigin(std::round(stb.left + stb.width / 2.0f), std::round(stb.top + stb.height / 2.0f));
-                st.setPosition(cx + cardW / 2.0f, cardY + 56.0f);
+                st.setPosition(cx + cardW / 2.0f, cardY + 60.0f);
                 window.draw(st);
 
                 sf::RectangleShape div(sf::Vector2f(cardW - 40.0f, 1.0f));
-                div.setPosition(cx + 20.0f, cardY + 74.0f);
+                div.setPosition(cx + 20.0f, cardY + 78.0f);
                 div.setFillColor(sf::Color(165, 125, 60, 160));
                 window.draw(div);
 
@@ -6197,14 +6242,14 @@ void GameManager::veSettingsMenu() {
                 d.setFont(f);
                 d.setString(toUtf8(desc1 + "\n" + desc2 + "\n" + desc3));
                 d.setCharacterSize(12);
-                d.setLineSpacing(1.30f);
+                d.setLineSpacing(1.34f);
                 d.setFillColor(sf::Color(220, 205, 175));
-                d.setPosition(cx + 18.0f, cardY + 88.0f);
+                d.setPosition(cx + 18.0f, cardY + 96.0f);
                 window.draw(d);
 
                 // Imperial Seal Status Badge
-                sf::RectangleShape badge(sf::Vector2f(cardW - 40.0f, 36.0f));
-                badge.setPosition(cx + 20.0f, cardY + cardH - 52.0f);
+                sf::RectangleShape badge(sf::Vector2f(cardW - 40.0f, 38.0f));
+                badge.setPosition(cx + 20.0f, cardY + cardH - 54.0f);
                 badge.setFillColor(isCurrent ? sf::Color(85, 24, 20, 245) : sf::Color(45, 32, 22, 220));
                 badge.setOutlineThickness(1.2f);
                 badge.setOutlineColor(isCurrent ? sf::Color(255, 215, 95) : sf::Color(160, 120, 60));
@@ -6218,7 +6263,7 @@ void GameManager::veSettingsMenu() {
                 statText.setFillColor(isCurrent ? sf::Color(255, 245, 200) : sf::Color(225, 205, 165));
                 sf::FloatRect bgb = statText.getLocalBounds();
                 statText.setOrigin(std::round(bgb.left + bgb.width / 2.0f), std::round(bgb.top + bgb.height / 2.0f));
-                statText.setPosition(cx + cardW / 2.0f, cardY + cardH - 34.0f);
+                statText.setPosition(cx + cardW / 2.0f, cardY + cardH - 35.0f);
                 window.draw(statText);
             };
 
@@ -6259,7 +6304,7 @@ void GameManager::veSettingsMenu() {
             preTitle.setString(toUtf8(tiengViet ? "BỘ PHÍM SẴN CÓ" : "QUICK PRESETS"));
             preTitle.setCharacterSize(13);
             preTitle.setFillColor(sf::Color(255, 220, 120));
-            preTitle.setPosition(kCol1X, 166.0f);
+            preTitle.setPosition(kCol1X, 158.0f);
             window.draw(preTitle);
 
             sf::Text actTitle;
@@ -6267,19 +6312,19 @@ void GameManager::veSettingsMenu() {
             actTitle.setString(toUtf8(tiengViet ? "TÙY BIẾN PHÍM BẤM (Nhấp vào để đổi phím)" : "CUSTOM KEY BINDINGS (Click to rebind)"));
             actTitle.setCharacterSize(13);
             actTitle.setFillColor(sf::Color(255, 220, 120));
-            actTitle.setPosition(kCol1X, 246.0f);
+            actTitle.setPosition(kCol1X, 244.0f);
             window.draw(actTitle);
 
             for (auto& btn : settingsControlButtons) btn->draw(window);
 
             if (rebindingAction != KeyAction::COUNT) {
-                sf::RectangleShape listenBox(sf::Vector2f(rightW - 60.0f, 44.0f));
-                listenBox.setPosition(rightPanelX + 30.0f, 448.0f);
+                sf::RectangleShape listenBox(sf::Vector2f(rightW - 60.0f, 56.0f));
+                listenBox.setPosition(rightPanelX + 30.0f, 492.0f);
                 listenBox.setFillColor(sf::Color(165, 25, 20, 240));
                 listenBox.setOutlineThickness(1.8f);
                 listenBox.setOutlineColor(sf::Color(255, 215, 95));
                 window.draw(listenBox);
-                ve4GocLuaChon(window, sf::Vector2f(rightPanelX + 30.0f, 448.0f), sf::Vector2f(rightW - 60.0f, 44.0f), 1.2f, 1.2f);
+                ve4GocLuaChon(window, sf::Vector2f(rightPanelX + 30.0f, 492.0f), sf::Vector2f(rightW - 60.0f, 56.0f), 1.2f, 1.2f);
 
                 sf::Text listenT;
                 listenT.setFont(fBold);
@@ -6289,18 +6334,49 @@ void GameManager::veSettingsMenu() {
                 listenT.setFillColor(sf::Color(255, 245, 190));
                 sf::FloatRect ltb = listenT.getLocalBounds();
                 listenT.setOrigin(std::round(ltb.left + ltb.width / 2.0f), std::round(ltb.top + ltb.height / 2.0f));
-                listenT.setPosition(rightPanelX + rightW / 2.0f, 470.0f);
+                listenT.setPosition(rightPanelX + rightW / 2.0f, 520.0f);
                 window.draw(listenT);
             } else {
-                sf::Text mouseHint;
-                mouseHint.setFont(f);
-                mouseHint.setString(toUtf8(tiengViet
-                    ? "• Thao tác chuột: Luôn hỗ trợ nhấp trực tiếp vào ô cờ & quân cờ để chọn và di chuyển."
-                    : "• Mouse control: Direct clicking on pieces and squares is always active."));
-                mouseHint.setCharacterSize(12);
-                mouseHint.setFillColor(sf::Color(215, 195, 155));
-                mouseHint.setPosition(kCol1X, 458.0f);
-                window.draw(mouseHint);
+                // Balanced Controls & Mouse Guide Box
+                float ctrlGuideX = 415.0f + offX;
+                float ctrlGuideY = 490.0f;
+                float ctrlGuideW = 630.0f;
+                float ctrlGuideH = 88.0f;
+
+                sf::RectangleShape ctrlGuideBg(sf::Vector2f(ctrlGuideW, ctrlGuideH));
+                ctrlGuideBg.setPosition(ctrlGuideX, ctrlGuideY);
+                ctrlGuideBg.setFillColor(sf::Color(24, 18, 13, 235));
+                ctrlGuideBg.setOutlineThickness(1.2f);
+                ctrlGuideBg.setOutlineColor(sf::Color(150, 115, 60, 160));
+                window.draw(ctrlGuideBg);
+                ve4GocLuaChon(window, sf::Vector2f(ctrlGuideX, ctrlGuideY), sf::Vector2f(ctrlGuideW, ctrlGuideH), 1.0f, 1.0f);
+
+                sf::Text ctrlGuideTitle;
+                ctrlGuideTitle.setFont(fBold);
+                ctrlGuideTitle.setString(toUtf8(tiengViet ? "HƯỚNG DẪN THAO TÁC & PHÍM TẮT" : "MOUSE CONTROLS & QUICK SHORTCUTS"));
+                ctrlGuideTitle.setCharacterSize(13);
+                ctrlGuideTitle.setStyle(sf::Text::Bold);
+                ctrlGuideTitle.setFillColor(sf::Color(255, 220, 120));
+                ctrlGuideTitle.setPosition(ctrlGuideX + 16.0f, ctrlGuideY + 12.0f);
+                window.draw(ctrlGuideTitle);
+
+                sf::RectangleShape ctrlGuideDiv(sf::Vector2f(ctrlGuideW - 32.0f, 1.0f));
+                ctrlGuideDiv.setPosition(ctrlGuideX + 16.0f, ctrlGuideY + 30.0f);
+                ctrlGuideDiv.setFillColor(sf::Color(150, 115, 60, 140));
+                window.draw(ctrlGuideDiv);
+
+                sf::Text ctrlGuideContent;
+                ctrlGuideContent.setFont(f);
+                ctrlGuideContent.setString(toUtf8(tiengViet
+                    ? "• Chuột: Nhấp chuột trái để chọn quân cờ và điểm đến. Nhấp chuột phải để hủy chọn.\n"
+                      "• Phím tắt nhanh: U (Đi lại / Undo)  •  ESC (Hủy chọn / Bảng tạm dừng)  •  Q (Thoát nhanh)."
+                    : "• Mouse: Left click to select piece and target square. Right click to deselect.\n"
+                      "• Quick Hotkeys: U (Undo last move)  •  ESC (Deselect / Pause menu)  •  Q (Quick Quit)."));
+                ctrlGuideContent.setCharacterSize(12);
+                ctrlGuideContent.setLineSpacing(1.24f);
+                ctrlGuideContent.setFillColor(sf::Color(220, 205, 175));
+                ctrlGuideContent.setPosition(ctrlGuideX + 16.0f, ctrlGuideY + 38.0f);
+                window.draw(ctrlGuideContent);
             }
         }
 
@@ -6361,8 +6437,8 @@ void GameManager::veIntroMenu() {
         window.draw(titleText);
     }
 
-    // 2. Outer Oriental Ebony Wood Frame (960x564 at X=120, Y=118)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(120.0f, 118.0f, 960.0f, 564.0f), OrientalPanelStyle::EBONY_WOOD);
+    // 2. Outer Oriental Ebony Wood Frame (1000x576 at X=100, Y=112)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(100.0f, 112.0f, 1000.0f, 576.0f), OrientalPanelStyle::EBONY_WOOD);
 
     const sf::Color inkDark(35, 18, 10);
 
@@ -6370,7 +6446,7 @@ void GameManager::veIntroMenu() {
         sf::Text sh;
         sh.setFont(fontBold);
         sh.setString(toUtf8(headerText));
-        sh.setCharacterSize(18);
+        sh.setCharacterSize(17);
         sh.setStyle(sf::Text::Bold);
         sh.setFillColor(sf::Color(0, 0, 0, 100));
         sf::FloatRect b = sh.getLocalBounds();
@@ -6384,14 +6460,14 @@ void GameManager::veIntroMenu() {
         window.draw(tx);
 
         sf::RectangleShape div(sf::Vector2f(divWidth, 2.0f));
-        div.setPosition(divStartX, topY + 20.0f);
+        div.setPosition(divStartX, topY + 18.0f);
         div.setFillColor(sf::Color(135, 92, 42));
         window.draw(div);
     };
 
-    // 3. Left Symmetrical Column: OOP Project & Design Patterns (X=144, Y=136, W=444, H=466)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(144.0f, 136.0f, 444.0f, 466.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
-    drawXuanColumnHeader(366.0f, 160.0f, tiengViet ? "ĐỒ ÁN OOP & THIẾT KẾ" : "OOP PROJECT & DESIGN", 168.0f, 396.0f);
+    // 3. Left Symmetrical Column: OOP Project & Design Patterns (X=124, Y=132, W=464, H=476)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(124.0f, 132.0f, 464.0f, 476.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+    drawXuanColumnHeader(356.0f, 154.0f, tiengViet ? "ĐỒ ÁN OOP & THIẾT KẾ" : "OOP PROJECT & DESIGN", 146.0f, 420.0f);
 
     std::string oopText = tiengViet
         ? "• TRƯỜNG ĐH KHOA HỌC TỰ NHIÊN (HCMUS)\n"
@@ -6417,7 +6493,7 @@ void GameManager::veIntroMenu() {
           "  7 pieces: Chariot, Elephant, Cannon, Horse,\n"
           "  General, Advisor, Soldier via QuanCoFactory.\n\n"
           "• PROTOTYPE PATTERN (Deep Copy):\n"
-          "  Robust clone() for zero-leak board copying\n"
+          "  Robust clone() for zero-leak board copying,\n"
           "  supporting search and move simulations.\n\n"
           "• ARTIFICIAL INTELLIGENCE (AI Engine):\n"
           "  Minimax search with Alpha-Beta pruning,\n"
@@ -6426,55 +6502,57 @@ void GameManager::veIntroMenu() {
     sf::Text oopContent;
     oopContent.setFont(fontBold);
     oopContent.setString(toUtf8(oopText));
-    oopContent.setCharacterSize(14);
+    oopContent.setCharacterSize(13);
     oopContent.setStyle(sf::Text::Bold);
-    oopContent.setLineSpacing(1.18f);
+    oopContent.setLineSpacing(1.22f);
     oopContent.setFillColor(inkDark);
-    oopContent.setPosition(166.0f, 192.0f);
+    oopContent.setPosition(146.0f, 186.0f);
     window.draw(oopContent);
 
-    // 4. Right Symmetrical Column: 7 Piece Rules & Controls (X=612, Y=136, W=444, H=466)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(612.0f, 136.0f, 444.0f, 466.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
-    drawXuanColumnHeader(834.0f, 160.0f, tiengViet ? "LUẬT 7 QUÂN CỜ & ĐIỀU KHIỂN" : "7 PIECES RULES & CONTROLS", 636.0f, 396.0f);
+    // 4. Right Symmetrical Column: 7 Piece Rules & Controls (X=612, Y=132, W=464, H=476)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(612.0f, 132.0f, 464.0f, 476.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+    drawXuanColumnHeader(844.0f, 154.0f, tiengViet ? "LUẬT 7 QUÂN CỜ & ĐIỀU KHIỂN" : "7 PIECES RULES & CONTROLS", 634.0f, 420.0f);
 
     std::string rulesText = tiengViet
-        ? "1. XE: Đi ngang, dọc tùy ý; bị cản bởi quân cờ.\n"
+        ? "1. XE: Đi ngang/dọc tùy ý; bị cản bởi quân cờ.\n"
           "2. PHÁO: Đi như Xe; ăn quân phải nhảy qua 1 ngòi.\n"
           "3. MÃ: Đi chữ Nhật (2x1); cản chân tại mắt Mã kề sát.\n"
           "4. TƯỢNG: Đi chéo 2 ô; không qua sông; cản mắt.\n"
-          "5. SĨ: Đi chéo 1 ô bên trong Cung Cửu Cung.\n"
+          "5. SĨ: Đi chéo 1 ô bên trong phạm vi Cung Cửu Cung.\n"
           "6. TƯỚNG: Đi 1 ô ngang/dọc trong Cung;\n"
-          "   Lộ Mặt Tướng: hai Tướng không được đối mặt.\n"
+          "   Hai Tướng không được đối mặt trực tiếp trên một cột.\n"
           "7. TỐT: Đi thẳng 1 ô; qua sông đi thêm ngang, không lùi.\n\n"
-          "• ĐIỀU KHIỂN TRẬN ĐẤU:\n"
-          "  - Chuột: Click trực tiếp vào quân cờ và ô đích.\n"
-          "  - Bàn phím: W/A/S/D di chuyển ô chọn, Enter chọn/đi.\n"
+          "• THAO TÁC TRẬN ĐẤU:\n"
+          "  - Chuột: Nhấp chọn quân cờ và điểm đến hợp lệ.\n"
+          "  - Bàn phím: W/A/S/D di chuyển ô chọn, Enter để chọn.\n"
           "  - Phím tắt: ESC (Hủy / Tạm dừng), U (Đi lại / Undo)."
-        : "1. CHARIOT: Orthogonal any distance; blocked by pieces.\n"
+        : "1. CHARIOT: Moves orthogonally any distance.\n"
           "2. CANNON: Moves like Chariot; jumps 1 piece to capture.\n"
-          "3. HORSE: Moves in L-shape (2x1); hobbled at adjacent eyes.\n"
+          "3. HORSE: Moves in L-shape (2x1); hobbled at adjacent eye.\n"
           "4. ELEPHANT: Diagonal 2 squares; own side only; eye-blocked.\n"
           "5. ADVISOR: Diagonal 1 square within Palace.\n"
-          "6. GENERAL: 1 step orthogonally in Palace;\n"
-          "   Flying General: generals cannot face each other directly.\n"
+          "6. GENERAL: 1 step in Palace (horizontal or vertical);\n"
+          "   Generals cannot face each other directly without pieces.\n"
           "7. SOLDIER: 1 forward; gains sideways moves across river.\n\n"
           "• MATCH CONTROLS:\n"
-          "  - Mouse: Left click pieces and highlighted destination squares.\n"
+          "  - Mouse: Left click pieces and highlighted target squares.\n"
           "  - Keyboard: W/A/S/D move cursor, Enter select / move piece.\n"
           "  - Hotkeys: ESC (Deselect / Pause), U (Undo last move).";
 
     sf::Text rulesContent;
     rulesContent.setFont(fontBold);
     rulesContent.setString(toUtf8(rulesText));
-    rulesContent.setCharacterSize(14);
+    rulesContent.setCharacterSize(13);
     rulesContent.setStyle(sf::Text::Bold);
-    rulesContent.setLineSpacing(1.18f);
+    rulesContent.setLineSpacing(1.22f);
     rulesContent.setFillColor(inkDark);
-    rulesContent.setPosition(634.0f, 192.0f);
+    rulesContent.setPosition(634.0f, 186.0f);
     window.draw(rulesContent);
 
-    // 5. Centered Bottom Action Button (X=490, Y=620, W=220, H=46)
+    // 5. Centered Bottom Action Button (X=490, Y=624, W=220, H=44)
     if (auto b = menuIntro.layButton(0)) {
+        b->setPosition(490.0f, 624.0f);
+        b->setSize(220.0f, 44.0f);
         b->setColors(sf::Color(255, 230, 140), sf::Color(255, 248, 175), sf::Color(255, 250, 190));
     }
     menuIntro.draw(window);
