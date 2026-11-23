@@ -39,17 +39,17 @@ std::string Loc::get(LocKey key) {
 
         // Match Setup
         case LocKey::SETUP_PVP_TITLE:
-            return vi ? "THIẾT LẬP: HAI NGƯỜI CHƠI" : "SETUP: PLAYER VS PLAYER";
+            return vi ? "Thiết Lập: Hai Người Chơi" : "Setup: Player vs Player";
         case LocKey::SETUP_PVAI_TITLE:
-            return vi ? "THIẾT LẬP: ĐẤU VỚI MÁY" : "SETUP: PLAYER VS AI";
+            return vi ? "Thiết Lập: Đấu Với Máy" : "Setup: Player vs AI";
         case LocKey::P1_LABEL:
-            return vi ? "NGƯỜI CHƠI 1" : "PLAYER 1";
+            return vi ? "Người chơi 1" : "Player 1";
         case LocKey::P2_LABEL:
-            return vi ? "NGƯỜI CHƠI 2" : "PLAYER 2";
+            return vi ? "Người chơi 2" : "Player 2";
         case LocKey::PLAYER_LABEL:
-            return vi ? "NGƯỜI CHƠI" : "PLAYER";
+            return vi ? "Người chơi" : "Player";
         case LocKey::AI_LABEL:
-            return vi ? "MÁY AI" : "AI ENGINE";
+            return vi ? "Máy AI" : "AI Engine";
         case LocKey::ENTER_NAME_P1:
             return vi ? "Tên người chơi 1:" : "Player 1 name:";
         case LocKey::ENTER_NAME_P2:
@@ -73,7 +73,7 @@ std::string Loc::get(LocKey key) {
         case LocKey::FIRST_MOVE_INFO:
             return vi ? "Phe đi trước: Quân Đỏ" : "First move: Red side";
         case LocKey::START_GAME:
-            return vi ? "BẮT ĐẦU VÁN ĐẤU" : "START GAME";
+            return vi ? "Bắt đầu ván đấu" : "Start Game";
 
         // AI options
         case LocKey::AI_DIFFICULTY:
@@ -268,7 +268,7 @@ std::string Loc::get(LocKey key) {
 
         // In Game Pause Popup Menu
         case LocKey::PAUSE_MENU_TITLE:
-            return vi ? "MENU TRẬN ĐẤU" : "MATCH PAUSED";
+            return vi ? "Menu Trận Đấu" : "Match Paused";
         case LocKey::MATCH_PAUSED_SUBTITLE:
             return vi ? "(Trận đấu tạm dừng - Nhấn [ESC] hoặc bấm để tiếp tục)" : "(Game Paused - Press [ESC] or click to resume)";
         case LocKey::RESUME:
@@ -278,38 +278,38 @@ std::string Loc::get(LocKey key) {
 
         // End Game Popup
         case LocKey::GAME_OVER:
-            return vi ? "KẾT THÚC VÁN CỜ" : "GAME OVER";
+            return vi ? "Kết Thúc Ván Cờ" : "Game Over";
         case LocKey::RED_WINS:
-            return vi ? "QUÂN ĐỎ CHIẾN THẮNG!" : "RED WINS!";
+            return vi ? "Quân Đỏ Chiến Thắng!" : "Red Wins!";
         case LocKey::BLACK_WINS:
-            return vi ? "QUÂN ĐEN CHIẾN THẮNG!" : "BLACK WINS!";
+            return vi ? "Quân Đen Chiến Thắng!" : "Black Wins!";
         case LocKey::DRAW_MATCH:
-            return vi ? "HAI BÊN HÒA CỜ!" : "GAME DRAW!";
+            return vi ? "Hai Bên Hòa Cờ!" : "Game Draw!";
         case LocKey::PLAY_AGAIN:
             return vi ? "Chơi lại" : "Play Again";
 
         // Random Scene & Alerts
         case LocKey::PROCEED_TO_ROLL:
-            return vi ? "TIẾP TỤC: RANDOM LƯỢT ĐI >>" : "PROCEED: ROLL TURN ORDER >>";
+            return vi ? "Tiếp tục: Bốc thăm lượt đi >>" : "Proceed: Roll Turn Order >>";
         case LocKey::RANDOM_TITLE:
-            return vi ? "BỐC THĂM / RANDOM LƯỢT ĐI" : "TURN ORDER RANDOMIZER";
+            return vi ? "Bốc Thăm Lượt Đi" : "Turn Order Randomizer";
         case LocKey::RANDOM_SUBTITLE:
-            return vi ? "Tung xúc xắc xác định ai cầm quân ĐỎ (Đi trước) và ĐEN (Đi sau)" 
-                      : "Roll to randomly determine who plays RED (Moves first) and BLACK (Moves second)";
+            return vi ? "Tung xúc xắc xác định ai cầm quân Đỏ (Đi trước) và Đen (Đi sau)" 
+                      : "Roll to randomly determine who plays Red (Moves first) and Black (Moves second)";
         case LocKey::RANDOM_BTN_ROLL:
-            return vi ? "TUNG ĐỒNG XU RANDOM" : "ROLL RANDOM TURN";
+            return vi ? "Tung đồng xu ngẫu nhiên" : "Roll Random Turn";
         case LocKey::RANDOM_BTN_START:
-            return vi ? "VÀO TRẬN ĐẤU" : "START MATCH";
+            return vi ? "Vào trận đấu" : "Start Match";
         case LocKey::RANDOM_BTN_REROLL:
             return vi ? "Tung lại" : "Roll Again";
         case LocKey::CHECKMATE_ALERT:
-            return vi ? "CHIẾU BÍ!" : "CHECKMATE!";
+            return vi ? "Chiếu bí!" : "Checkmate!";
         case LocKey::DRAW_ALERT:
-            return vi ? "HÒA CỜ!" : "DRAW!";
+            return vi ? "Hòa cờ!" : "Draw!";
         case LocKey::ILLEGAL_MOVE:
-            return vi ? "NƯỚC ĐI KHÔNG HỢP LỆ!" : "ILLEGAL MOVE!";
+            return vi ? "Nước đi không hợp lệ!" : "Illegal Move!";
         case LocKey::PVP_BTN_NEXT_P2:
-            return vi ? "TIẾP THEO" : "NEXT";
+            return vi ? "Tiếp theo" : "Next";
         case LocKey::PVP_BTN_BACK_P1:
             return vi ? "Quay Lại" : "Back";
     }

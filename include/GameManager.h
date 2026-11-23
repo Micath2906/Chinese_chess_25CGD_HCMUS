@@ -108,6 +108,7 @@ private:
     void khoiTaoPlaySetupButtons();
     void vePlaySetup();
     void vePieceStylePreview(sf::RenderWindow& win, float x, float y, float w, float h);
+    void veBoardThemePreview(sf::RenderWindow& win, float x, float y, float w, float h);
     void xuLyClickPlaySetup(const sf::Vector2i& viTri);
 
     // Settings buttons
