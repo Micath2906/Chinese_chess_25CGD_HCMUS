@@ -557,6 +557,15 @@ void GameManager::capNhatNhanNut() {
         settingsAudioButtons[1]->setSelected(bgmOn);
     }
 
+    if (soundboardButtons.size() >= 6) {
+        soundboardButtons[0]->setLabel(isVi ? "Nước Đi" : "Move");
+        soundboardButtons[1]->setLabel(isVi ? "Ăn Quân" : "Capture");
+        soundboardButtons[2]->setLabel(isVi ? "Chiếu" : "Check");
+        soundboardButtons[3]->setLabel(isVi ? "Thắng" : "Win");
+        soundboardButtons[4]->setLabel(isVi ? "Đi Sai" : "Wrong");
+        soundboardButtons[5]->setLabel(isVi ? "Nhấp" : "Click");
+    }
+
     if (settingsGameplayButtons.size() >= 6) {
         settingsGameplayButtons[0]->setLabel((isVi ? "Tốc độ AI: " : "AI Pacing: ") + std::string(aiThinkRealistic ? (isVi ? "< Tự nhiên >" : "< Natural >") : (isVi ? "< Tức thì >" : "< Instant >")));
         settingsGameplayButtons[0]->setSelected(aiThinkRealistic);
