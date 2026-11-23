@@ -146,6 +146,7 @@ private:
     bool hienMenuPopUp;
     TrangThai trangThaiTruocSettings;
     TrangThai trangThaiTruocLoad;
+    TrangThai trangThaiTruocIntro = TrangThai::TITLE_SCREEN;
     bool matchMenuTuDangChoi = false;
     bool daPhatAmKetThuc = false;
     void capNhatFontTheoNgonNgu();

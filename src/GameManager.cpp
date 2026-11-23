@@ -496,12 +496,11 @@ void GameManager::khoiTaoTatCaMenu() {
     });
 
     // Intro menu
-    menuIntro.setFont(font);
+    menuIntro.setFont(fontBold);
     menuIntro.xoaTatCaButton();
-    menuIntro.themButton((1200.0f - 220.0f) / 2.0f, 695.0f, 220.0f, 48.0f, Loc::get(LocKey::BACK), [this]() {
+    menuIntro.themButton(490.0f, 620.0f, 220.0f, 46.0f, Loc::get(LocKey::BACK), [this]() {
         soundManager.play(SoundType::CLICK);
-        trangThai = TrangThai::MENU_CHINH;
-        menuChinh.triggerOpenAnimation();
+        trangThai = trangThaiTruocIntro;
     });
 
     capNhatNhanNut();
@@ -586,6 +585,10 @@ void GameManager::capNhatNhanNut() {
         settingsBottomButtons[0]->setLabel(Loc::get(LocKey::BTN_APPLY_SAVE));
         settingsBottomButtons[1]->setLabel(Loc::get(LocKey::BTN_RESTORE_DEFAULTS));
         settingsBottomButtons[2]->setLabel(Loc::get(LocKey::BACK));
+    }
+
+    if (auto b = menuIntro.layButton(0)) {
+        b->setLabel(Loc::get(LocKey::BACK));
     }
 
     khoiTaoPlaySetupButtons();
@@ -1776,8 +1779,8 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         }
         if (key == sf::Keyboard::I) {
             soundManager.play(SoundType::CLICK);
-            trangThai = TrangThai::MENU_CHINH;
-            menuChinh.triggerOpenAnimation(MenuSection::INFO);
+            trangThaiTruocIntro = TrangThai::TITLE_SCREEN;
+            trangThai = TrangThai::INTRODUCTION_MENU;
             return;
         }
 
@@ -2037,9 +2040,14 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
     // 3. Deselect or Return back
     if (keyConfig.isDeselectKey(key)) {
         soundManager.play(SoundType::CLICK);
-        if (trangThai == TrangThai::PLAY_SUBMENU || trangThai == TrangThai::INTRODUCTION_MENU) {
+        if (trangThai == TrangThai::PLAY_SUBMENU) {
             rebindingAction = KeyAction::COUNT;
             trangThai = TrangThai::MENU_CHINH;
+            return;
+        }
+        if (trangThai == TrangThai::INTRODUCTION_MENU) {
+            rebindingAction = KeyAction::COUNT;
+            trangThai = trangThaiTruocIntro;
             return;
         }
         if (trangThai == TrangThai::LOAD_MENU) {
@@ -2532,7 +2540,10 @@ void GameManager::ve() {
         } else if (trangThai == TrangThai::TITLE_SCREEN ||
                    trangThai == TrangThai::PVP_SETUP ||
                    trangThai == TrangThai::PVAI_SETUP ||
-                   trangThai == TrangThai::RANDOM_LUOT) {
+                   trangThai == TrangThai::RANDOM_LUOT ||
+                   trangThai == TrangThai::SETTINGS_MENU ||
+                   trangThai == TrangThai::INTRODUCTION_MENU ||
+                   trangThai == TrangThai::LOAD_MENU) {
             const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
             if (titleBg.getSize().x > 0) {
                 sf::Sprite bgSprite(titleBg);
@@ -2564,7 +2575,10 @@ void GameManager::ve() {
     if (trangThai == TrangThai::TITLE_SCREEN ||
         trangThai == TrangThai::PVP_SETUP ||
         trangThai == TrangThai::PVAI_SETUP ||
-        trangThai == TrangThai::RANDOM_LUOT) {
+        trangThai == TrangThai::RANDOM_LUOT ||
+        trangThai == TrangThai::SETTINGS_MENU ||
+        trangThai == TrangThai::INTRODUCTION_MENU ||
+        trangThai == TrangThai::LOAD_MENU) {
         const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
         if (titleBg.getSize().x > 0) {
             sf::Sprite bgSprite(titleBg);
@@ -5151,10 +5165,42 @@ void GameManager::xuLyClickPlaySetup(const sf::Vector2i& viTri) {
 
 
 void GameManager::veLoadMenu() {
-    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 75));
+    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 175));
 
-    FantasyUI::get().drawRibbonTitle(window, 600.0f, 38.0f, 360.0f, 56.0f,
-        Loc::get(LocKey::LOAD_TITLE), fontBold, 20);
+    // Top Royal Scroll Banner Title
+    auto& am = AssetManager::get();
+    const sf::Texture& bannerTex = am.texture(TextureId::TITLE_SCROLL_BANNER);
+    if (bannerTex.getSize().x > 0) {
+        sf::Sprite bannerSprite(bannerTex);
+        float bw = static_cast<float>(bannerTex.getSize().x);
+        float bh = static_cast<float>(bannerTex.getSize().y);
+        bannerSprite.setOrigin(bw / 2.0f, bh / 2.0f);
+        float bScale = 0.86f;
+        bannerSprite.setScale(bScale, bScale);
+        bannerSprite.setPosition(600.0f, 62.0f);
+        window.draw(bannerSprite);
+
+        bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
+        sf::Text titleText;
+        titleText.setFont(tiengViet ? fontVnBold : fontEnBold);
+        titleText.setString(toUtf8(tiengViet ? "Tải Ván Đấu" : "Load Game"));
+        titleText.setCharacterSize(tiengViet ? 25 : 23);
+        titleText.setStyle(sf::Text::Bold);
+        sf::FloatRect tb = titleText.getLocalBounds();
+        titleText.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+        titleText.setFillColor(sf::Color(65, 16, 10, 200));
+        titleText.setOutlineThickness(1.8f);
+        titleText.setOutlineColor(sf::Color(65, 16, 10, 200));
+        titleText.setPosition(601.0f, 63.0f);
+        window.draw(titleText);
+
+        titleText.setFillColor(sf::Color(156, 24, 18));
+        titleText.setOutlineThickness(2.2f);
+        titleText.setOutlineColor(sf::Color(245, 215, 120));
+        titleText.setPosition(600.0f, 62.0f);
+        window.draw(titleText);
+    }
 
     FantasyUI::get().drawPanel(window, sf::FloatRect(126.0f, 134.0f, 948.0f, 466.0f), OrientalPanelStyle::EBONY_WOOD);
 
@@ -5219,14 +5265,46 @@ void GameManager::veLoadMenu() {
 void GameManager::veSettingsMenu() {
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
 
-    // 1. Subtle Dim Backdrop + Antique Ribbon Title (1200x800)
-    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 75));
+    // 1. Subtle Dim Backdrop + Royal Scroll Banner (1200x800)
+    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 175));
 
-    FantasyUI::get().drawRibbonTitle(window, 600.0f, 38.0f, 360.0f, 56.0f,
-        Loc::get(LocKey::SETTINGS_TITLE), fontBold, 20);
+    auto& am = AssetManager::get();
+    const sf::Texture& bannerTex = am.texture(TextureId::TITLE_SCROLL_BANNER);
+    if (bannerTex.getSize().x > 0) {
+        sf::Sprite bannerSprite(bannerTex);
+        float bw = static_cast<float>(bannerTex.getSize().x);
+        float bh = static_cast<float>(bannerTex.getSize().y);
+        bannerSprite.setOrigin(bw / 2.0f, bh / 2.0f);
+        float bScale = 0.86f;
+        bannerSprite.setScale(bScale, bScale);
+        bannerSprite.setPosition(600.0f, 62.0f);
+        window.draw(bannerSprite);
 
-    // 2. Unified Oriental Ebony Wood Dashboard Frame (880x560 at 160, 120)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(160.0f, 120.0f, 880.0f, 560.0f), OrientalPanelStyle::EBONY_WOOD);
+        sf::Text titleText;
+        titleText.setFont(tiengViet ? fontVnBold : fontEnBold);
+        titleText.setString(toUtf8(tiengViet ? "Cài Đặt Hệ Thống" : "System Settings"));
+        titleText.setCharacterSize(tiengViet ? 25 : 23);
+        titleText.setStyle(sf::Text::Bold);
+        sf::FloatRect tb = titleText.getLocalBounds();
+        titleText.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+        // Lacquer drop shadow
+        titleText.setFillColor(sf::Color(65, 16, 10, 200));
+        titleText.setOutlineThickness(1.8f);
+        titleText.setOutlineColor(sf::Color(65, 16, 10, 200));
+        titleText.setPosition(601.0f, 63.0f);
+        window.draw(titleText);
+
+        // Crimson with antique gold outline
+        titleText.setFillColor(sf::Color(156, 24, 18));
+        titleText.setOutlineThickness(2.2f);
+        titleText.setOutlineColor(sf::Color(245, 215, 120));
+        titleText.setPosition(600.0f, 62.0f);
+        window.draw(titleText);
+    }
+
+    // 2. Unified Oriental Ebony Wood Dashboard Frame (880x564 at 160, 118)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(160.0f, 118.0f, 880.0f, 564.0f), OrientalPanelStyle::EBONY_WOOD);
 
     // 3. Top Horizontal Jade-Plaque Navigation Tabs (aligned with khoiTaoDashboardSettings)
     for (size_t i = 0; i < settingsTabButtons.size(); ++i) {
@@ -5545,78 +5623,161 @@ void GameManager::veKeybindingMenu() {
 void GameManager::veIntroMenu() {
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
 
-    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 75));
+    // 1. Full Dim Backdrop (Unified with Title & Setup)
+    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 175));
 
-    FantasyUI::get().drawRibbonTitle(window, 600.0f, 38.0f, 380.0f, 56.0f,
-        Loc::get(LocKey::INTRO_TITLE), fontBold, 20);
+    // Top Royal Scroll Banner Title
+    auto& am = AssetManager::get();
+    const sf::Texture& bannerTex = am.texture(TextureId::TITLE_SCROLL_BANNER);
+    if (bannerTex.getSize().x > 0) {
+        sf::Sprite bannerSprite(bannerTex);
+        float bw = static_cast<float>(bannerTex.getSize().x);
+        float bh = static_cast<float>(bannerTex.getSize().y);
+        bannerSprite.setOrigin(bw / 2.0f, bh / 2.0f);
+        float bScale = 0.86f;
+        bannerSprite.setScale(bScale, bScale);
+        bannerSprite.setPosition(600.0f, 62.0f);
+        window.draw(bannerSprite);
 
-    // Unified 1200x800 Ebony + Clean Aged Xuan Paper Container
-    FantasyUI::get().drawPanel(window, sf::FloatRect(120.0f, 116.0f, 960.0f, 554.0f), OrientalPanelStyle::EBONY_WOOD);
-    FantasyUI::get().drawPanel(window, sf::FloatRect(146.0f, 140.0f, 908.0f, 506.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+        sf::Text titleText;
+        titleText.setFont(tiengViet ? fontVnBold : fontEnBold);
+        titleText.setString(toUtf8(tiengViet ? "Thông Tin & Hướng Dẫn" : "Game Info & Rules"));
+        titleText.setCharacterSize(tiengViet ? 25 : 23);
+        titleText.setStyle(sf::Text::Bold);
+        sf::FloatRect tb = titleText.getLocalBounds();
+        titleText.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
 
-    sf::Text headerShadow;
-    headerShadow.setFont(fontBold);
-    headerShadow.setCharacterSize(20);
-    headerShadow.setStyle(sf::Text::Bold);
-    headerShadow.setString(toUtf8(tiengViet ? "CỜ TƯỚNG CỔ PHONG - KIẾN TRÚC OOP & LUẬT CỜ" : "ANCIENT XIANGQI - OOP ARCHITECTURE & RULES"));
-    headerShadow.setFillColor(sf::Color(0, 0, 0, 100));
-    sf::FloatRect hb = headerShadow.getLocalBounds();
-    headerShadow.setOrigin(std::round(hb.left + hb.width / 2.0f), std::round(hb.top + hb.height / 2.0f));
-    headerShadow.setPosition(601.0f, 169.0f);
-    window.draw(headerShadow);
+        // Lacquer drop shadow
+        titleText.setFillColor(sf::Color(65, 16, 10, 200));
+        titleText.setOutlineThickness(1.8f);
+        titleText.setOutlineColor(sf::Color(65, 16, 10, 200));
+        titleText.setPosition(601.0f, 63.0f);
+        window.draw(titleText);
 
-    sf::Text header = headerShadow;
-    header.setFillColor(sf::Color(175, 25, 20));
-    header.setPosition(600.0f, 168.0f);
-    window.draw(header);
+        // Crimson with antique gold outline
+        titleText.setFillColor(sf::Color(156, 24, 18));
+        titleText.setOutlineThickness(2.2f);
+        titleText.setOutlineColor(sf::Color(245, 215, 120));
+        titleText.setPosition(600.0f, 62.0f);
+        window.draw(titleText);
+    }
 
-    sf::RectangleShape hDiv(sf::Vector2f(820.0f, 2.0f));
-    hDiv.setPosition(190.0f, 190.0f);
-    hDiv.setFillColor(sf::Color(135, 92, 42));
-    window.draw(hDiv);
+    // 2. Outer Oriental Ebony Wood Frame (960x564 at X=120, Y=118)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(120.0f, 118.0f, 960.0f, 564.0f), OrientalPanelStyle::EBONY_WOOD);
 
-    std::string text = tiengViet
-        ? "- GIỚI THIỆU ĐỒ ÁN:\n"
-          "  Đồ án Lập trình Hướng đối tượng (OOP) - Trường ĐH Khoa học Tự nhiên (HCMUS).\n"
-          "  Game Cờ Tướng hiện thực bằng C++17 và thư viện đồ họa SFML.\n\n"
-          "- KIẾN TRÚC OOP & DESIGN PATTERNS:\n"
-          "  - Đa hình: Lớp trừu tượng QuanCo (kiemTraNuocDi, layGiaTri, layDiemViTri, laTuong).\n"
-          "  - Kế thừa: Xe, Voi, Phao, Ma, Tuong, Si, Tot & QuanCoFactory, Deep Copy clone().\n\n"
-          "- LUẬT DI CHUYỂN CÁC QUÂN CỜ:\n"
-          "  1. XE: Đi ngang/dọc không giới hạn, không nhảy qua quân khác.\n"
-          "  2. TƯỢNG (VOI): Đi chéo 2 ô trong sân nhà, bị cản khi có quân ở mắt Tượng.\n"
-          "  3. PHÁO: Đi như Xe; khi ăn quân phải nhảy qua đúng 1 quân làm ngòi.\n"
-          "  4. MÃ: Đi chữ Nhật (2x1), bị cản nếu có quân đứng ngay sát bên.\n"
-          "  5. TƯỚNG: Đi 1 ô ngang/dọc trong Cung Cửu Cung; hai Tướng không đối mặt.\n"
-          "  6. SĨ: Đi chéo 1 ô trong Cung Cửu Cung.\n"
-          "  7. TỐT: Đi thẳng 1 bước; qua sông được đi ngang hoặc thẳng, không đi lùi.\n\n"
-          "- ĐIỀU KHIỂN: W/A/S/D di chuyển con trỏ, Enter chọn/đi, ESC bỏ chọn hoặc tạm dừng."
-        : "- PROJECT INTRODUCTION:\n"
-          "  Object-Oriented Programming (OOP) Project - VNU-HCM University of Science (HCMUS).\n"
-          "  Ancient Chinese Chess (Xiangqi) built with C++17 and SFML graphics.\n\n"
-          "- OOP ARCHITECTURE & DESIGN PATTERNS:\n"
-          "  - Polymorphism: Abstract QuanCo base (kiemTraNuocDi, layGiaTri, layDiemViTri, laTuong).\n"
-          "  - Derived Pieces: Xe, Voi, Phao, Ma, Tuong, Si, Tot & Factory / Prototype clone().\n\n"
-          "- PIECE MOVEMENT RULES:\n"
-          "  1. CHARIOT (Xe): Moves orthogonally any distance; blocked by pieces.\n"
-          "  2. ELEPHANT (Voi): Moves diagonally 2 squares; stays on own side; blocked by eye.\n"
-          "  3. CANNON (Phao): Moves like Chariot; captures by jumping over exactly 1 screen.\n"
-          "  4. HORSE (Ma): Moves in L-shape (1+1 diagonal); blocked by adjacent hobbling piece.\n"
-          "  5. GENERAL (Tuong): Moves 1 step orthogonally in Palace; Flying Generals forbidden.\n"
-          "  6. ADVISOR (Si): Moves 1 step diagonally within the Palace.\n"
-          "  7. SOLDIER (Tot): 1 step forward; gains sideways movement after crossing the river.\n\n"
-          "- CONTROLS: W/A/S/D move cursor, Enter select/move, ESC cancel or pause.";
+    const sf::Color inkDark(35, 18, 10);
 
-    sf::Text content;
-    content.setFont(fontBold);
-    content.setString(toUtf8(text));
-    content.setCharacterSize(16);
-    content.setStyle(sf::Text::Bold);
-    content.setLineSpacing(1.16f);
-    content.setFillColor(sf::Color(35, 18, 10));
-    content.setPosition(176.0f, 206.0f);
-    window.draw(content);
+    auto drawXuanColumnHeader = [&](float centerX, float topY, const std::string& headerText, float divStartX, float divWidth) {
+        sf::Text sh;
+        sh.setFont(fontBold);
+        sh.setString(toUtf8(headerText));
+        sh.setCharacterSize(18);
+        sh.setStyle(sf::Text::Bold);
+        sh.setFillColor(sf::Color(0, 0, 0, 100));
+        sf::FloatRect b = sh.getLocalBounds();
+        sh.setOrigin(std::round(b.left + b.width / 2.0f), std::round(b.top + b.height / 2.0f));
+        sh.setPosition(centerX + 1.0f, topY + 1.0f);
+        window.draw(sh);
 
+        sf::Text tx = sh;
+        tx.setFillColor(sf::Color(175, 25, 20));
+        tx.setPosition(centerX, topY);
+        window.draw(tx);
+
+        sf::RectangleShape div(sf::Vector2f(divWidth, 2.0f));
+        div.setPosition(divStartX, topY + 20.0f);
+        div.setFillColor(sf::Color(135, 92, 42));
+        window.draw(div);
+    };
+
+    // 3. Left Symmetrical Column: OOP Project & Design Patterns (X=144, Y=136, W=444, H=466)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(144.0f, 136.0f, 444.0f, 466.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+    drawXuanColumnHeader(366.0f, 160.0f, tiengViet ? "ĐỒ ÁN OOP & THIẾT KẾ" : "OOP PROJECT & DESIGN", 168.0f, 396.0f);
+
+    std::string oopText = tiengViet
+        ? "• TRƯỜNG ĐH KHOA HỌC TỰ NHIÊN (HCMUS)\n"
+          "  Đồ án Lập trình Hướng đối tượng - C++17 / SFML.\n\n"
+          "• ĐA HÌNH & TRỪU TƯỢNG (Polymorphism):\n"
+          "  Lớp thuần ảo QuanCo định nghĩa giao diện chung:\n"
+          "  kiemTraNuocDi(), layGiaTri(), layDiemViTri().\n\n"
+          "• KẾ THỪA (Inheritance) & FACTORY:\n"
+          "  7 quân cờ: Xe, Voi, Phao, Ma, Tuong, Si, Tot.\n"
+          "  QuanCoFactory chuẩn hóa khởi tạo thực thể.\n\n"
+          "• MẪU PROTOTYPE (Deep Copy):\n"
+          "  Hiện thực clone() sao chép sâu trạng thái bàn cờ,\n"
+          "  hỗ trợ tìm kiếm mô phỏng nước đi hiệu năng cao.\n\n"
+          "• TRÍ TUỆ NHÂN TẠO (AI Engine):\n"
+          "  Thuật toán Minimax + cắt tỉa Alpha-Beta,\n"
+          "  kết hợp bảng điểm vị trí và Move Ordering."
+        : "• VNU-HCM UNIVERSITY OF SCIENCE (HCMUS)\n"
+          "  Object-Oriented Programming - C++17 / SFML.\n\n"
+          "• POLYMORPHISM & ABSTRACTION:\n"
+          "  Abstract QuanCo defines core polymorphic APIs:\n"
+          "  kiemTraNuocDi(), layGiaTri(), layDiemViTri().\n\n"
+          "• INHERITANCE & FACTORY PATTERN:\n"
+          "  7 pieces: Chariot, Elephant, Cannon, Horse,\n"
+          "  General, Advisor, Soldier via QuanCoFactory.\n\n"
+          "• PROTOTYPE PATTERN (Deep Copy):\n"
+          "  Robust clone() for zero-leak board copying\n"
+          "  supporting search and move simulations.\n\n"
+          "• ARTIFICIAL INTELLIGENCE (AI Engine):\n"
+          "  Minimax search with Alpha-Beta pruning,\n"
+          "  Piece-Square Tables and move ordering.";
+
+    sf::Text oopContent;
+    oopContent.setFont(fontBold);
+    oopContent.setString(toUtf8(oopText));
+    oopContent.setCharacterSize(14);
+    oopContent.setStyle(sf::Text::Bold);
+    oopContent.setLineSpacing(1.18f);
+    oopContent.setFillColor(inkDark);
+    oopContent.setPosition(166.0f, 192.0f);
+    window.draw(oopContent);
+
+    // 4. Right Symmetrical Column: 7 Piece Rules & Controls (X=612, Y=136, W=444, H=466)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(612.0f, 136.0f, 444.0f, 466.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+    drawXuanColumnHeader(834.0f, 160.0f, tiengViet ? "LUẬT 7 QUÂN CỜ & ĐIỀU KHIỂN" : "7 PIECES RULES & CONTROLS", 636.0f, 396.0f);
+
+    std::string rulesText = tiengViet
+        ? "1. XE: Đi ngang, dọc tùy ý; bị cản bởi quân cờ.\n"
+          "2. PHÁO: Đi như Xe; ăn quân phải nhảy qua 1 ngòi.\n"
+          "3. MÃ: Đi chữ Nhật (2x1); cản chân tại mắt Mã kề sát.\n"
+          "4. TƯỢNG: Đi chéo 2 ô; không qua sông; cản mắt.\n"
+          "5. SĨ: Đi chéo 1 ô bên trong Cung Cửu Cung.\n"
+          "6. TƯỚNG: Đi 1 ô ngang/dọc trong Cung;\n"
+          "   Lộ Mặt Tướng: hai Tướng không được đối mặt.\n"
+          "7. TỐT: Đi thẳng 1 ô; qua sông đi thêm ngang, không lùi.\n\n"
+          "• ĐIỀU KHIỂN TRẬN ĐẤU:\n"
+          "  - Chuột: Click trực tiếp vào quân cờ và ô đích.\n"
+          "  - Bàn phím: W/A/S/D di chuyển ô chọn, Enter chọn/đi.\n"
+          "  - Phím tắt: ESC (Hủy / Tạm dừng), U (Đi lại / Undo)."
+        : "1. CHARIOT: Orthogonal any distance; blocked by pieces.\n"
+          "2. CANNON: Moves like Chariot; jumps 1 piece to capture.\n"
+          "3. HORSE: Moves in L-shape (2x1); hobbled at adjacent eyes.\n"
+          "4. ELEPHANT: Diagonal 2 squares; own side only; eye-blocked.\n"
+          "5. ADVISOR: Diagonal 1 square within Palace.\n"
+          "6. GENERAL: 1 step orthogonally in Palace;\n"
+          "   Flying General: generals cannot face each other directly.\n"
+          "7. SOLDIER: 1 forward; gains sideways moves across river.\n\n"
+          "• MATCH CONTROLS:\n"
+          "  - Mouse: Left click pieces and highlighted destination squares.\n"
+          "  - Keyboard: W/A/S/D move cursor, Enter select / move piece.\n"
+          "  - Hotkeys: ESC (Deselect / Pause), U (Undo last move).";
+
+    sf::Text rulesContent;
+    rulesContent.setFont(fontBold);
+    rulesContent.setString(toUtf8(rulesText));
+    rulesContent.setCharacterSize(14);
+    rulesContent.setStyle(sf::Text::Bold);
+    rulesContent.setLineSpacing(1.18f);
+    rulesContent.setFillColor(inkDark);
+    rulesContent.setPosition(634.0f, 192.0f);
+    window.draw(rulesContent);
+
+    // 5. Centered Bottom Action Button (X=490, Y=620, W=220, H=46)
+    if (auto b = menuIntro.layButton(0)) {
+        b->setColors(sf::Color(255, 230, 140), sf::Color(255, 248, 175), sf::Color(255, 250, 190));
+    }
     menuIntro.draw(window);
 }
 
@@ -6544,8 +6705,8 @@ void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
 
     if (titleInfoRect.contains(x, y)) {
         soundManager.play(SoundType::CLICK);
-        trangThai = TrangThai::MENU_CHINH;
-        menuChinh.triggerOpenAnimation(MenuSection::INFO);
+        trangThaiTruocIntro = TrangThai::TITLE_SCREEN;
+        trangThai = TrangThai::INTRODUCTION_MENU;
         return;
     }
 
