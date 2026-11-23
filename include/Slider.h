@@ -27,6 +27,7 @@ public:
     }
 
     void setPosition(float x, float y) { posX = x; posY = y; }
+    void setWidth(float w) { trackWidth = w; }
     void setTitle(const std::string& t) { title = t; }
     void setLabel(const std::string& l) { title = l; }
     std::string getTitle() const { return title; }
@@ -54,38 +55,56 @@ public:
     }
 
     void draw(sf::RenderWindow& window) {
-        // Draw title
+        // Draw title drop shadow & text
+        sf::Text labelShadow;
+        labelShadow.setFont(font);
+        labelShadow.setCharacterSize(14);
+        labelShadow.setStyle(sf::Text::Bold);
+        labelShadow.setFillColor(sf::Color(25, 12, 8, 220));
+        labelShadow.setString(title);
+        labelShadow.setPosition(posX + 1.0f, posY - 22.0f);
+        window.draw(labelShadow);
+
         sf::Text labelText;
         labelText.setFont(font);
-        labelText.setCharacterSize(16);
+        labelText.setCharacterSize(14);
         labelText.setStyle(sf::Text::Bold);
-        labelText.setFillColor(sf::Color(255, 230, 140));
+        labelText.setFillColor(sf::Color(250, 230, 165));
         labelText.setString(title);
-        labelText.setPosition(posX, posY - 24.0f);
+        labelText.setPosition(posX, posY - 23.0f);
         window.draw(labelText);
 
         // Draw value
         std::ostringstream ss;
         ss << static_cast<int>(std::round(currentValue)) << "%";
+        sf::Text valShadow;
+        valShadow.setFont(font);
+        valShadow.setCharacterSize(14);
+        valShadow.setStyle(sf::Text::Bold);
+        valShadow.setFillColor(sf::Color(25, 12, 8, 220));
+        valShadow.setString(ss.str());
+        sf::FloatRect vb = valShadow.getLocalBounds();
+        valShadow.setPosition(posX + trackWidth - vb.width + 1.0f, posY - 22.0f);
+        window.draw(valShadow);
+
         sf::Text valText;
         valText.setFont(font);
-        valText.setCharacterSize(16);
+        valText.setCharacterSize(14);
         valText.setStyle(sf::Text::Bold);
-        valText.setFillColor(sf::Color(240, 190, 70)); // Gold
+        valText.setFillColor(sf::Color(255, 215, 95)); // Imperial Gold
         valText.setString(ss.str());
-        sf::FloatRect vb = valText.getLocalBounds();
-        valText.setPosition(posX + trackWidth - vb.width, posY - 24.0f);
+        valText.setPosition(posX + trackWidth - vb.width, posY - 23.0f);
         window.draw(valText);
 
-        // Draw track
+        // Draw track (Carved Rosewood lacquer trough)
         sf::RectangleShape trackBg(sf::Vector2f(trackWidth, trackHeight));
         trackBg.setPosition(posX, posY);
-        trackBg.setFillColor(sf::Color(22, 28, 40));
-        trackBg.setOutlineThickness(1.5f);
-        trackBg.setOutlineColor(sf::Color(65, 85, 120));
+        trackBg.setFillColor(sf::Color(18, 14, 10, 245));
+        trackBg.setOutlineThickness(1.2f);
+        trackBg.setOutlineColor(sf::Color(150, 115, 55, 190));
         window.draw(trackBg);
 
-        // Draw progress
+        // Draw progress fill (Amber Gold / Vermilion lacquer)
         float progressFraction = (maxValue > minValue) ? ((currentValue - minValue) / (maxValue - minValue)) : 0.0f;
         progressFraction = std::clamp(progressFraction, 0.0f, 1.0f);
         float fillW = trackWidth * progressFraction;
@@ -93,38 +112,53 @@ public:
         if (fillW > 0.0f) {
             sf::RectangleShape fillTrack(sf::Vector2f(fillW, trackHeight));
             fillTrack.setPosition(posX, posY);
-            fillTrack.setFillColor(sf::Color(240, 190, 70)); // Gold bar
+            fillTrack.setFillColor(sf::Color(215, 155, 45, 240)); // Amber gold fill
             window.draw(fillTrack);
+
+            // Subtle highlight line on top edge of fill
+            sf::RectangleShape fillShine(sf::Vector2f(fillW, 2.0f));
+            fillShine.setPosition(posX, posY);
+            fillShine.setFillColor(sf::Color(255, 225, 120, 170));
+            window.draw(fillShine);
         }
 
-        // Draw knob
-        float knobRadius = trackHeight * 0.9f;
+        // Draw knob (Polished Imperial Jade Bead)
+        float knobRadius = trackHeight * 0.72f;
         float knobX = posX + fillW;
         float knobY = posY + trackHeight / 2.0f;
 
-        // Outer glow when dragging
+        // Jade glow when dragging
         if (isDragging) {
             sf::CircleShape glow(knobRadius + 5.0f);
             glow.setOrigin(knobRadius + 5.0f, knobRadius + 5.0f);
             glow.setPosition(knobX, knobY);
-            glow.setFillColor(sf::Color(240, 190, 70, 90));
+            glow.setFillColor(sf::Color(80, 225, 130, 85));
             window.draw(glow);
         }
 
-        // Knob body
+        // Jade knob body (Imperial Jade Green)
         sf::CircleShape knob(knobRadius);
         knob.setOrigin(knobRadius, knobRadius);
         knob.setPosition(knobX, knobY);
-        knob.setFillColor(sf::Color(255, 235, 170));
-        knob.setOutlineThickness(2.5f);
-        knob.setOutlineColor(sf::Color(200, 140, 30));
+        knob.setFillColor(sf::Color(32, 115, 68));
+        knob.setOutlineThickness(2.0f);
+        knob.setOutlineColor(sf::Color(245, 215, 100)); // Gold rim
         window.draw(knob);
 
-        // Knob center dot
-        sf::CircleShape knobCenter(knobRadius * 0.35f);
-        knobCenter.setOrigin(knobRadius * 0.35f, knobRadius * 0.35f);
+        // Jade translucent gleam
+        sf::CircleShape knobGleam(knobRadius * 0.45f);
+        knobGleam.setOrigin(knobRadius * 0.45f, knobRadius * 0.45f);
+        knobGleam.setPosition(knobX - knobRadius * 0.22f, knobY - knobRadius * 0.22f);
+        knobGleam.setFillColor(sf::Color(90, 210, 145, 140));
+        window.draw(knobGleam);
+
+        // Knob center stud (Gold/bronze bead)
+        sf::CircleShape knobCenter(knobRadius * 0.30f);
+        knobCenter.setOrigin(knobRadius * 0.30f, knobRadius * 0.30f);
         knobCenter.setPosition(knobX, knobY);
-        knobCenter.setFillColor(sf::Color(160, 95, 15));
+        knobCenter.setFillColor(sf::Color(255, 235, 140));
+        knobCenter.setOutlineThickness(1.0f);
+        knobCenter.setOutlineColor(sf::Color(165, 115, 30));
         window.draw(knobCenter);
     }
 
