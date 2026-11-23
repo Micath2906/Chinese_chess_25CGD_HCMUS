@@ -77,6 +77,10 @@ GameManager::GameManager()
       hienPopupXinHoa(false),
       nguoiXinHoa(Mau::DO),
       victoryParticlesActive(false),
+      defeatParticlesActive(false),
+      defeatVignetteTimer(0.0f),
+      screenShakeTimer(0.0f),
+      screenShakeIntensity(0.0f),
       isRandomRolling(false),
       rollFinished(false),
       rollTimer(0.0f),
@@ -1326,6 +1330,14 @@ void GameManager::capNhatViewManHinh() {
         float viewportY = (1.0f - viewportH) / 2.0f;
         view.setViewport(sf::FloatRect(0.0f, viewportY, 1.0f, viewportH));
     }
+
+    if (screenShakeTimer > 0.0f) {
+        float shakeFactor = screenShakeIntensity * (screenShakeTimer / 0.45f);
+        float sx = (static_cast<float>(rand() % 100) / 50.0f - 1.0f) * shakeFactor;
+        float sy = (static_cast<float>(rand() % 100) / 50.0f - 1.0f) * shakeFactor;
+        view.setCenter(baseWidth / 2.0f + sx, baseHeight / 2.0f + sy);
+    }
+
     window.setView(view);
 }
 
@@ -1429,6 +1441,9 @@ void GameManager::batDauTroChoiMoi(CheDoChoi cheDo) {
     hienPopupXinHoa = false;
     victoryParticlesActive = false;
     victoryParticles.clear();
+    defeatParticlesActive = false;
+    defeatParticles.clear();
+    screenShakeTimer = 0.0f;
     khoiTaoNutTrongGame();
     
     thoiGianConDo = thoiGianVanDau;
@@ -1602,14 +1617,22 @@ void GameManager::chay() {
                 banCo.setNguoiThang(benThang);
                 bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong();
                 bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
-                if (biChieu) {
+                bool playerLostToAi = (cheDoChoi == CheDoChoi::VOI_MAY && benThang != aiPlayerSide);
+                if (playerLostToAi) {
+                    lyDoKetThuc = tiengViet ? "Máy AI đã chiếu bí bạn!" : "AI has checkmated you!";
+                    soundManager.play(SoundType::DEFEAT);
+                    khoiTaoDefeatParticles();
+                    kichHoatRungManHinh(0.45f, 7.0f);
+                } else if (biChieu) {
                     lyDoKetThuc = tiengViet ? "Chiếu bí đối phương!" : "Checkmate!";
+                    soundManager.play(SoundType::VICTORY);
+                    khoiTaoVictoryParticles();
                 } else {
                     lyDoKetThuc = tiengViet ? "Đối phương hết nước đi (Khốn bí)!" : "Opponent has no legal moves (Stalemate)!";
+                    soundManager.play(SoundType::VICTORY);
+                    khoiTaoVictoryParticles();
                 }
                 khoiTaoNutPopup();
-                soundManager.play(SoundType::VICTORY);
-                khoiTaoVictoryParticles();
             } else {
                 capNhatDongHo(dt);
                 if (cheDoChoi == CheDoChoi::VOI_MAY) {
@@ -1629,6 +1652,13 @@ void GameManager::chay() {
         }
         if (victoryParticlesActive) {
             capNhatVictoryParticles(dt);
+        }
+        if (defeatParticlesActive) {
+            capNhatDefeatParticles(dt);
+        }
+        if (screenShakeTimer > 0.0f) {
+            screenShakeTimer -= dt;
+            if (screenShakeTimer < 0.0f) screenShakeTimer = 0.0f;
         }
         if (trangThai == TrangThai::SETTINGS_MENU) {
             capNhatCaiDat(dt);
@@ -2422,9 +2452,18 @@ void GameManager::capNhatDongHo(float dt) {
             thoiGianConDo = 0.0f;
             banCo.setKetThuc(true);
             banCo.setNguoiThang(Mau::DEN);
-            lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do het gio!" : "Red time out!";
-            soundManager.play(SoundType::DEFEAT);
-            khoiTaoVictoryParticles();
+            bool playerLostToAi = (cheDoChoi == CheDoChoi::VOI_MAY && aiPlayerSide == Mau::DO);
+            bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
+            lyDoKetThuc = vi ? (playerLostToAi ? "Bạn đã hết thời gian suy nghĩ!" : "Quân Đỏ hết giờ!")
+                             : (playerLostToAi ? "You ran out of time!" : "Red time out!");
+            if (playerLostToAi) {
+                soundManager.play(SoundType::DEFEAT);
+                khoiTaoDefeatParticles();
+                kichHoatRungManHinh(0.4f, 6.0f);
+            } else {
+                soundManager.play(SoundType::VICTORY);
+                khoiTaoVictoryParticles();
+            }
             khoiTaoNutPopup();
         }
     } else {
@@ -2433,9 +2472,18 @@ void GameManager::capNhatDongHo(float dt) {
             thoiGianConDen = 0.0f;
             banCo.setKetThuc(true);
             banCo.setNguoiThang(Mau::DO);
-            lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Den het gio!" : "Black time out!";
-            soundManager.play(SoundType::VICTORY);
-            khoiTaoVictoryParticles();
+            bool playerLostToAi = (cheDoChoi == CheDoChoi::VOI_MAY && aiPlayerSide == Mau::DEN);
+            bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
+            lyDoKetThuc = vi ? (playerLostToAi ? "Bạn đã hết thời gian suy nghĩ!" : "Quân Đen hết giờ!")
+                             : (playerLostToAi ? "You ran out of time!" : "Black time out!");
+            if (playerLostToAi) {
+                soundManager.play(SoundType::DEFEAT);
+                khoiTaoDefeatParticles();
+                kichHoatRungManHinh(0.4f, 6.0f);
+            } else {
+                soundManager.play(SoundType::VICTORY);
+                khoiTaoVictoryParticles();
+            }
             khoiTaoNutPopup();
         }
     }
@@ -2489,6 +2537,8 @@ void GameManager::xuLyLuotAI(float dt) {
                             ? "Máy AI đã chiếu bí bạn!"
                             : "AI checkmated you!";
                         soundManager.play(SoundType::DEFEAT);
+                        khoiTaoDefeatParticles();
+                        kichHoatRungManHinh(0.45f, 7.0f);
                     }
                     khoiTaoNutPopup();
                 } else if (biChieu) {
@@ -2584,17 +2634,27 @@ void GameManager::diChuyenQuan(int hang, int cot) {
                     soundManager.play(SoundType::CLICK);
                 } else {
                     bool biChieuMauThua = banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong();
-                    if (biChieuMauThua) {
+                    bool playerLostToAi = (cheDoChoi == CheDoChoi::VOI_MAY && banCo.getNguoiThang() != aiPlayerSide);
+                    if (playerLostToAi) {
+                        lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
+                            ? "Máy AI đã chiếu bí bạn!"
+                            : "AI checkmated you!";
+                        soundManager.play(SoundType::DEFEAT);
+                        khoiTaoDefeatParticles();
+                        kichHoatRungManHinh(0.45f, 7.0f);
+                    } else if (biChieuMauThua) {
                         lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
                             ? "Chiếu bí đối phương!"
                             : "Checkmate!";
+                        soundManager.play(SoundType::VICTORY);
+                        khoiTaoVictoryParticles();
                     } else {
                         lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
                             ? "Đối phương hết nước đi (Khốn bí)!"
                             : "Opponent has no legal moves (Stalemate)!";
+                        soundManager.play(SoundType::VICTORY);
+                        khoiTaoVictoryParticles();
                     }
-                    soundManager.play(SoundType::VICTORY);
-                    khoiTaoVictoryParticles();
                 }
                 khoiTaoNutPopup();
             } else if (biChieu) {
@@ -2648,8 +2708,15 @@ void GameManager::thucHienDauHang(Mau mau) {
     } else {
         lyDoKetThuc = vi ? (tenNguoi + " (Quân Đen) đã xin đầu hàng.") : (tenNguoi + " (Black) has resigned.");
     }
-    soundManager.play(SoundType::DEFEAT);
-    khoiTaoVictoryParticles();
+    bool playerLostToAi = (cheDoChoi == CheDoChoi::VOI_MAY && mau == aiPlayerSide);
+    if (playerLostToAi) {
+        soundManager.play(SoundType::DEFEAT);
+        khoiTaoDefeatParticles();
+        kichHoatRungManHinh(0.35f, 5.0f);
+    } else {
+        soundManager.play(SoundType::VICTORY);
+        khoiTaoVictoryParticles();
+    }
     khoiTaoNutPopup();
 }
 
@@ -2936,6 +3003,7 @@ void GameManager::ve() {
         // 3. Modals
         if (banCo.getKetThuc()) {
             veVictoryParticles();
+            veDefeatParticles();
             vePopupKetThuc();
         } else if (hienPopupXinHoa) {
             vePopupXinHoa();
@@ -7802,6 +7870,122 @@ void GameManager::veVictoryParticles() {
         shape.setPosition(p.pos);
         shape.setRotation(p.rot);
         shape.setFillColor(p.color);
+        window.draw(shape);
+    }
+}
+
+void GameManager::kichHoatRungManHinh(float thoiGian, float cuongDo) {
+    screenShakeTimer = thoiGian;
+    screenShakeIntensity = cuongDo;
+}
+
+void GameManager::khoiTaoDefeatParticles() {
+    defeatParticles.clear();
+    defeatParticlesActive = true;
+    defeatVignetteTimer = 0.0f;
+
+    sf::Color palette[] = {
+        sf::Color(230, 60, 20),   // Vivid ember red
+        sf::Color(255, 120, 30),  // Bright orange spark
+        sf::Color(180, 40, 25),   // Deep crimson cinder
+        sf::Color(140, 20, 20),   // Blood ruby ember
+        sf::Color(70, 60, 65),    // Dark ash flake
+        sf::Color(45, 40, 42),    // Charcoal flake
+        sf::Color(100, 85, 80),   // Warm grey smoke flake
+        sf::Color(255, 180, 50)   // Golden cinder
+    };
+    size_t numColors = sizeof(palette) / sizeof(palette[0]);
+
+    for (int i = 0; i < 95; ++i) {
+        DefeatParticle p;
+        p.pos.x = static_cast<float>(rand() % 1200);
+        p.pos.y = -20.0f - static_cast<float>(rand() % 500);
+        p.vel.x = static_cast<float>((rand() % 80) - 40) * 0.8f;
+        p.vel.y = 50.0f + static_cast<float>(rand() % 110);
+        p.rot = static_cast<float>(rand() % 360);
+        p.rotSpeed = static_cast<float>((rand() % 160) - 80) * 1.2f;
+        p.size = 4.0f + static_cast<float>(rand() % 7);
+        p.baseColor = palette[rand() % numColors];
+        p.alpha = 140.0f + static_cast<float>(rand() % 115);
+        p.flickerSpeed = 3.0f + static_cast<float>(rand() % 6);
+        p.flickerPhase = static_cast<float>(rand() % 360) * 0.0174533f;
+        defeatParticles.push_back(p);
+    }
+}
+
+void GameManager::capNhatDefeatParticles(float dt) {
+    if (!defeatParticlesActive) return;
+    defeatVignetteTimer += dt;
+
+    for (auto& p : defeatParticles) {
+        p.pos += p.vel * dt;
+        p.rot += p.rotSpeed * dt;
+        p.flickerPhase += p.flickerSpeed * dt;
+        p.vel.x += std::sin(p.pos.y * 0.025f + p.flickerPhase) * 15.0f * dt;
+
+        if (p.pos.y > 830.0f) {
+            p.pos.y = -20.0f - static_cast<float>(rand() % 80);
+            p.pos.x = static_cast<float>(rand() % 1200);
+            p.vel.y = 50.0f + static_cast<float>(rand() % 110);
+        }
+    }
+}
+
+void GameManager::veDefeatParticles() {
+    if (!defeatParticlesActive) return;
+
+    // 1. Sombre fullscreen dark crimson/charcoal vignette border
+    float pulse = 0.8f + 0.2f * std::sin(defeatVignetteTimer * 2.2f);
+    sf::Uint8 vigAlpha = static_cast<sf::Uint8>(std::min(255.0f, 130.0f * pulse));
+
+    // Top border glow
+    sf::Vertex topQuad[] = {
+        sf::Vertex(sf::Vector2f(0.0f, 0.0f), sf::Color(80, 10, 10, vigAlpha)),
+        sf::Vertex(sf::Vector2f(1200.0f, 0.0f), sf::Color(80, 10, 10, vigAlpha)),
+        sf::Vertex(sf::Vector2f(1200.0f, 90.0f), sf::Color(40, 5, 5, 0)),
+        sf::Vertex(sf::Vector2f(0.0f, 90.0f), sf::Color(40, 5, 5, 0))
+    };
+    window.draw(topQuad, 4, sf::Quads);
+
+    // Bottom border glow
+    sf::Vertex btmQuad[] = {
+        sf::Vertex(sf::Vector2f(0.0f, 710.0f), sf::Color(40, 5, 5, 0)),
+        sf::Vertex(sf::Vector2f(1200.0f, 710.0f), sf::Color(40, 5, 5, 0)),
+        sf::Vertex(sf::Vector2f(1200.0f, 800.0f), sf::Color(80, 10, 10, vigAlpha)),
+        sf::Vertex(sf::Vector2f(0.0f, 800.0f), sf::Color(80, 10, 10, vigAlpha))
+    };
+    window.draw(btmQuad, 4, sf::Quads);
+
+    // Left border glow
+    sf::Vertex leftQuad[] = {
+        sf::Vertex(sf::Vector2f(0.0f, 0.0f), sf::Color(80, 10, 10, vigAlpha)),
+        sf::Vertex(sf::Vector2f(110.0f, 0.0f), sf::Color(40, 5, 5, 0)),
+        sf::Vertex(sf::Vector2f(110.0f, 800.0f), sf::Color(40, 5, 5, 0)),
+        sf::Vertex(sf::Vector2f(0.0f, 800.0f), sf::Color(80, 10, 10, vigAlpha))
+    };
+    window.draw(leftQuad, 4, sf::Quads);
+
+    // Right border glow
+    sf::Vertex rightQuad[] = {
+        sf::Vertex(sf::Vector2f(1090.0f, 0.0f), sf::Color(40, 5, 5, 0)),
+        sf::Vertex(sf::Vector2f(1200.0f, 0.0f), sf::Color(80, 10, 10, vigAlpha)),
+        sf::Vertex(sf::Vector2f(1200.0f, 800.0f), sf::Color(80, 10, 10, vigAlpha)),
+        sf::Vertex(sf::Vector2f(1090.0f, 800.0f), sf::Color(40, 5, 5, 0))
+    };
+    window.draw(rightQuad, 4, sf::Quads);
+
+    // 2. Render falling embers and ash particles
+    for (const auto& p : defeatParticles) {
+        float fVal = 0.65f + 0.35f * std::sin(p.flickerPhase);
+        sf::Uint8 a = static_cast<sf::Uint8>(std::min(255.0f, std::max(0.0f, p.alpha * fVal)));
+        sf::Color c = p.baseColor;
+        c.a = a;
+
+        sf::RectangleShape shape(sf::Vector2f(p.size, p.size * 0.7f));
+        shape.setOrigin(p.size / 2.0f, (p.size * 0.7f) / 2.0f);
+        shape.setPosition(p.pos);
+        shape.setRotation(p.rot);
+        shape.setFillColor(c);
         window.draw(shape);
     }
 }

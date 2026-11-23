@@ -242,6 +242,24 @@ private:
     std::vector<VictoryParticle> victoryParticles;
     bool victoryParticlesActive;
 
+    // Defeat melancholic embers & smoke particles
+    struct DefeatParticle {
+        sf::Vector2f pos;
+        sf::Vector2f vel;
+        sf::Color baseColor;
+        float rot;
+        float rotSpeed;
+        float size;
+        float alpha;
+        float flickerSpeed;
+        float flickerPhase;
+    };
+    std::vector<DefeatParticle> defeatParticles;
+    bool defeatParticlesActive;
+    float defeatVignetteTimer;
+    float screenShakeTimer;
+    float screenShakeIntensity;
+
     // Random Turn Order Scene state
     bool isRandomRolling;
     bool rollFinished;
@@ -393,6 +411,10 @@ private:
     void veVictoryParticles();
     void khoiTaoVictoryParticles();
     void capNhatVictoryParticles(float dt);
+    void veDefeatParticles();
+    void khoiTaoDefeatParticles();
+    void capNhatDefeatParticles(float dt);
+    void kichHoatRungManHinh(float thoiGian, float cuongDo);
     void veKhayQuanBiAn(float x, float y, float w, float h, Mau mauQuanBiAn, const std::string& tieuDe);
     void veMenuPopUpInGame();
     void veToast();

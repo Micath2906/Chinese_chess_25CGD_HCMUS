@@ -166,17 +166,35 @@ void SoundManager::sinhAmThanh() {
         }, bufferVictory);
     soundVictory.setBuffer(bufferVictory);
 
-    // Defeat sound
-    makeBuffer(0.8, [&](double t, size_t, size_t) {
-        double notes[] = { 440.0, 349.23, 293.66 };
-        double seg = 0.24;
+    // Defeat sound: Deep martial gong resonance with sombre descending harmonic cadence
+    makeBuffer(1.4, [&](double t, size_t, size_t) {
+        double gong = (std::sin(2.0 * PI * 110.0 * t) * 0.45 * std::exp(-t * 2.2)
+                     + std::sin(2.0 * PI * 220.0 * t) * 0.25 * std::exp(-t * 3.5)
+                     + std::sin(2.0 * PI * 330.0 * t) * 0.15 * std::exp(-t * 4.8));
+        double notes[] = { 440.0, 370.0, 311.13, 261.63 };
+        double seg = 0.32;
         int idx = static_cast<int>(t / seg);
-        if (idx > 2) idx = 2;
+        if (idx > 3) idx = 3;
         double tLocal = t - (idx * seg);
-        double env = std::exp(-tLocal * 5.0);
-        return std::sin(2.0 * PI * notes[idx] * t) * env * 0.45;
-        }, bufferDefeat);
+        double env = std::exp(-tLocal * 4.0);
+        double melody = std::sin(2.0 * PI * notes[idx] * t) * env * 0.35;
+        return gong + melody;
+    }, bufferDefeat);
     soundDefeat.setBuffer(bufferDefeat);
+
+    // Try loading custom user defeat audio file if present
+    auto& amInst = AssetManager::get();
+    std::string loseFiles[] = {
+        amInst.resolvePath("audio/sfx/lose.wav"),
+        amInst.resolvePath("audio/sfx/lose.ogg"),
+        amInst.resolvePath("audio/sfx/lose.mp3")
+    };
+    for (const auto& lf : loseFiles) {
+        if (!lf.empty() && bufferDefeat.loadFromFile(lf)) {
+            soundDefeat.setBuffer(bufferDefeat);
+            break;
+        }
+    }
 
     // Click sound
     makeBuffer(0.04, [&](double t, size_t, size_t) {
