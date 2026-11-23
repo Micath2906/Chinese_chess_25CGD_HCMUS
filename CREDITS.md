@@ -22,6 +22,7 @@ Tài liệu này liệt kê tất cả tài nguyên (assets) của bên thứ ba
 | **Nền đình núi** | `assets/textures/backgrounds/xiangqi_background_pavilion.png` | `TODO(user): điền nguồn` | `TODO(user): điền giấy phép` | `TODO(user): xác nhận có phải ảnh AI không, công cụ nào, ngày tạo` |
 | **Bàn cờ tướng** | `assets/textures/board/board.png` | `TODO(user): điền nguồn` | `TODO(user): điền giấy phép` | `TODO(user): xác nhận có phải ảnh AI không, công cụ nào, ngày tạo` |
 | **14 Quân cờ** | `assets/textures/pieces/r_*.png`, `assets/textures/pieces/b_*.png` | `TODO(user): điền nguồn` | `TODO(user): điền giấy phép` | 14 mặt quân gỗ thực tế |
+| **5 Avatar Thỏ Pixel** | `assets/textures/avatars/emoji_cho_ava_*.png` | `TODO(user): điền nguồn` | `TODO(user): điền giấy phép` | 5 biểu cảm thỏ pixel art cho người chơi |
 | **Giao diện cổ phong** | `assets/textures/ui/xiangqi_oriental_sheet.png` | `TODO(user): điền nguồn` | `TODO(user): điền giấy phép` | Spritesheet các nút gỗ, thanh tiêu đề |
 | **TravelBook UI Pack** | `assets/textures/ui/travelbook/UI_TravelBook_*.png` | Complete UI Book Styles Pack Free | `TODO(user): điền giấy phép` | 26 sprite UI dạng trang sách cổ |
 

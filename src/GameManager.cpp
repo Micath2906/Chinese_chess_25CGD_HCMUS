@@ -5509,10 +5509,10 @@ void GameManager::veAvatarPortrait(sf::Vector2f center, float radius, int charIn
         std::string sigil;
         switch (charIndex % 5) {
             case 0: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "TƯỚNG" : "GEN"; break;
-            case 1: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "XE" : "ROOK"; break;
-            case 2: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "MÃ" : "HORS"; break;
-            case 3: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "PHÁO" : "CANN"; break;
-            case 4: default: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "BINH" : "PAWN"; break;
+            case 1: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "SƯ" : "STR"; break;
+            case 2: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "VƯƠNG" : "GM"; break;
+            case 3: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "HIỆP" : "KNT"; break;
+            case 4: default: sigil = (Loc::getLanguage() == Language::TIENG_VIET) ? "SINH" : "SCH"; break;
         }
         sf::Text txt;
         txt.setFont(fontBold);
