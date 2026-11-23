@@ -4017,9 +4017,9 @@ void GameManager::khoiTaoPlaySetupButtons() {
         playSetupButtons.push_back(std::move(bNext));
     };
 
-    // Avatar cycle: arrW=28, valW=100, arrW=28 -> total = 28 + 2 + 100 + 2 + 28 = 160.0f (exact match with input box width 160.0f!)
+    // Avatar cycle: arrW=28, valW=120, arrW=28 -> total = 28 + 2 + 120 + 2 + 28 = 180.0f (exact match with input box width 180.0f!)
     auto addAvatarCycle = [&](float x, float y, int& charIdx) {
-        addCycle(x, y, 100.0f, Loc::getCharName(charIdx),
+        addCycle(x, y, 120.0f, Loc::getCharName(charIdx),
             [this, &charIdx]() {
                 soundManager.play(SoundType::CLICK);
                 charIdx = (charIdx + Loc::getCharCount() - 1) % Loc::getCharCount();
@@ -4034,17 +4034,17 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     if (playSetupMode == 1) {
         // --- 1. Two-player PvP Setup ---
-        // Player 1 Card: left=188, input at X=260, Y=244, W=160, H=34
-        inputP1Name->setPosition(260.0f, 244.0f);
-        inputP1Name->setSize(160.0f, 34.0f);
+        // Player 1 Card: left=188, input at X=300, Y=244, W=180, H=34 (ends at 480, avatar centered at 534)
+        inputP1Name->setPosition(300.0f, 244.0f);
+        inputP1Name->setSize(180.0f, 34.0f);
         inputP1Name->setParchmentStyle(true);
-        addAvatarCycle(260.0f, 296.0f, p1CharIndex);
+        addAvatarCycle(300.0f, 296.0f, p1CharIndex);
 
-        // Player 2 Card: left=612, input at X=684, Y=244, W=160, H=34
-        inputP2Name->setPosition(684.0f, 244.0f);
-        inputP2Name->setSize(160.0f, 34.0f);
+        // Player 2 Card: left=612, input at X=724, Y=244, W=180, H=34 (ends at 904, avatar centered at 958)
+        inputP2Name->setPosition(724.0f, 244.0f);
+        inputP2Name->setSize(180.0f, 34.0f);
         inputP2Name->setParchmentStyle(true);
-        addAvatarCycle(684.0f, 296.0f, p2CharIndex);
+        addAvatarCycle(724.0f, 296.0f, p2CharIndex);
 
         // Settings 2-Column Grid:
         // Left Column (Timer & Board Theme):
@@ -4099,19 +4099,19 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     } else if (playSetupMode == 0) {
         // --- 2. Player vs AI Setup ---
-        // Human Player (Left Card): input at X=260, Y=244, W=160, H=34
-        inputAiPlayerName->setPosition(260.0f, 244.0f);
-        inputAiPlayerName->setSize(160.0f, 34.0f);
+        // Human Player (Left Card): input at X=300, Y=244, W=180, H=34
+        inputAiPlayerName->setPosition(300.0f, 244.0f);
+        inputAiPlayerName->setSize(180.0f, 34.0f);
         inputAiPlayerName->setParchmentStyle(true);
-        addAvatarCycle(260.0f, 296.0f, aiPlayerCharIndex);
+        addAvatarCycle(300.0f, 296.0f, aiPlayerCharIndex);
 
-        // AI Engine (Right Card): X=684, W=160, H=34
+        // AI Engine (Right Card): X=724, W=180, H=34 (valW=120)
         auto getDiffLabel = [this, tiengViet]() -> std::string {
             if (aiDifficulty == DoKho::DE) return tiengViet ? "Dễ" : "Easy";
             if (aiDifficulty == DoKho::TRUNG_BINH) return tiengViet ? "Trung Bình" : "Medium";
             return tiengViet ? "Khó" : "Hard";
         };
-        addCycle(684.0f, 244.0f, 100.0f, getDiffLabel(),
+        addCycle(724.0f, 244.0f, 120.0f, getDiffLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 if (aiDifficulty == DoKho::KHO) aiDifficulty = DoKho::TRUNG_BINH;
@@ -4132,7 +4132,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
             if (aiFirstChoice == 1) return tiengViet ? "Máy (Đỏ)" : "AI First (Red)";
             return tiengViet ? "Ngẫu Nhiên" : "Random Side";
         };
-        addCycle(684.0f, 296.0f, 100.0f, getSideLabel(),
+        addCycle(724.0f, 296.0f, 120.0f, getSideLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 aiFirstChoice = (aiFirstChoice + 2) % 3;
@@ -4568,30 +4568,34 @@ void GameManager::vePlaySetup() {
         t1.setPosition(388.0f, 218.0f);
         window.draw(t1);
 
-        // Row 1: Name Label & Input
+        // Row 1: Name Label & Input (Vertically centered at Y = 261)
         sf::Text lName1;
         lName1.setFont(fBold);
         lName1.setString(toUtf8(tiengViet ? "Tên:" : "Name:"));
         lName1.setCharacterSize(15);
         lName1.setStyle(sf::Text::Bold);
         lName1.setFillColor(sf::Color(255, 235, 165));
-        lName1.setPosition(204.0f, 252.0f);
+        sf::FloatRect nb1 = lName1.getLocalBounds();
+        lName1.setOrigin(0.0f, std::round(nb1.top + nb1.height / 2.0f));
+        lName1.setPosition(204.0f, 261.0f);
         window.draw(lName1);
 
         inputP1Name->draw(window);
 
-        // Row 2: Avatar Label & Cycle
+        // Row 2: Avatar Label & Cycle (Vertically centered at Y = 313)
         sf::Text lAva1;
         lAva1.setFont(fBold);
         lAva1.setString(toUtf8(tiengViet ? "Quân diện:" : "Avatar:"));
         lAva1.setCharacterSize(15);
         lAva1.setStyle(sf::Text::Bold);
         lAva1.setFillColor(sf::Color(255, 235, 165));
-        lAva1.setPosition(204.0f, 304.0f);
+        sf::FloatRect ab1 = lAva1.getLocalBounds();
+        lAva1.setOrigin(0.0f, std::round(ab1.top + ab1.height / 2.0f));
+        lAva1.setPosition(204.0f, 313.0f);
         window.draw(lAva1);
 
-        // Portrait preview for P1
-        veAvatarPortrait(sf::Vector2f(513.0f, 287.0f), 23.0f, p1CharIndex, Mau::DO, false);
+        // Portrait preview for P1 (Centered at X = 534, Y = 287)
+        veAvatarPortrait(sf::Vector2f(534.0f, 287.0f), 23.0f, p1CharIndex, Mau::DO, false);
 
         // Right Card: Player 2 (Black Side) [612, 196, 400, 164]
         drawSubCard(sf::FloatRect(612.0f, 196.0f, 400.0f, 164.0f),
@@ -4616,30 +4620,34 @@ void GameManager::vePlaySetup() {
         t2.setPosition(812.0f, 218.0f);
         window.draw(t2);
 
-        // Row 1: Name Label & Input
+        // Row 1: Name Label & Input (Vertically centered at Y = 261)
         sf::Text lName2;
         lName2.setFont(fBold);
         lName2.setString(toUtf8(tiengViet ? "Tên:" : "Name:"));
         lName2.setCharacterSize(15);
         lName2.setStyle(sf::Text::Bold);
         lName2.setFillColor(sf::Color(255, 235, 165));
-        lName2.setPosition(628.0f, 252.0f);
+        sf::FloatRect nb2 = lName2.getLocalBounds();
+        lName2.setOrigin(0.0f, std::round(nb2.top + nb2.height / 2.0f));
+        lName2.setPosition(628.0f, 261.0f);
         window.draw(lName2);
 
         inputP2Name->draw(window);
 
-        // Row 2: Avatar Label & Cycle
+        // Row 2: Avatar Label & Cycle (Vertically centered at Y = 313)
         sf::Text lAva2;
         lAva2.setFont(fBold);
         lAva2.setString(toUtf8(tiengViet ? "Quân diện:" : "Avatar:"));
         lAva2.setCharacterSize(15);
         lAva2.setStyle(sf::Text::Bold);
         lAva2.setFillColor(sf::Color(255, 235, 165));
-        lAva2.setPosition(628.0f, 304.0f);
+        sf::FloatRect ab2 = lAva2.getLocalBounds();
+        lAva2.setOrigin(0.0f, std::round(ab2.top + ab2.height / 2.0f));
+        lAva2.setPosition(628.0f, 313.0f);
         window.draw(lAva2);
 
-        // Portrait preview for P2
-        veAvatarPortrait(sf::Vector2f(937.0f, 287.0f), 23.0f, p2CharIndex, Mau::DEN, false);
+        // Portrait preview for P2 (Centered at X = 958, Y = 287)
+        veAvatarPortrait(sf::Vector2f(958.0f, 287.0f), 23.0f, p2CharIndex, Mau::DEN, false);
 
         // --- Shared Match & Theme Configuration ---
         drawSubCard(sf::FloatRect(188.0f, 376.0f, 824.0f, 218.0f),
@@ -4654,14 +4662,16 @@ void GameManager::vePlaySetup() {
         rTitle.setPosition(208.0f, 388.0f);
         window.draw(rTitle);
 
-        // Left Column: Match Timer (Row 1) & Board Theme (Row 2)
+        // Left Column: Match Timer (Row 1) & Board Theme (Row 2) (Vertically centered)
         sf::Text lTimer;
         lTimer.setFont(fBold);
         lTimer.setCharacterSize(15);
         lTimer.setStyle(sf::Text::Bold);
         lTimer.setString(toUtf8(tiengViet ? "Thời gian ván:" : "Match Timer:"));
         lTimer.setFillColor(sf::Color(245, 230, 185));
-        lTimer.setPosition(208.0f, 430.0f);
+        sf::FloatRect tbTimer = lTimer.getLocalBounds();
+        lTimer.setOrigin(0.0f, std::round(tbTimer.top + tbTimer.height / 2.0f));
+        lTimer.setPosition(208.0f, 439.0f);
         window.draw(lTimer);
 
         sf::Text lBoard;
@@ -4670,7 +4680,9 @@ void GameManager::vePlaySetup() {
         lBoard.setStyle(sf::Text::Bold);
         lBoard.setString(toUtf8(tiengViet ? "Màu bàn cờ:" : "Board Theme:"));
         lBoard.setFillColor(sf::Color(245, 230, 185));
-        lBoard.setPosition(208.0f, 476.0f);
+        sf::FloatRect tbBoard = lBoard.getLocalBounds();
+        lBoard.setOrigin(0.0f, std::round(tbBoard.top + tbBoard.height / 2.0f));
+        lBoard.setPosition(208.0f, 485.0f);
         window.draw(lBoard);
 
         // Right Column: Piece Style (Row 1) & Piece Sample (Row 2)
@@ -4680,7 +4692,9 @@ void GameManager::vePlaySetup() {
         lStyle.setStyle(sf::Text::Bold);
         lStyle.setString(toUtf8(tiengViet ? "Kiểu quân cờ:" : "Piece Style:"));
         lStyle.setFillColor(sf::Color(245, 230, 185));
-        lStyle.setPosition(612.0f, 430.0f);
+        sf::FloatRect tbStyle = lStyle.getLocalBounds();
+        lStyle.setOrigin(0.0f, std::round(tbStyle.top + tbStyle.height / 2.0f));
+        lStyle.setPosition(612.0f, 439.0f);
         window.draw(lStyle);
 
         // Piece Style Live Preview box
@@ -4719,7 +4733,9 @@ void GameManager::vePlaySetup() {
         lName1.setCharacterSize(15);
         lName1.setStyle(sf::Text::Bold);
         lName1.setFillColor(sf::Color(255, 235, 165));
-        lName1.setPosition(204.0f, 252.0f);
+        sf::FloatRect nb1 = lName1.getLocalBounds();
+        lName1.setOrigin(0.0f, std::round(nb1.top + nb1.height / 2.0f));
+        lName1.setPosition(204.0f, 261.0f);
         window.draw(lName1);
 
         inputAiPlayerName->draw(window);
@@ -4730,10 +4746,12 @@ void GameManager::vePlaySetup() {
         lAva1.setCharacterSize(15);
         lAva1.setStyle(sf::Text::Bold);
         lAva1.setFillColor(sf::Color(255, 235, 165));
-        lAva1.setPosition(204.0f, 304.0f);
+        sf::FloatRect ab1 = lAva1.getLocalBounds();
+        lAva1.setOrigin(0.0f, std::round(ab1.top + ab1.height / 2.0f));
+        lAva1.setPosition(204.0f, 313.0f);
         window.draw(lAva1);
 
-        veAvatarPortrait(sf::Vector2f(513.0f, 287.0f), 23.0f, aiPlayerCharIndex, Mau::DO, false);
+        veAvatarPortrait(sf::Vector2f(534.0f, 287.0f), 23.0f, aiPlayerCharIndex, Mau::DO, false);
 
         // Right Card: AI Opponent [612, 196, 400, 164]
         drawSubCard(sf::FloatRect(612.0f, 196.0f, 400.0f, 164.0f),
@@ -4757,27 +4775,31 @@ void GameManager::vePlaySetup() {
         t2.setPosition(812.0f, 218.0f);
         window.draw(t2);
 
-        // Row 1: AI Difficulty
+        // Row 1: AI Difficulty (Vertically centered at Y = 261)
         sf::Text lDiff;
         lDiff.setFont(fBold);
         lDiff.setString(toUtf8(tiengViet ? "Độ khó AI:" : "Difficulty:"));
         lDiff.setCharacterSize(15);
         lDiff.setStyle(sf::Text::Bold);
         lDiff.setFillColor(sf::Color(255, 235, 165));
-        lDiff.setPosition(628.0f, 252.0f);
+        sf::FloatRect db = lDiff.getLocalBounds();
+        lDiff.setOrigin(0.0f, std::round(db.top + db.height / 2.0f));
+        lDiff.setPosition(628.0f, 261.0f);
         window.draw(lDiff);
 
-        // Row 2: AI First Move
+        // Row 2: AI First Move (Vertically centered at Y = 313)
         sf::Text lSide;
         lSide.setFont(fBold);
         lSide.setString(toUtf8(tiengViet ? "Bên đi đầu:" : "First Move:"));
         lSide.setCharacterSize(15);
         lSide.setStyle(sf::Text::Bold);
         lSide.setFillColor(sf::Color(255, 235, 165));
-        lSide.setPosition(628.0f, 304.0f);
+        sf::FloatRect sb = lSide.getLocalBounds();
+        lSide.setOrigin(0.0f, std::round(sb.top + sb.height / 2.0f));
+        lSide.setPosition(628.0f, 313.0f);
         window.draw(lSide);
 
-        veAvatarPortrait(sf::Vector2f(937.0f, 287.0f), 23.0f, 0, Mau::DEN, false);
+        veAvatarPortrait(sf::Vector2f(958.0f, 287.0f), 23.0f, 0, Mau::DEN, false);
 
         // Settings (Grid 2-column)
         drawSubCard(sf::FloatRect(188.0f, 376.0f, 824.0f, 218.0f),
@@ -4798,7 +4820,9 @@ void GameManager::vePlaySetup() {
         lTimer.setStyle(sf::Text::Bold);
         lTimer.setString(toUtf8(tiengViet ? "Thời gian ván:" : "Match Timer:"));
         lTimer.setFillColor(sf::Color(245, 230, 185));
-        lTimer.setPosition(208.0f, 430.0f);
+        sf::FloatRect tbTimer = lTimer.getLocalBounds();
+        lTimer.setOrigin(0.0f, std::round(tbTimer.top + tbTimer.height / 2.0f));
+        lTimer.setPosition(208.0f, 439.0f);
         window.draw(lTimer);
 
         sf::Text lBoard;
@@ -4807,7 +4831,9 @@ void GameManager::vePlaySetup() {
         lBoard.setStyle(sf::Text::Bold);
         lBoard.setString(toUtf8(tiengViet ? "Màu bàn cờ:" : "Board Theme:"));
         lBoard.setFillColor(sf::Color(245, 230, 185));
-        lBoard.setPosition(208.0f, 476.0f);
+        sf::FloatRect tbBoard = lBoard.getLocalBounds();
+        lBoard.setOrigin(0.0f, std::round(tbBoard.top + tbBoard.height / 2.0f));
+        lBoard.setPosition(208.0f, 485.0f);
         window.draw(lBoard);
 
         sf::Text lStyle;
@@ -4816,7 +4842,9 @@ void GameManager::vePlaySetup() {
         lStyle.setStyle(sf::Text::Bold);
         lStyle.setString(toUtf8(tiengViet ? "Kiểu quân cờ:" : "Piece Style:"));
         lStyle.setFillColor(sf::Color(245, 230, 185));
-        lStyle.setPosition(612.0f, 430.0f);
+        sf::FloatRect tbStyle = lStyle.getLocalBounds();
+        lStyle.setOrigin(0.0f, std::round(tbStyle.top + tbStyle.height / 2.0f));
+        lStyle.setPosition(612.0f, 439.0f);
         window.draw(lStyle);
 
         vePieceStylePreview(window, 612.0f, 468.0f, 332.0f, 34.0f);
