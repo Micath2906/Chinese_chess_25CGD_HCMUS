@@ -230,12 +230,6 @@ void GameManager::khoiTaoTatCaMenu() {
         khoiTaoPlaySetupButtons();
         trangThai = TrangThai::PVAI_SETUP;
     };
-    menuChinh.onPlayDemo = [this]() {
-        soundManager.play(SoundType::CLICK);
-        playSetupMode = 2;
-        khoiTaoPlaySetupButtons();
-        trangThai = TrangThai::PVP_SETUP;
-    };
     menuChinh.onOpenSettings = [this]() {
         soundManager.play(SoundType::CLICK);
         menuChinh.setSection(MenuSection::SETTINGS);
@@ -477,17 +471,7 @@ void GameManager::khoiTaoTatCaMenu() {
         khoiTaoPlaySetupButtons();
         trangThai = TrangThai::PVAI_SETUP;
     });
-    menuPlaySub.themButton(cx, psubY + sp * 2, bw, bh, Loc::get(LocKey::PLAY_DEMO), [this]() {
-        soundManager.play(SoundType::CLICK);
-        tenNguoiChoiDo = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do (Xe & Voi)" : "Red (Chariot & Elephant)";
-        tenNguoiChoiDen = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Den (Xe & Voi)" : "Black (Chariot & Elephant)";
-        nhanVatDo = 0;
-        nhanVatDen = 0;
-        playSetupMode = 2;
-        khoiTaoPlaySetupButtons();
-        trangThai = TrangThai::PVP_SETUP;
-    });
-    menuPlaySub.themButton(cx, psubY + sp * 3, bw, bh, Loc::get(LocKey::BACK), [this]() {
+    menuPlaySub.themButton(cx, psubY + sp * 2, bw, bh, Loc::get(LocKey::BACK), [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::MENU_CHINH;
         menuChinh.triggerOpenAnimation();
@@ -1851,12 +1835,12 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
             if (key == sf::Keyboard::W || key == sf::Keyboard::Up) {
                 soundManager.play(SoundType::CLICK);
-                titleMenuIndex = (titleMenuIndex + 3) % 4;
+                titleMenuIndex = (titleMenuIndex + 2) % 3;
                 return;
             }
             if (key == sf::Keyboard::S || key == sf::Keyboard::Down) {
                 soundManager.play(SoundType::CLICK);
-                titleMenuIndex = (titleMenuIndex + 1) % 4;
+                titleMenuIndex = (titleMenuIndex + 1) % 3;
                 return;
             }
             if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
@@ -1872,14 +1856,6 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
                     playSetupMode = 0;
                     khoiTaoPlaySetupButtons();
                     trangThai = TrangThai::PVAI_SETUP;
-                } else if (titleMenuIndex == 2) {
-                    tenNguoiChoiDo = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do (Xe & Voi)" : "Red (Chariot & Elephant)";
-                    tenNguoiChoiDen = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Den (Xe & Voi)" : "Black (Chariot & Elephant)";
-                    nhanVatDo = 0;
-                    nhanVatDen = 0;
-                    playSetupMode = 2;
-                    khoiTaoPlaySetupButtons();
-                    trangThai = TrangThai::PVP_SETUP;
                 } else {
                     titleSubMenu = TitleSubMenu::PLAY_LOAD;
                     titleMenuIndex = 0;
@@ -1971,15 +1947,15 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
             return;
         }
 
-        if (key == sf::Keyboard::W || key == sf::Keyboard::Up) {
+        if (key == sf::Keyboard::W || key == sf::Keyboard::Up || key == sf::Keyboard::Tab) {
             soundManager.play(SoundType::CLICK);
-            playSetupMode = (playSetupMode + 2) % 3;
+            playSetupMode = (playSetupMode == 1) ? 0 : 1;
             khoiTaoPlaySetupButtons();
             return;
         }
         if (key == sf::Keyboard::S || key == sf::Keyboard::Down) {
             soundManager.play(SoundType::CLICK);
-            playSetupMode = (playSetupMode + 1) % 3;
+            playSetupMode = (playSetupMode == 1) ? 0 : 1;
             khoiTaoPlaySetupButtons();
             return;
         }
@@ -2005,8 +1981,9 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         }
         if (key == sf::Keyboard::Escape) {
             soundManager.play(SoundType::CLICK);
-            trangThai = TrangThai::MENU_CHINH;
-            menuChinh.triggerOpenAnimation(MenuSection::PLAY);
+            trangThai = TrangThai::TITLE_SCREEN;
+            titleSubMenu = TitleSubMenu::MODE_SELECT;
+            titleMenuIndex = (playSetupMode == 1 ? 0 : 1);
             return;
         }
         if (key == sf::Keyboard::Return) {
@@ -2024,9 +2001,6 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
                 cheDoChoi = CheDoChoi::HAI_NGUOI;
                 khoiTaoRandomLuotScene();
                 trangThai = TrangThai::RANDOM_LUOT;
-            } else {
-                nhanVatDo = 0; nhanVatDen = 0;
-                batDauTroChoiMoi(CheDoChoi::DEMO_2XE_2VOI);
             }
             return;
         }
@@ -2555,7 +2529,10 @@ void GameManager::ve() {
                 bgSprite.setScale(coverScale, coverScale);
                 window.draw(bgSprite);
             }
-        } else if (trangThai == TrangThai::TITLE_SCREEN) {
+        } else if (trangThai == TrangThai::TITLE_SCREEN ||
+                   trangThai == TrangThai::PVP_SETUP ||
+                   trangThai == TrangThai::PVAI_SETUP ||
+                   trangThai == TrangThai::RANDOM_LUOT) {
             const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
             if (titleBg.getSize().x > 0) {
                 sf::Sprite bgSprite(titleBg);
@@ -2584,7 +2561,10 @@ void GameManager::ve() {
     }
 
     capNhatViewManHinh();
-    if (trangThai == TrangThai::TITLE_SCREEN) {
+    if (trangThai == TrangThai::TITLE_SCREEN ||
+        trangThai == TrangThai::PVP_SETUP ||
+        trangThai == TrangThai::PVAI_SETUP ||
+        trangThai == TrangThai::RANDOM_LUOT) {
         const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
         if (titleBg.getSize().x > 0) {
             sf::Sprite bgSprite(titleBg);
@@ -4108,24 +4088,23 @@ void GameManager::khoiTaoPlaySetupButtons() {
     sf::Font& f = mAssets.vnFontLoaded ? mAssets.vnFont : font;
     sf::Font& fBold = mAssets.fontBoldLoaded ? mAssets.fontBold : fontBold;
 
-    // 1. Top Horizontal Mode Tab Bar inside Dashboard (X=160, Y=120, W=880, H=560)
-    // Symmetrical 3 tabs: W=256, H=40, Step=284 (Tab 0: 188, Tab 1: 472, Tab 2: 756 -> ends at 1012)
+    // 1. Top Horizontal Mode Tab Bar inside Dashboard (X=160, Y=118, W=880, H=564)
+    // Symmetrical 2 tabs: W=400, H=40, Step=424 (Tab 0: 188..588, Tab 1: 612..1012)
     struct ModeTabSpec {
         int modeId;
         std::string label;
         const sf::Texture* icon;
     };
     const std::vector<ModeTabSpec> tabSpecs = {
-        { 1, tiengViet ? "Hai Người (PvP)" : "PvP Mode",       &mAssets.iconPlay },
-        { 0, tiengViet ? "Đấu Với AI"       : "Player vs AI",   &mAssets.iconSettings },
-        { 2, tiengViet ? "Máy Đấu Demo"    : "Demo Match",     &mAssets.iconInfo }
+        { 1, tiengViet ? "Đấu 2 Người (PvP)" : "Two Players (PvP)",   &mAssets.iconPlay },
+        { 0, tiengViet ? "Đấu Với Máy (AI)"  : "Player vs AI",        &mAssets.iconSettings }
     };
 
     const float tabStartX = 188.0f;
-    const float tabY = 140.0f;
-    const float tabW = 256.0f;
+    const float tabY = 136.0f;
+    const float tabW = 400.0f;
     const float tabH = 40.0f;
-    const float tabStep = 284.0f;
+    const float tabStep = 424.0f;
 
     for (size_t i = 0; i < tabSpecs.size(); ++i) {
         int targetMode = tabSpecs[i].modeId;
@@ -4137,7 +4116,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
         });
         bool active = (playSetupMode == targetMode);
         tabBtn->setSelected(active);
-        tabBtn->setCharacterSize(15);
+        tabBtn->setCharacterSize(16);
         tabBtn->setColors(
             active ? sf::Color(255, 226, 128) : sf::Color(242, 232, 206),
             sf::Color(255, 234, 150),
@@ -4362,36 +4341,9 @@ void GameManager::khoiTaoPlaySetupButtons() {
                 khoiTaoPlaySetupButtons();
             });
 
-    } else {
-        // --- 3. Demo Match Setup ---
-        // Left Column: Piece Style at X=336, Y=452
-        addCycle(336.0f, 452.0f, 140.0f, getPieceStyleLabel(),
-            [this]() {
-                soundManager.play(SoundType::CLICK);
-                pieceStyle = static_cast<PieceStyle>((static_cast<int>(pieceStyle) + 3) % 4);
-                khoiTaoPlaySetupButtons();
-            },
-            [this]() {
-                soundManager.play(SoundType::CLICK);
-                pieceStyle = static_cast<PieceStyle>((static_cast<int>(pieceStyle) + 1) % 4);
-                khoiTaoPlaySetupButtons();
-            });
-
-        // Right Column: Board Theme at X=744, Y=452
-        addCycle(744.0f, 452.0f, 140.0f, getBoardThemeLabel(),
-            [this]() {
-                soundManager.play(SoundType::CLICK);
-                boardTheme = static_cast<BoardTheme>((static_cast<int>(boardTheme) + 3) % 4);
-                khoiTaoPlaySetupButtons();
-            },
-            [this]() {
-                soundManager.play(SoundType::CLICK);
-                boardTheme = static_cast<BoardTheme>((static_cast<int>(boardTheme) + 1) % 4);
-                khoiTaoPlaySetupButtons();
-            });
     }
-
-    // 3. Bottom Action Bar (TASK 05, 07)
+ 
+    // 3. Bottom Action Bar
     // Shared baseline Y = 614.0f, H = 46.0f
     const float btmY = 614.0f;
     const float btmH = 46.0f;
@@ -4408,8 +4360,8 @@ void GameManager::khoiTaoPlaySetupButtons() {
     playSetupButtons.push_back(std::move(backBtn));
 
     auto trimStr = [](std::string s) {
-        while (!s.empty() && (s.front() == ' ' || s.front() == '	')) s.erase(s.begin());
-        while (!s.empty() && (s.back() == ' ' || s.back() == '	')) s.pop_back();
+        while (!s.empty() && (s.front() == ' ' || s.front() == '\t')) s.erase(s.begin());
+        while (!s.empty() && (s.back() == ' ' || s.back() == '\t')) s.pop_back();
         return s;
     };
 
@@ -4441,7 +4393,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
         rollBtn->setColors(sf::Color(255, 236, 175), sf::Color(255, 248, 210), sf::Color(255, 255, 235));
         playSetupButtons.push_back(std::move(rollBtn));
 
-    } else if (playSetupMode == 0) {
+    } else { // playSetupMode == 0 (Player vs AI)
         bool needsRoll = (aiFirstChoice == 2);
         std::string actLabel = needsRoll
             ? (tiengViet ? "Tiếp theo >>" : "Next >>")
@@ -4460,21 +4412,6 @@ void GameManager::khoiTaoPlaySetupButtons() {
             } else {
                 batDauPvai();
             }
-        });
-        actBtn->setCharacterSize(16);
-        actBtn->setSelected(true);
-        actBtn->setColors(sf::Color(255, 236, 175), sf::Color(255, 248, 210), sf::Color(255, 255, 235));
-        playSetupButtons.push_back(std::move(actBtn));
-
-    } else {
-        auto actBtn = std::make_unique<Button>(actX, btmY, actW, btmH,
-            tiengViet ? "Bắt đầu mô phỏng >>" : "Start Demo >>", fBold, [this, tiengViet]() {
-            soundManager.play(SoundType::CLICK);
-            tenNguoiChoiDo = tiengViet ? "Quân Đỏ (Xe & Voi)" : "Red (Chariot & Elephant)";
-            tenNguoiChoiDen = tiengViet ? "Quân Đen (Xe & Voi)" : "Black (Chariot & Elephant)";
-            nhanVatDo = 0;
-            nhanVatDen = 0;
-            batDauTroChoiMoi(CheDoChoi::DEMO_2XE_2VOI);
         });
         actBtn->setCharacterSize(16);
         actBtn->setSelected(true);
@@ -4749,21 +4686,55 @@ void GameManager::vePlaySetup() {
     sf::Font& f = assets.vnFontLoaded ? assets.vnFont : font;
     sf::Font& fBold = assets.fontBoldLoaded ? assets.fontBold : fontBold;
 
-    // 1. Subtle Fullscreen Dim Backdrop over Atmospheric Courtyard (1200x800)
-    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 75));
+    // 1. Fullscreen Dim Backdrop over High-Res Landscape (1200x800)
+    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 175));
 
-    // Top Antique Silk Ribbon Title (Hierarchy Level 1 - Title Case)
-    FantasyUI::get().drawRibbonTitle(window, 600.0f, 38.0f, 380.0f, 56.0f,
-        tiengViet ? "Thiết Lập Trận Đấu" : "Match Setup", fBold, 20);
+    // Top Royal Scroll Banner Title (Unified with Title Screen aesthetic)
+    auto& am = AssetManager::get();
+    const sf::Texture& bannerTex = am.texture(TextureId::TITLE_SCROLL_BANNER);
+    if (bannerTex.getSize().x > 0) {
+        sf::Sprite bannerSprite(bannerTex);
+        float bw = static_cast<float>(bannerTex.getSize().x);
+        float bh = static_cast<float>(bannerTex.getSize().y);
+        bannerSprite.setOrigin(bw / 2.0f, bh / 2.0f);
+        float bScale = 0.86f;
+        bannerSprite.setScale(bScale, bScale);
+        bannerSprite.setPosition(600.0f, 62.0f);
+        window.draw(bannerSprite);
 
-    // 2. Unified Oriental Ebony Wood Dashboard Frame (880x560 at 160, 120)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(160.0f, 120.0f, 880.0f, 560.0f), OrientalPanelStyle::EBONY_WOOD);
+        sf::Text titleText;
+        titleText.setFont(tiengViet ? fontVnBold : fontEnBold);
+        titleText.setString(toUtf8(tiengViet
+            ? (playSetupMode == 1 ? "Thiết Lập Ván Đấu (PvP)" : "Thiết Lập Đấu Với Máy (AI)")
+            : (playSetupMode == 1 ? "Two Players (PvP) Setup" : "Play vs AI Setup")));
+        titleText.setCharacterSize(tiengViet ? 25 : 23);
+        titleText.setStyle(sf::Text::Bold);
+        sf::FloatRect tb = titleText.getLocalBounds();
+        titleText.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
 
-    // Active Mode Tab Gold Corner Highlight (Tab 0=PvP, Tab 1=PvAI, Tab 2=Demo)
-    int activeVisualTab = (playSetupMode == 1) ? 0 : ((playSetupMode == 0) ? 1 : 2);
+        // Lacquer drop shadow
+        titleText.setFillColor(sf::Color(65, 16, 10, 200));
+        titleText.setOutlineThickness(1.8f);
+        titleText.setOutlineColor(sf::Color(65, 16, 10, 200));
+        titleText.setPosition(601.0f, 63.0f);
+        window.draw(titleText);
+
+        // Crimson with antique gold outline
+        titleText.setFillColor(sf::Color(156, 24, 18));
+        titleText.setOutlineThickness(2.2f);
+        titleText.setOutlineColor(sf::Color(245, 215, 120));
+        titleText.setPosition(600.0f, 62.0f);
+        window.draw(titleText);
+    }
+
+    // 2. Unified Oriental Ebony Wood Dashboard Frame (880x564 at 160, 118)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(160.0f, 118.0f, 880.0f, 564.0f), OrientalPanelStyle::EBONY_WOOD);
+
+    // Active Mode Tab Gold Corner Highlight (Tab 0=PvP at X=188, Tab 1=PvAI at X=612)
+    int activeVisualTab = (playSetupMode == 1) ? 0 : 1;
     ve4GocLuaChon(window,
-        sf::Vector2f(188.0f + static_cast<float>(activeVisualTab) * 284.0f, 140.0f),
-        sf::Vector2f(256.0f, 40.0f),
+        sf::Vector2f(188.0f + static_cast<float>(activeVisualTab) * 424.0f, 136.0f),
+        sf::Vector2f(400.0f, 40.0f),
         1.5f, 1.2f);
 
     auto drawSubCard = [this](sf::FloatRect rect, sf::Color fillCol, sf::Color borderCol) {
@@ -4962,7 +4933,7 @@ void GameManager::vePlaySetup() {
         veBoardThemePreview(window, 208.0f, 514.0f, 384.0f, 46.0f);
         vePieceStylePreview(window, 612.0f, 514.0f, 384.0f, 46.0f);
 
-    } else if (playSetupMode == 0) {
+    } else {
         // --- 2. PLAYER VS AI SETUP ---
         // Left Card: Human Player [188, 196, 400, 164]
         drawSubCard(sf::FloatRect(188.0f, 196.0f, 400.0f, 164.0f),
@@ -5140,72 +5111,6 @@ void GameManager::vePlaySetup() {
         // Row 3: Symmetrical Previews side-by-side (Board Sample on Left, Piece Sample on Right)
         veBoardThemePreview(window, 208.0f, 514.0f, 384.0f, 46.0f);
         vePieceStylePreview(window, 612.0f, 514.0f, 384.0f, 46.0f);
-
-    } else {
-        // --- 3. DEMO SIMULATION SETUP ---
-        drawSubCard(sf::FloatRect(188.0f, 196.0f, 824.0f, 198.0f),
-                    sf::Color(25, 19, 15, 242), sf::Color(120, 88, 48, 175));
-
-        sf::Text dTitle;
-        dTitle.setFont(fBold);
-        dTitle.setCharacterSize(16);
-        dTitle.setStyle(sf::Text::Bold);
-        dTitle.setString(toUtf8(tiengViet ? "Mô Phỏng Ván Cờ Tàn Tự Động (Minimax vs Alpha-Beta)" : "Automated Endgame Simulation (Minimax vs Alpha-Beta)"));
-        dTitle.setFillColor(sf::Color(255, 225, 120));
-        dTitle.setPosition(208.0f, 210.0f);
-        window.draw(dTitle);
-
-        sf::Text dDesc;
-        dDesc.setFont(fBold);
-        dDesc.setCharacterSize(14);
-        dDesc.setStyle(sf::Text::Bold);
-        dDesc.setString(toUtf8(tiengViet
-            ? "Mô phỏng trận thế cờ tàn kinh điển Song Xe Song Voi tự động giữa 2 thuật toán AI:\n"
-              "  * Quân Đỏ: Minimax AI kết hợp bảng đánh giá vị trí chiến lược.\n"
-              "  * Quân Đen: Alpha-Beta Pruning 4 lớp với thuật toán cắt tỉa nhánh tối ưu.\n"
-              "Người chơi có thể theo dõi cách máy AI phối hợp tấn công và phòng thủ."
-            : "Automatic demonstration of a classic Double-Chariot Double-Elephant endgame:\n"
-              "  * Red Side: Minimax search with positional piece-square evaluation.\n"
-              "  * Black Side: 4-ply Alpha-Beta Pruning with aggressive tactical cutoffs.\n"
-              "Observe and study tactical masteries and defenses between competing algorithms."));
-        dDesc.setFillColor(sf::Color(245, 230, 185));
-        dDesc.setLineSpacing(1.3f);
-        dDesc.setPosition(208.0f, 248.0f);
-        window.draw(dDesc);
-
-        // Themes
-        drawSubCard(sf::FloatRect(188.0f, 408.0f, 824.0f, 186.0f),
-                    sf::Color(25, 19, 15, 242), sf::Color(120, 88, 48, 175));
-
-        sf::Text dThemeTitle;
-        dThemeTitle.setFont(fBold);
-        dThemeTitle.setCharacterSize(16);
-        dThemeTitle.setStyle(sf::Text::Bold);
-        dThemeTitle.setString(toUtf8(tiengViet ? "Cấu Hình Bàn Cờ & Kiểu Quân" : "Board Themes & Piece Styles"));
-        dThemeTitle.setFillColor(sf::Color(255, 225, 120));
-        dThemeTitle.setPosition(208.0f, 418.0f);
-        window.draw(dThemeTitle);
-
-        sf::Text lStyle;
-        lStyle.setFont(fBold);
-        lStyle.setCharacterSize(15);
-        lStyle.setStyle(sf::Text::Bold);
-        lStyle.setString(toUtf8(tiengViet ? "Kiểu quân cờ:" : "Piece Style:"));
-        lStyle.setFillColor(sf::Color(245, 230, 185));
-        lStyle.setPosition(208.0f, 460.0f);
-        window.draw(lStyle);
-
-        sf::Text lBoard;
-        lBoard.setFont(fBold);
-        lBoard.setCharacterSize(15);
-        lBoard.setStyle(sf::Text::Bold);
-        lBoard.setString(toUtf8(tiengViet ? "Màu bàn cờ:" : "Board Theme:"));
-        lBoard.setFillColor(sf::Color(245, 230, 185));
-        lBoard.setPosition(612.0f, 460.0f);
-        window.draw(lBoard);
-
-        vePieceStylePreview(window, 208.0f, 506.0f, 384.0f, 44.0f);
-        veBoardThemePreview(window, 612.0f, 506.0f, 384.0f, 44.0f);
     }
 
     // 4. Interactive Action Buttons
@@ -5217,8 +5122,8 @@ void GameManager::vePlaySetup() {
     sf::Text footer;
     footer.setFont(fBold);
     footer.setString(toUtf8(tiengViet
-        ? "[W/S] Đổi chế độ  |  [A/D] Thời gian  |  [Enter] Bắt đầu  |  [ESC] Quay lại"
-        : "[W/S] Switch Mode  |  [A/D] Timer  |  [Enter] Start  |  [ESC] Back"));
+        ? "[W/S] Đổi chế độ  |  [A/D] Thời gian  |  [Enter] Tiếp tục  |  [ESC] Quay lại"
+        : "[W/S] Switch Mode  |  [A/D] Timer  |  [Enter] Continue  |  [ESC] Back"));
     footer.setCharacterSize(14);
     footer.setStyle(sf::Text::Bold);
     footer.setFillColor(sf::Color(240, 215, 140));
@@ -6608,12 +6513,10 @@ void GameManager::capNhatHoverTitleScreen(const sf::Vector2i& viTri) {
     } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
         titleBtnPvpHovered      = titleBtnPvpRect.contains(mx, my);
         titleBtnPvaiHovered     = titleBtnPvaiRect.contains(mx, my);
-        titleBtnDemoHovered     = titleBtnDemoRect.contains(mx, my);
         titleBtnModeBackHovered = titleBtnModeBackRect.contains(mx, my);
         if (titleBtnPvpHovered) titleMenuIndex = 0;
         else if (titleBtnPvaiHovered) titleMenuIndex = 1;
-        else if (titleBtnDemoHovered) titleMenuIndex = 2;
-        else if (titleBtnModeBackHovered) titleMenuIndex = 3;
+        else if (titleBtnModeBackHovered) titleMenuIndex = 2;
     }
 }
 
@@ -6690,17 +6593,6 @@ void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
             playSetupMode = 0;
             khoiTaoPlaySetupButtons();
             trangThai = TrangThai::PVAI_SETUP;
-            return;
-        }
-        if (titleBtnDemoRect.contains(x, y)) {
-            soundManager.play(SoundType::CLICK);
-            tenNguoiChoiDo = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do (Xe & Voi)" : "Red (Chariot & Elephant)";
-            tenNguoiChoiDen = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Den (Xe & Voi)" : "Black (Chariot & Elephant)";
-            nhanVatDo = 0;
-            nhanVatDen = 0;
-            playSetupMode = 2;
-            khoiTaoPlaySetupButtons();
-            trangThai = TrangThai::PVP_SETUP;
             return;
         }
         if (titleBtnModeBackRect.contains(x, y)) {
@@ -6848,21 +6740,17 @@ void GameManager::veTitleScreen() {
                         titleBtnBackHovered || titleMenuIndex == 2,
                         titleBtnBackRect);
     } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
-        drawTitleButton(sf::Vector2f(600.0f, 258.0f), 1.10f,
+        drawTitleButton(sf::Vector2f(600.0f, 280.0f), 1.18f,
                         isVi ? "Đấu 2 Người (PvP)" : "Two Players (PvP)",
                         titleBtnPvpHovered || titleMenuIndex == 0,
                         titleBtnPvpRect);
-        drawTitleButton(sf::Vector2f(600.0f, 328.0f), 1.10f,
+        drawTitleButton(sf::Vector2f(600.0f, 360.0f), 1.18f,
                         isVi ? "Đấu Với Máy (AI)" : "Play vs AI",
                         titleBtnPvaiHovered || titleMenuIndex == 1,
                         titleBtnPvaiRect);
-        drawTitleButton(sf::Vector2f(600.0f, 398.0f), 1.10f,
-                        isVi ? "Xem Máy Đấu (Demo)" : "Watch AI Demo",
-                        titleBtnDemoHovered || titleMenuIndex == 2,
-                        titleBtnDemoRect);
-        drawTitleButton(sf::Vector2f(600.0f, 466.0f), 1.04f,
+        drawTitleButton(sf::Vector2f(600.0f, 440.0f), 1.08f,
                         isVi ? "Quay lại" : "Back",
-                        titleBtnModeBackHovered || titleMenuIndex == 3,
+                        titleBtnModeBackHovered || titleMenuIndex == 2,
                         titleBtnModeBackRect);
     }
 
