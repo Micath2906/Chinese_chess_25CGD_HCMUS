@@ -2500,8 +2500,9 @@ void GameManager::ve() {
             bgSprite.setScale(scale, scale);
             window.draw(bgSprite);
         }
+    } else {
+        atmosphere.draw(window);
     }
-    atmosphere.draw(window);
 
     if (trangThai == TrangThai::TITLE_SCREEN) {
         veTitleScreen();
@@ -6538,7 +6539,7 @@ void GameManager::veTitleScreen() {
     auto& am = AssetManager::get();
     bool isVi = (Loc::getLanguage() == Language::TIENG_VIET);
 
-    // 1. Royal Scroll Banner (Cuộn Thư Hoàng Gia) at top center
+    // 1. Royal Scroll Banner (Cuộn Thư Hoàng Gia) at top center (Static, sharp, no pulse)
     const sf::Texture& bannerTex = am.texture(TextureId::TITLE_SCROLL_BANNER);
     if (bannerTex.getSize().x > 0) {
         sf::Sprite bannerSprite(bannerTex);
@@ -6546,29 +6547,36 @@ void GameManager::veTitleScreen() {
         float bh = static_cast<float>(bannerTex.getSize().y);
         bannerSprite.setOrigin(bw / 2.0f, bh / 2.0f);
 
-        // Gentle breathing animation
-        float t = bannerPulseClock.getElapsedTime().asSeconds();
-        float pulse = 1.0f + 0.007f * std::sin(t * 2.2f);
         float baseScale = 1.18f;
-        bannerSprite.setScale(baseScale * pulse, baseScale * pulse);
+        bannerSprite.setScale(baseScale, baseScale);
 
         float bannerCenterY = 125.0f;
         bannerSprite.setPosition(600.0f, bannerCenterY);
         window.draw(bannerSprite);
 
-        // Title text inside banner
-        const sf::Texture& textTex = am.texture(isVi ? TextureId::TITLE_TEXT_VN : TextureId::TITLE_TEXT_EN);
-        if (textTex.getSize().x > 0) {
-            sf::Sprite textSprite(textTex);
-            float tw = static_cast<float>(textTex.getSize().x);
-            float th = static_cast<float>(textTex.getSize().y);
-            textSprite.setOrigin(tw / 2.0f, th / 2.0f);
+        // Title text inside banner rendered with sf::Text
+        sf::Text titleText;
+        titleText.setFont(isVi ? fontVnBold : fontEnBold);
+        titleText.setString(toUtf8(isVi ? "Cờ Tướng" : "Chinese Chess"));
+        titleText.setCharacterSize(isVi ? 54 : 44);
+        titleText.setStyle(sf::Text::Bold);
 
-            float textScale = (isVi ? 1.05f : 0.98f) * pulse;
-            textSprite.setScale(textScale, textScale);
-            textSprite.setPosition(600.0f, bannerCenterY - 2.0f);
-            window.draw(textSprite);
-        }
+        sf::FloatRect tb = titleText.getLocalBounds();
+        titleText.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+
+        // Soft lacquer drop-shadow
+        titleText.setFillColor(sf::Color(65, 16, 10, 200));
+        titleText.setOutlineThickness(2.2f);
+        titleText.setOutlineColor(sf::Color(65, 16, 10, 200));
+        titleText.setPosition(602.0f, bannerCenterY + 1.0f);
+        window.draw(titleText);
+
+        // Main text: Imperial crimson with antique gold outline
+        titleText.setFillColor(sf::Color(156, 24, 18));
+        titleText.setOutlineThickness(2.8f);
+        titleText.setOutlineColor(sf::Color(245, 215, 120));
+        titleText.setPosition(600.0f, bannerCenterY - 1.0f);
+        window.draw(titleText);
     }
 
     // 2. Lacquer Red Start Button ("Bắt Đầu" / "Start")
@@ -6581,22 +6589,21 @@ void GameManager::veTitleScreen() {
 
         float btnCenterY = 338.0f;
         float baseScale = 1.22f;
-        float curScale = titleBtnStartHovered ? (baseScale * 1.06f) : baseScale;
-        btnSprite.setScale(curScale, curScale);
+        btnSprite.setScale(baseScale, baseScale);
         btnSprite.setPosition(600.0f, btnCenterY);
 
-        float rw = bw * curScale;
-        float rh = bh * curScale;
+        float rw = bw * baseScale;
+        float rh = bh * baseScale;
         titleStartRect = sf::FloatRect(600.0f - rw / 2.0f, btnCenterY - rh / 2.0f, rw, rh);
 
         // Golden glow when hovered
         if (titleBtnStartHovered) {
-            sf::RectangleShape glow(sf::Vector2f(rw + 14.0f, rh + 10.0f));
-            glow.setOrigin((rw + 14.0f) / 2.0f, (rh + 10.0f) / 2.0f);
+            sf::RectangleShape glow(sf::Vector2f(rw + 12.0f, rh + 8.0f));
+            glow.setOrigin((rw + 12.0f) / 2.0f, (rh + 8.0f) / 2.0f);
             glow.setPosition(600.0f, btnCenterY);
             glow.setFillColor(sf::Color(255, 215, 80, 50));
             glow.setOutlineThickness(2.0f);
-            glow.setOutlineColor(sf::Color(255, 230, 120, 180));
+            glow.setOutlineColor(sf::Color(255, 230, 120, 200));
             window.draw(glow);
 
             btnSprite.setColor(sf::Color(255, 245, 220));
@@ -6606,25 +6613,35 @@ void GameManager::veTitleScreen() {
 
         window.draw(btnSprite);
 
-        // Text inside button
-        const sf::Texture& btnTextTex = am.texture(isVi ? TextureId::TITLE_BTN_TEXT_VN : TextureId::TITLE_BTN_TEXT_EN);
-        if (btnTextTex.getSize().x > 0) {
-            sf::Sprite btnTextSprite(btnTextTex);
-            float tw = static_cast<float>(btnTextTex.getSize().x);
-            float th = static_cast<float>(btnTextTex.getSize().y);
-            btnTextSprite.setOrigin(tw / 2.0f, th / 2.0f);
+        // Text inside button rendered using sf::Text
+        sf::Text btnText;
+        btnText.setFont(isVi ? fontVnBold : fontEnBold);
+        btnText.setString(toUtf8(isVi ? "Bắt đầu" : "Start"));
+        btnText.setCharacterSize(isVi ? 24 : 26);
+        btnText.setStyle(sf::Text::Bold);
 
-            float textScale = 1.15f * (curScale / baseScale);
-            btnTextSprite.setScale(textScale, textScale);
-            btnTextSprite.setPosition(600.0f, btnCenterY);
+        sf::FloatRect bb = btnText.getLocalBounds();
+        btnText.setOrigin(std::round(bb.left + bb.width / 2.0f), std::round(bb.top + bb.height / 2.0f));
 
-            if (titleBtnStartHovered) {
-                btnTextSprite.setColor(sf::Color(255, 245, 180));
-            } else {
-                btnTextSprite.setColor(sf::Color(255, 230, 160));
-            }
-            window.draw(btnTextSprite);
+        // Drop-shadow
+        btnText.setFillColor(sf::Color(45, 12, 8, 230));
+        btnText.setOutlineThickness(1.2f);
+        btnText.setOutlineColor(sf::Color(45, 12, 8, 230));
+        btnText.setPosition(601.0f, btnCenterY + 1.0f);
+        window.draw(btnText);
+
+        // Main text with hover responsive palette
+        if (titleBtnStartHovered) {
+            btnText.setFillColor(sf::Color(255, 255, 225));
+            btnText.setOutlineThickness(1.5f);
+            btnText.setOutlineColor(sf::Color(100, 25, 15, 255));
+        } else {
+            btnText.setFillColor(sf::Color(250, 230, 165));
+            btnText.setOutlineThickness(1.2f);
+            btnText.setOutlineColor(sf::Color(75, 18, 12, 240));
         }
+        btnText.setPosition(600.0f, btnCenterY);
+        window.draw(btnText);
     }
 
     // 3. Corner Action Buttons (Settings, Sound, Info)
