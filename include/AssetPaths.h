@@ -74,6 +74,15 @@ enum class TextureId {
     TB_TOGGLE_03A,
     TB_TOGGLE_03B,
 
+    // Oriental UI Icons & Assets
+    ICON_TAB_SOUND,
+    ICON_TAB_GAMEPLAY,
+    ICON_TAB_LANGUAGE,
+    ICON_TAB_CONTROLS,
+    CHINESE_HOURGLASS,
+    CHECKBOX_CHECKED,
+    CHECKBOX_UNCHECKED,
+
     COUNT
 };
 
@@ -157,12 +166,12 @@ constexpr std::array<TextureAssetDef, static_cast<size_t>(TextureId::COUNT)> TEX
     { TextureId::PIECE_B_PHAO,        "textures/pieces/b_phao.png",                            TextureLoadPolicy::MASK_WHITE_SMOOTH },
     { TextureId::PIECE_B_TOT,         "textures/pieces/b_tot.png",                             TextureLoadPolicy::MASK_WHITE_SMOOTH },
 
-    // Avatars (Bunny Pixel Art)
-    { TextureId::AVATAR_0,            "textures/avatars/emoji_cho_ava_03.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_1,            "textures/avatars/emoji_cho_ava_07.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_2,            "textures/avatars/emoji_cho_ava_10.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_3,            "textures/avatars/emoji_cho_ava_18.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_4,            "textures/avatars/emoji_cho_ava_24.png",                 TextureLoadPolicy::PIXEL_ART },
+    // Avatars (Chinese Oriental Pixel Art)
+    { TextureId::AVATAR_0,            "textures/avatars/chinese_ava_0.png",                    TextureLoadPolicy::PIXEL_ART },
+    { TextureId::AVATAR_1,            "textures/avatars/chinese_ava_1.png",                    TextureLoadPolicy::PIXEL_ART },
+    { TextureId::AVATAR_2,            "textures/avatars/chinese_ava_2.png",                    TextureLoadPolicy::PIXEL_ART },
+    { TextureId::AVATAR_3,            "textures/avatars/chinese_ava_3.png",                    TextureLoadPolicy::PIXEL_ART },
+    { TextureId::AVATAR_4,            "textures/avatars/chinese_ava_4.png",                    TextureLoadPolicy::PIXEL_ART },
 
     // TravelBook UI Sprites
     { TextureId::TB_BAR_01A,          "textures/ui/travelbook/UI_TravelBook_Bar01a.png",         TextureLoadPolicy::PIXEL_ART },
@@ -190,7 +199,16 @@ constexpr std::array<TextureAssetDef, static_cast<size_t>(TextureId::COUNT)> TEX
     { TextureId::TB_SELECT_01A,       "textures/ui/travelbook/UI_TravelBook_Select01a.png",      TextureLoadPolicy::PIXEL_ART },
     { TextureId::TB_SLOT_01A,         "textures/ui/travelbook/UI_TravelBook_Slot01a.png",        TextureLoadPolicy::PIXEL_ART },
     { TextureId::TB_TOGGLE_03A,       "textures/ui/travelbook/UI_TravelBook_Toggle03a.png",      TextureLoadPolicy::PIXEL_ART },
-    { TextureId::TB_TOGGLE_03B,       "textures/ui/travelbook/UI_TravelBook_Toggle03b.png",      TextureLoadPolicy::PIXEL_ART }
+    { TextureId::TB_TOGGLE_03B,       "textures/ui/travelbook/UI_TravelBook_Toggle03b.png",      TextureLoadPolicy::PIXEL_ART },
+
+    // Oriental UI Icons & Assets
+    { TextureId::ICON_TAB_SOUND,      "textures/ui/icon_sound.png",                            TextureLoadPolicy::PIXEL_ART },
+    { TextureId::ICON_TAB_GAMEPLAY,   "textures/ui/icon_gameplay.png",                         TextureLoadPolicy::PIXEL_ART },
+    { TextureId::ICON_TAB_LANGUAGE,   "textures/ui/icon_language.png",                         TextureLoadPolicy::PIXEL_ART },
+    { TextureId::ICON_TAB_CONTROLS,   "textures/ui/icon_controls.png",                         TextureLoadPolicy::PIXEL_ART },
+    { TextureId::CHINESE_HOURGLASS,   "textures/ui/chinese_hourglass.png",                     TextureLoadPolicy::PIXEL_ART },
+    { TextureId::CHECKBOX_CHECKED,    "textures/ui/checkbox_checked.png",                      TextureLoadPolicy::PIXEL_ART },
+    { TextureId::CHECKBOX_UNCHECKED,  "textures/ui/checkbox_unchecked.png",                    TextureLoadPolicy::PIXEL_ART }
 }};
 
 constexpr std::array<FontAssetDef, static_cast<size_t>(FontId::COUNT)> FONTS = {{
