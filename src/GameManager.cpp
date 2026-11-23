@@ -2524,13 +2524,11 @@ void GameManager::ve() {
         window.setView(fullWinView);
 
         if (trangThai == TrangThai::DANG_CHOI) {
-            const sf::Texture* pBg = (texturePlayBg.getSize().x > 0) ? &texturePlayBg
-                                   : ((mAssets.playBg.getSize().x > 0) ? &mAssets.playBg
-                                   : ((textureBackground.getSize().x > 0) ? &textureBackground : nullptr));
-            if (pBg && pBg->getSize().x > 0 && pBg->getSize().y > 0) {
-                sf::Sprite bgSprite(*pBg);
-                float tw = static_cast<float>(pBg->getSize().x);
-                float th = static_cast<float>(pBg->getSize().y);
+            const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
+            if (titleBg.getSize().x > 0) {
+                sf::Sprite bgSprite(titleBg);
+                float tw = static_cast<float>(titleBg.getSize().x);
+                float th = static_cast<float>(titleBg.getSize().y);
                 float coverScale = std::max(winW / tw, winH / th);
                 bgSprite.setOrigin(tw / 2.0f, th / 2.0f);
                 bgSprite.setPosition(winW / 2.0f, winH / 2.0f);
@@ -2578,7 +2576,8 @@ void GameManager::ve() {
         trangThai == TrangThai::RANDOM_LUOT ||
         trangThai == TrangThai::SETTINGS_MENU ||
         trangThai == TrangThai::INTRODUCTION_MENU ||
-        trangThai == TrangThai::LOAD_MENU) {
+        trangThai == TrangThai::LOAD_MENU ||
+        trangThai == TrangThai::DANG_CHOI) {
         const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
         if (titleBg.getSize().x > 0) {
             sf::Sprite bgSprite(titleBg);
@@ -2589,6 +2588,9 @@ void GameManager::ve() {
             bgSprite.setPosition(600.0f, 400.0f);
             bgSprite.setScale(scale, scale);
             window.draw(bgSprite);
+        }
+        if (trangThai == TrangThai::DANG_CHOI) {
+            FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 120));
         }
     } else {
         atmosphere.draw(window);
@@ -3187,12 +3189,39 @@ void GameManager::veThanhThongBao() {
         t.setPosition(std::round(1200.0f / 2.0f), std::round(by + bh / 2.0f));
         window.draw(t);
     } else {
-        std::string turnStr = isRed ? Loc::get(LocKey::TURN_RED) : Loc::get(LocKey::TURN_BLACK);
+        float tw = 320.0f;
+        float th = 42.0f;
+        float tx = (1200.0f - tw) / 2.0f;
+        float ty = 22.0f;
 
-        FantasyUI::get().drawRibbonTitle(window, 1200.0f / 2.0f, 20.0f, 260.0f, 46.0f,
-                                         turnStr, font, 16,
-                                         isRed ? sf::Color(255, 215, 140) : sf::Color(255, 230, 140),
-                                         isRed ? sf::Color(230, 110, 100) : sf::Color(100, 150, 220));
+        sf::RectangleShape banner(sf::Vector2f(tw, th));
+        banner.setPosition(tx, ty);
+        banner.setFillColor(isRed ? sf::Color(140, 24, 18, 235) : sf::Color(24, 38, 64, 235));
+        banner.setOutlineThickness(1.8f);
+        banner.setOutlineColor(isRed ? sf::Color(245, 215, 120) : sf::Color(140, 195, 255));
+        window.draw(banner);
+
+        ve4GocLuaChon(window, sf::Vector2f(tx, ty), sf::Vector2f(tw, th), 1.8f, 1.2f);
+
+        std::string turnStr = isRed
+            ? (tiengViet ? "• LƯỢT ĐI: BÊN ĐỎ (TIÊN) •" : "• TURN: RED SIDE •")
+            : (tiengViet ? "• LƯỢT ĐI: BÊN ĐEN (HẬU) •" : "• TURN: BLACK SIDE •");
+
+        sf::Text tShadow;
+        tShadow.setFont(fontBold);
+        tShadow.setCharacterSize(15);
+        tShadow.setStyle(sf::Text::Bold);
+        tShadow.setString(toUtf8(turnStr));
+        tShadow.setFillColor(sf::Color(0, 0, 0, 180));
+        sf::FloatRect tb = tShadow.getLocalBounds();
+        tShadow.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+        tShadow.setPosition(std::round(1200.0f / 2.0f) + 1.0f, std::round(ty + th / 2.0f) + 1.0f);
+        window.draw(tShadow);
+
+        sf::Text t = tShadow;
+        t.setFillColor(isRed ? sf::Color(255, 240, 190) : sf::Color(220, 240, 255));
+        t.setPosition(std::round(1200.0f / 2.0f), std::round(ty + th / 2.0f));
+        window.draw(t);
     }
 
     // Incense countdown timer (Stage 3.4) at X = 450.0f, Y = 72.0f, W = 300.0f, H = 16.0f
@@ -3218,57 +3247,84 @@ void GameManager::veThanhBenTrai() {
         return std::string(buf);
     };
 
-    // 1. Player 1 Card (Red) - EBONY_WOOD (X=35, Y=110, W=240, H=190)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(px, py, pw, ph), OrientalPanelStyle::EBONY_WOOD);
+    // 1. Player 1 Card (Red) - EBONY_WOOD (X=35, Y=110, W=240, H=192)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(px, py, pw, 192.0f), OrientalPanelStyle::EBONY_WOOD);
 
-    // Centered Avatar P1 at X=115, Y=120, size 80x44
-    float avaW = 80.0f;
-    float avaH = 44.0f;
-    float avaX = 115.0f;
-    float avaY = 120.0f;
-    FantasyUI::get().drawPanel(window, sf::FloatRect(avaX, avaY, avaW, avaH),
-                               OrientalPanelStyle::JADE_INSET,
-                               isRedTurn ? sf::Color(255, 180, 180) : sf::Color(170, 170, 170));
+    // Header strip: Red lacquer
+    sf::RectangleShape h1(sf::Vector2f(pw - 18.0f, 26.0f));
+    h1.setPosition(px + 9.0f, py + 9.0f);
+    h1.setFillColor(isRedTurn ? sf::Color(135, 26, 20, 240) : sf::Color(65, 20, 18, 200));
+    h1.setOutlineThickness(1.0f);
+    h1.setOutlineColor(isRedTurn ? sf::Color(245, 215, 120) : sf::Color(140, 50, 45));
+    window.draw(h1);
 
-    if (daTaiAvatarTextures && nhanVatDo >= 0 && nhanVatDo < 5 && avatarTextures[nhanVatDo].getSize().x > 0) {
-        sf::Sprite spAva(avatarTextures[nhanVatDo]);
-        float scale = 38.0f / static_cast<float>(avatarTextures[nhanVatDo].getSize().y);
-        spAva.setScale(scale, scale);
-        float sw = static_cast<float>(avatarTextures[nhanVatDo].getSize().x) * scale;
-        spAva.setPosition(avaX + (avaW - sw) / 2.0f, avaY + 3.0f);
-        window.draw(spAva);
-    }
+    sf::Text tHead1;
+    tHead1.setFont(fontBold);
+    tHead1.setCharacterSize(13);
+    tHead1.setStyle(sf::Text::Bold);
+    tHead1.setString(toUtf8(tiengViet ? "[ BÊN ĐỎ - TIÊN ]" : "[ RED - FIRST ]"));
+    tHead1.setFillColor(isRedTurn ? sf::Color(255, 240, 200) : sf::Color(220, 180, 175));
+    sf::FloatRect thb1 = tHead1.getLocalBounds();
+    tHead1.setOrigin(std::round(thb1.left + thb1.width / 2.0f), std::round(thb1.top + thb1.height / 2.0f));
+    tHead1.setPosition(std::round(px + pw / 2.0f), py + 22.0f);
+    window.draw(tHead1);
 
-    // Player Name at Y = 170
+    // Left circular avatar portrait with active glow when Red's turn
+    veAvatarPortrait(sf::Vector2f(px + 46.0f, py + 84.0f), 26.0f, nhanVatDo, Mau::DO, isRedTurn);
+
+    // Right of avatar: Player Name & Role
     sf::Text rName;
     rName.setFont(fontBold);
     rName.setCharacterSize(15);
     rName.setStyle(sf::Text::Bold);
     rName.setString(toUtf8(tenNguoiChoiDo));
-    rName.setFillColor(sf::Color(255, 230, 140));
+    rName.setFillColor(sf::Color(255, 235, 160));
     sf::FloatRect nb = rName.getLocalBounds();
-    rName.setOrigin(std::round(nb.left + nb.width / 2.0f), std::round(nb.top));
-    rName.setPosition(std::round(px + pw / 2.0f), 170.0f);
+    rName.setOrigin(0.0f, std::round(nb.top + nb.height / 2.0f));
+    rName.setPosition(px + 84.0f, py + 68.0f);
+
+    sf::Text rNameShadow = rName;
+    rNameShadow.setFillColor(sf::Color(0, 0, 0, 180));
+    rNameShadow.setPosition(px + 85.0f, py + 69.0f);
+    window.draw(rNameShadow);
     window.draw(rName);
 
-    // Digital Countdown Timer in JADE_INSET slot at Y = 232
-    float timerSlotY = py + 122.0f;
-    float timerSlotW = pw - 30.0f;
-    float timerSlotX = px + 15.0f;
-    float timerSlotH = 32.0f;
+    sf::Text rSide;
+    rSide.setFont(fontBold);
+    rSide.setCharacterSize(12);
+    rSide.setStyle(sf::Text::Bold);
+    rSide.setString(toUtf8(tiengViet ? "Quân Đỏ" : "Red Pieces"));
+    rSide.setFillColor(isRedTurn ? sf::Color(255, 180, 170) : sf::Color(180, 150, 140));
+    rSide.setPosition(px + 84.0f, py + 88.0f);
+    window.draw(rSide);
+
+    // Digital Countdown Timer in JADE_INSET slot at Y = py + 134.0f
+    float timerSlotY = py + 134.0f;
+    float timerSlotW = pw - 24.0f;
+    float timerSlotX = px + 12.0f;
+    float timerSlotH = 44.0f;
     FantasyUI::get().drawPanel(window, sf::FloatRect(timerSlotX, timerSlotY, timerSlotW, timerSlotH), OrientalPanelStyle::JADE_INSET);
+
+    sf::Text timerLbl;
+    timerLbl.setFont(fontBold);
+    timerLbl.setCharacterSize(12);
+    timerLbl.setStyle(sf::Text::Bold);
+    timerLbl.setString(toUtf8(tiengViet ? "THỜI GIAN:" : "TIME:"));
+    timerLbl.setFillColor(sf::Color(220, 195, 135));
+    timerLbl.setPosition(timerSlotX + 12.0f, timerSlotY + 14.0f);
+    window.draw(timerLbl);
 
     sf::Text timerTxt;
     timerTxt.setFont(fontBold);
-    timerTxt.setCharacterSize(16);
+    timerTxt.setCharacterSize(18);
     timerTxt.setStyle(sf::Text::Bold);
     timerTxt.setString(toUtf8(formatTime(thoiGianConDo)));
     timerTxt.setFillColor(isRedTurn && thoiGianConDo < 30.0f && thoiGianConDo > 0.0f
                           ? sf::Color(255, 70, 60)
-                          : sf::Color(255, 225, 140));
+                          : sf::Color(255, 230, 140));
     sf::FloatRect tb = timerTxt.getLocalBounds();
-    timerTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-    timerTxt.setPosition(std::round(timerSlotX + timerSlotW / 2.0f), std::round(timerSlotY + timerSlotH / 2.0f));
+    timerTxt.setOrigin(std::round(tb.left + tb.width), std::round(tb.top + tb.height / 2.0f));
+    timerTxt.setPosition(timerSlotX + timerSlotW - 14.0f, std::round(timerSlotY + timerSlotH / 2.0f));
     window.draw(timerTxt);
 
     // 2. Action buttons for Player 1 (Draw, Resign)
@@ -3509,57 +3565,90 @@ void GameManager::veThanhBenPhai() {
         return std::string(buf);
     };
 
-    // 1. Player 2 Card (Black) - EBONY_WOOD (X=925, Y=110, W=240, H=190)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(px, py, pw, ph), OrientalPanelStyle::EBONY_WOOD);
+    // 1. Player 2 Card (Black) - EBONY_WOOD (X=925, Y=110, W=240, H=192)
+    FantasyUI::get().drawPanel(window, sf::FloatRect(px, py, pw, 192.0f), OrientalPanelStyle::EBONY_WOOD);
 
-    // Centered Avatar P2 at X=1005 (925 + 80), Y=120, size 80x44
-    float avaW = 80.0f;
-    float avaH = 44.0f;
-    float avaX = 1005.0f;
-    float avaY = 120.0f;
-    FantasyUI::get().drawPanel(window, sf::FloatRect(avaX, avaY, avaW, avaH),
-                               OrientalPanelStyle::JADE_INSET,
-                               isBlackTurn ? sf::Color(160, 210, 255) : sf::Color(170, 170, 170));
+    // Header strip: Dark indigo / navy lacquer
+    sf::RectangleShape h2(sf::Vector2f(pw - 18.0f, 26.0f));
+    h2.setPosition(px + 9.0f, py + 9.0f);
+    h2.setFillColor(isBlackTurn ? sf::Color(24, 42, 70, 240) : sf::Color(18, 28, 44, 200));
+    h2.setOutlineThickness(1.0f);
+    h2.setOutlineColor(isBlackTurn ? sf::Color(140, 195, 255) : sf::Color(45, 70, 105));
+    window.draw(h2);
 
-    if (daTaiAvatarTextures && nhanVatDen >= 0 && nhanVatDen < 5 && avatarTextures[nhanVatDen].getSize().x > 0) {
-        sf::Sprite spAva(avatarTextures[nhanVatDen]);
-        float scale = 38.0f / static_cast<float>(avatarTextures[nhanVatDen].getSize().y);
-        spAva.setScale(scale, scale);
-        float sw = static_cast<float>(avatarTextures[nhanVatDen].getSize().x) * scale;
-        spAva.setPosition(avaX + (avaW - sw) / 2.0f, avaY + 3.0f);
-        window.draw(spAva);
-    }
+    sf::Text tHead2;
+    tHead2.setFont(fontBold);
+    tHead2.setCharacterSize(13);
+    tHead2.setStyle(sf::Text::Bold);
+    tHead2.setString(toUtf8(tiengViet
+        ? (cheDoChoi == CheDoChoi::VOI_MAY ? "[ ĐỐI THỦ MÁY (AI) ]" : "[ BÊN ĐEN - HẬU ]")
+        : (cheDoChoi == CheDoChoi::VOI_MAY ? "[ AI OPPONENT ]" : "[ BLACK - SECOND ]")));
+    tHead2.setFillColor(isBlackTurn ? sf::Color(220, 240, 255) : sf::Color(170, 190, 210));
+    sf::FloatRect thb2 = tHead2.getLocalBounds();
+    tHead2.setOrigin(std::round(thb2.left + thb2.width / 2.0f), std::round(thb2.top + thb2.height / 2.0f));
+    tHead2.setPosition(std::round(px + pw / 2.0f), py + 22.0f);
+    window.draw(tHead2);
 
-    // Player Name at Y = 170
+    // Left circular avatar portrait with active glow when Black's turn
+    veAvatarPortrait(sf::Vector2f(px + 46.0f, py + 84.0f), 26.0f, nhanVatDen, Mau::DEN, isBlackTurn);
+
+    // Right of avatar: Player Name & Role
     sf::Text bName;
     bName.setFont(fontBold);
     bName.setCharacterSize(15);
     bName.setStyle(sf::Text::Bold);
     bName.setString(toUtf8(tenNguoiChoiDen));
-    bName.setFillColor(sf::Color(255, 230, 140));
+    bName.setFillColor(sf::Color(255, 235, 160));
     sf::FloatRect nb = bName.getLocalBounds();
-    bName.setOrigin(std::round(nb.left + nb.width / 2.0f), std::round(nb.top));
-    bName.setPosition(std::round(px + pw / 2.0f), 170.0f);
+    bName.setOrigin(0.0f, std::round(nb.top + nb.height / 2.0f));
+    bName.setPosition(px + 84.0f, py + 68.0f);
+
+    sf::Text bNameShadow = bName;
+    bNameShadow.setFillColor(sf::Color(0, 0, 0, 180));
+    bNameShadow.setPosition(px + 85.0f, py + 69.0f);
+    window.draw(bNameShadow);
     window.draw(bName);
 
-    // Digital Countdown Timer in JADE_INSET slot at Y = 232
-    float timerSlotY = py + 122.0f;
-    float timerSlotW = pw - 30.0f;
-    float timerSlotX = px + 15.0f;
-    float timerSlotH = 32.0f;
+    sf::Text bSide;
+    bSide.setFont(fontBold);
+    bSide.setCharacterSize(12);
+    bSide.setStyle(sf::Text::Bold);
+    if (cheDoChoi == CheDoChoi::VOI_MAY) {
+        bSide.setString(toUtf8("AI (" + Loc::get((aiDifficulty == DoKho::DE) ? LocKey::DIFF_EASY : ((aiDifficulty == DoKho::TRUNG_BINH) ? LocKey::DIFF_MED : LocKey::DIFF_HARD)) + ")"));
+    } else {
+        bSide.setString(toUtf8(tiengViet ? "Quân Đen" : "Black Pieces"));
+    }
+    bSide.setFillColor(isBlackTurn ? sf::Color(170, 210, 255) : sf::Color(140, 165, 195));
+    bSide.setPosition(px + 84.0f, py + 88.0f);
+    window.draw(bSide);
+
+    // Digital Countdown Timer in JADE_INSET slot at Y = py + 134.0f
+    float timerSlotY = py + 134.0f;
+    float timerSlotW = pw - 24.0f;
+    float timerSlotX = px + 12.0f;
+    float timerSlotH = 44.0f;
     FantasyUI::get().drawPanel(window, sf::FloatRect(timerSlotX, timerSlotY, timerSlotW, timerSlotH), OrientalPanelStyle::JADE_INSET);
+
+    sf::Text timerLbl;
+    timerLbl.setFont(fontBold);
+    timerLbl.setCharacterSize(12);
+    timerLbl.setStyle(sf::Text::Bold);
+    timerLbl.setString(toUtf8(tiengViet ? "THỜI GIAN:" : "TIME:"));
+    timerLbl.setFillColor(sf::Color(220, 195, 135));
+    timerLbl.setPosition(timerSlotX + 12.0f, timerSlotY + 14.0f);
+    window.draw(timerLbl);
 
     sf::Text timerTxt;
     timerTxt.setFont(fontBold);
-    timerTxt.setCharacterSize(16);
+    timerTxt.setCharacterSize(18);
     timerTxt.setStyle(sf::Text::Bold);
     timerTxt.setString(toUtf8(formatTime(thoiGianConDen)));
     timerTxt.setFillColor(isBlackTurn && thoiGianConDen < 30.0f && thoiGianConDen > 0.0f
                           ? sf::Color(255, 70, 60)
                           : sf::Color(255, 230, 140));
     sf::FloatRect tb = timerTxt.getLocalBounds();
-    timerTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-    timerTxt.setPosition(std::round(timerSlotX + timerSlotW / 2.0f), std::round(timerSlotY + timerSlotH / 2.0f));
+    timerTxt.setOrigin(std::round(tb.left + tb.width), std::round(tb.top + tb.height / 2.0f));
+    timerTxt.setPosition(timerSlotX + timerSlotW - 14.0f, std::round(timerSlotY + timerSlotH / 2.0f));
     window.draw(timerTxt);
 
     // 2. Action buttons for Player 2 (Draw, Resign)
@@ -4270,13 +4359,13 @@ void GameManager::khoiTaoPlaySetupButtons() {
         inputAiPlayerName->setParchmentStyle(true);
         addAvatarCycle(300.0f, 296.0f, aiPlayerCharIndex);
 
-        // AI Engine (Right Card): X=724, W=180, H=34 (valW=120)
+        // AI Engine (Right Card): X=730, W=175, H=34 (valW=115)
         auto getDiffLabel = [this, tiengViet]() -> std::string {
             if (aiDifficulty == DoKho::DE) return tiengViet ? "Dễ" : "Easy";
             if (aiDifficulty == DoKho::TRUNG_BINH) return tiengViet ? "Trung Bình" : "Medium";
             return tiengViet ? "Khó" : "Hard";
         };
-        addCycle(724.0f, 244.0f, 120.0f, getDiffLabel(),
+        addCycle(730.0f, 244.0f, 115.0f, getDiffLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 if (aiDifficulty == DoKho::KHO) aiDifficulty = DoKho::TRUNG_BINH;
@@ -4297,7 +4386,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
             if (aiFirstChoice == 1) return tiengViet ? "Máy (Đỏ)" : "AI First (Red)";
             return tiengViet ? "Ngẫu Nhiên" : "Random Side";
         };
-        addCycle(724.0f, 296.0f, 120.0f, getSideLabel(),
+        addCycle(730.0f, 296.0f, 115.0f, getSideLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 aiFirstChoice = (aiFirstChoice + 2) % 3;
@@ -4458,10 +4547,10 @@ void GameManager::vePieceStylePreview(sf::RenderWindow& win, float x, float y, f
     lbl.setPosition(x + 12.0f, std::round(y + h / 2.0f));
     win.draw(lbl);
 
-    float r = std::min(13.0f, (h - 8.0f) / 2.0f);
+    float r = std::min(15.0f, (h - 8.0f) / 2.0f);
     // Two sample pieces evenly spaced on the right
-    sf::Vector2f posRed(std::round(x + w * 0.58f), std::round(y + h / 2.0f));
-    sf::Vector2f posBlack(std::round(x + w * 0.83f), std::round(y + h / 2.0f));
+    sf::Vector2f posRed(std::round(x + 120.0f + (w - 130.0f) * 0.30f), std::round(y + h / 2.0f));
+    sf::Vector2f posBlack(std::round(x + 120.0f + (w - 130.0f) * 0.70f), std::round(y + h / 2.0f));
 
     auto drawSamplePiece = [&](sf::Vector2f pos, Mau side) {
         bool isRed = (side == Mau::DO);
@@ -4545,11 +4634,11 @@ void GameManager::veBoardThemePreview(sf::RenderWindow& win, float x, float y, f
     lbl.setPosition(x + 10.0f, std::round(y + h / 2.0f));
     win.draw(lbl);
 
-    // 3. Mini Board Canvas to the right of the label
-    float canvasX = x + 116.0f;
-    float canvasY = y + 5.0f;
-    float canvasW = w - 126.0f;
+    // 3. Mini Board Canvas to the right of the label (Proportional Xiangqi board ~0.92 aspect ratio)
     float canvasH = h - 10.0f;
+    float canvasW = std::round(canvasH * 0.92f);
+    float canvasX = std::round(x + 116.0f + ((w - 126.0f) - canvasW) / 2.0f);
+    float canvasY = y + 5.0f;
 
     sf::Color boardBgCol(220, 185, 135);
     sf::Color borderCol(70, 40, 20);
@@ -4751,20 +4840,14 @@ void GameManager::vePlaySetup() {
         sf::Vector2f(400.0f, 40.0f),
         1.5f, 1.2f);
 
-    auto drawSubCard = [this](sf::FloatRect rect, sf::Color fillCol, sf::Color borderCol) {
-        sf::RectangleShape card(sf::Vector2f(rect.width, rect.height));
-        card.setPosition(rect.left, rect.top);
-        card.setFillColor(fillCol);
-        card.setOutlineThickness(1.0f);
-        card.setOutlineColor(borderCol);
-        window.draw(card);
+    auto drawSubCard = [this](sf::FloatRect rect, sf::Color tintCol) {
+        FantasyUI::get().drawPanel(window, rect, OrientalPanelStyle::EBONY_WOOD, tintCol);
     };
 
     if (playSetupMode == 1) {
         // --- 1. TWO-PLAYER PVP: SYMMETRICAL SIDE-BY-SIDE PANELS ---
         // Left Card: Player 1 (Red Side) [188, 196, 400, 164]
-        drawSubCard(sf::FloatRect(188.0f, 196.0f, 400.0f, 164.0f),
-                    sf::Color(28, 18, 16, 240), sf::Color(140, 55, 45, 175));
+        drawSubCard(sf::FloatRect(188.0f, 196.0f, 400.0f, 164.0f), sf::Color(255, 220, 220));
 
         // P1 Header ribbon strip (Title Case)
         sf::RectangleShape h1(sf::Vector2f(384.0f, 28.0f));
@@ -4794,7 +4877,7 @@ void GameManager::vePlaySetup() {
         lName1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect nb1 = lName1.getLocalBounds();
         lName1.setOrigin(0.0f, std::round(nb1.top + nb1.height / 2.0f));
-        lName1.setPosition(204.0f, 261.0f);
+        lName1.setPosition(202.0f, 261.0f);
         window.draw(lName1);
 
         inputP1Name->draw(window);
@@ -4808,15 +4891,14 @@ void GameManager::vePlaySetup() {
         lAva1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect ab1 = lAva1.getLocalBounds();
         lAva1.setOrigin(0.0f, std::round(ab1.top + ab1.height / 2.0f));
-        lAva1.setPosition(204.0f, 313.0f);
+        lAva1.setPosition(202.0f, 313.0f);
         window.draw(lAva1);
 
         // Portrait preview for P1 (Centered at X = 534, Y = 287)
         veAvatarPortrait(sf::Vector2f(534.0f, 287.0f), 23.0f, p1CharIndex, Mau::DO, false);
 
         // Right Card: Player 2 (Black Side) [612, 196, 400, 164]
-        drawSubCard(sf::FloatRect(612.0f, 196.0f, 400.0f, 164.0f),
-                    sf::Color(18, 22, 30, 240), sf::Color(55, 85, 135, 175));
+        drawSubCard(sf::FloatRect(612.0f, 196.0f, 400.0f, 164.0f), sf::Color(215, 230, 255));
 
         // P2 Header ribbon strip (Title Case)
         sf::RectangleShape h2(sf::Vector2f(384.0f, 28.0f));
@@ -4846,7 +4928,7 @@ void GameManager::vePlaySetup() {
         lName2.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect nb2 = lName2.getLocalBounds();
         lName2.setOrigin(0.0f, std::round(nb2.top + nb2.height / 2.0f));
-        lName2.setPosition(628.0f, 261.0f);
+        lName2.setPosition(624.0f, 261.0f);
         window.draw(lName2);
 
         inputP2Name->draw(window);
@@ -4860,15 +4942,20 @@ void GameManager::vePlaySetup() {
         lAva2.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect ab2 = lAva2.getLocalBounds();
         lAva2.setOrigin(0.0f, std::round(ab2.top + ab2.height / 2.0f));
-        lAva2.setPosition(628.0f, 313.0f);
+        lAva2.setPosition(624.0f, 313.0f);
         window.draw(lAva2);
 
         // Portrait preview for P2 (Centered at X = 958, Y = 287)
         veAvatarPortrait(sf::Vector2f(958.0f, 287.0f), 23.0f, p2CharIndex, Mau::DEN, false);
 
         // --- Shared Match & Theme Configuration ---
-        drawSubCard(sf::FloatRect(188.0f, 376.0f, 824.0f, 218.0f),
-                    sf::Color(25, 19, 15, 242), sf::Color(120, 88, 48, 175));
+        FantasyUI::get().drawPanel(window, sf::FloatRect(188.0f, 376.0f, 824.0f, 218.0f), OrientalPanelStyle::EBONY_WOOD);
+        sf::RectangleShape setInset1(sf::Vector2f(808.0f, 202.0f));
+        setInset1.setPosition(196.0f, 384.0f);
+        setInset1.setFillColor(sf::Color(26, 18, 14, 215));
+        setInset1.setOutlineThickness(1.0f);
+        setInset1.setOutlineColor(sf::Color(140, 102, 50, 160));
+        window.draw(setInset1);
 
         sf::Text rTitle;
         rTitle.setFont(fBold);
@@ -4950,14 +5037,13 @@ void GameManager::vePlaySetup() {
     } else {
         // --- 2. PLAYER VS AI SETUP ---
         // Left Card: Human Player [188, 196, 400, 164]
-        drawSubCard(sf::FloatRect(188.0f, 196.0f, 400.0f, 164.0f),
-                    sf::Color(28, 20, 16, 240), sf::Color(140, 95, 45, 175));
+        drawSubCard(sf::FloatRect(188.0f, 196.0f, 400.0f, 164.0f), sf::Color(255, 225, 205));
 
         sf::RectangleShape h1(sf::Vector2f(384.0f, 28.0f));
         h1.setPosition(196.0f, 204.0f);
-        h1.setFillColor(sf::Color(75, 45, 22, 220));
+        h1.setFillColor(sf::Color(80, 24, 24, 220));
         h1.setOutlineThickness(1.0f);
-        h1.setOutlineColor(sf::Color(185, 125, 50, 170));
+        h1.setOutlineColor(sf::Color(160, 55, 50, 170));
         window.draw(h1);
 
         sf::Text t1;
@@ -4965,7 +5051,7 @@ void GameManager::vePlaySetup() {
         t1.setCharacterSize(15);
         t1.setStyle(sf::Text::Bold);
         t1.setString(toUtf8(tiengViet ? "[ Kỳ Thủ (Người Chơi) ]" : "[ Human Player ]"));
-        t1.setFillColor(sf::Color(255, 235, 185));
+        t1.setFillColor(sf::Color(255, 230, 224));
         sf::FloatRect tb = t1.getLocalBounds();
         t1.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
         t1.setPosition(388.0f, 218.0f);
@@ -4979,7 +5065,7 @@ void GameManager::vePlaySetup() {
         lName1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect nb1 = lName1.getLocalBounds();
         lName1.setOrigin(0.0f, std::round(nb1.top + nb1.height / 2.0f));
-        lName1.setPosition(204.0f, 261.0f);
+        lName1.setPosition(202.0f, 261.0f);
         window.draw(lName1);
 
         inputAiPlayerName->draw(window);
@@ -4992,18 +5078,17 @@ void GameManager::vePlaySetup() {
         lAva1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect ab1 = lAva1.getLocalBounds();
         lAva1.setOrigin(0.0f, std::round(ab1.top + ab1.height / 2.0f));
-        lAva1.setPosition(204.0f, 313.0f);
+        lAva1.setPosition(202.0f, 313.0f);
         window.draw(lAva1);
 
         veAvatarPortrait(sf::Vector2f(534.0f, 287.0f), 23.0f, aiPlayerCharIndex, Mau::DO, false);
 
         // Right Card: AI Opponent [612, 196, 400, 164]
-        drawSubCard(sf::FloatRect(612.0f, 196.0f, 400.0f, 164.0f),
-                    sf::Color(18, 24, 32, 240), sf::Color(55, 85, 135, 175));
+        drawSubCard(sf::FloatRect(612.0f, 196.0f, 400.0f, 164.0f), sf::Color(215, 230, 255));
 
         sf::RectangleShape h2(sf::Vector2f(384.0f, 28.0f));
         h2.setPosition(620.0f, 204.0f);
-        h2.setFillColor(sf::Color(22, 38, 58, 220));
+        h2.setFillColor(sf::Color(24, 38, 58, 220));
         h2.setOutlineThickness(1.0f);
         h2.setOutlineColor(sf::Color(55, 90, 145, 170));
         window.draw(h2);
@@ -5028,7 +5113,7 @@ void GameManager::vePlaySetup() {
         lDiff.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect db = lDiff.getLocalBounds();
         lDiff.setOrigin(0.0f, std::round(db.top + db.height / 2.0f));
-        lDiff.setPosition(628.0f, 261.0f);
+        lDiff.setPosition(624.0f, 261.0f);
         window.draw(lDiff);
 
         // Row 2: AI First Move (Vertically centered at Y = 313)
@@ -5040,14 +5125,19 @@ void GameManager::vePlaySetup() {
         lSide.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect sb = lSide.getLocalBounds();
         lSide.setOrigin(0.0f, std::round(sb.top + sb.height / 2.0f));
-        lSide.setPosition(628.0f, 313.0f);
+        lSide.setPosition(624.0f, 313.0f);
         window.draw(lSide);
 
         veAvatarPortrait(sf::Vector2f(958.0f, 287.0f), 23.0f, 0, Mau::DEN, false);
 
         // Settings (Grid 2-column)
-        drawSubCard(sf::FloatRect(188.0f, 376.0f, 824.0f, 218.0f),
-                    sf::Color(25, 19, 15, 242), sf::Color(120, 88, 48, 175));
+        FantasyUI::get().drawPanel(window, sf::FloatRect(188.0f, 376.0f, 824.0f, 218.0f), OrientalPanelStyle::EBONY_WOOD);
+        sf::RectangleShape setInset2(sf::Vector2f(808.0f, 202.0f));
+        setInset2.setPosition(196.0f, 384.0f);
+        setInset2.setFillColor(sf::Color(26, 18, 14, 215));
+        setInset2.setOutlineThickness(1.0f);
+        setInset2.setOutlineColor(sf::Color(140, 102, 50, 160));
+        window.draw(setInset2);
 
         sf::Text rTitle;
         rTitle.setFont(fBold);
