@@ -5090,10 +5090,10 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     auto addCycle = [&](float x, float y, float valWidth, const std::string& valText,
                         std::function<void()> onPrev, std::function<void()> onNext) {
-        const float arrW = 28.0f;
+        const float arrW = 26.0f;
         const float h = 34.0f;
         auto bPrev = std::make_unique<Button>(x, y, arrW, h, "<", fBold, std::move(onPrev));
-        bPrev->setCharacterSize(15);
+        bPrev->setCharacterSize(14);
         bPrev->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
         playSetupButtons.push_back(std::move(bPrev));
 
@@ -5103,7 +5103,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
         playSetupButtons.push_back(std::move(bVal));
 
         auto bNext = std::make_unique<Button>(x + arrW + 2.0f + valWidth + 2.0f, y, arrW, h, ">", fBold, std::move(onNext));
-        bNext->setCharacterSize(15);
+        bNext->setCharacterSize(14);
         bNext->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
         playSetupButtons.push_back(std::move(bNext));
     };
@@ -5116,15 +5116,20 @@ void GameManager::khoiTaoPlaySetupButtons() {
     const float secY = 284.0f;
     const float colCycleY = secY + 54.0f; // 338.0f
 
+    // Generous label clearance: 104px offset ensures full visibility of "VAI TRÒ:" with zero overlap
+    const float ctrlOffsetX = 104.0f;
+    const float topInputW = 200.0f;
+    const float topCycleValW = 144.0f; // 26 + 2 + 144 + 2 + 26 = 200px total cycle width
+
     if (playSetupMode == 1) {
         // --- 1. Two-Player PvP Setup ---
-        // Player 1 Card (Left): input at (208, 141, 216, 34)
-        inputP1Name->setPosition(card1X + 66.0f, cardY + 48.0f);
-        inputP1Name->setSize(216.0f, 34.0f);
+        // Player 1 Card (Left): input at (246, 141, 200, 34)
+        inputP1Name->setPosition(card1X + ctrlOffsetX, cardY + 48.0f);
+        inputP1Name->setSize(topInputW, 34.0f);
         inputP1Name->setParchmentStyle(true);
 
-        std::string p1Role = (pvpFirstPlayer == 1) ? (tiengViet ? "BÊN ĐỎ" : "RED SIDE") : (tiengViet ? "BÊN ĐEN" : "BLACK SIDE");
-        addCycle(card1X + 66.0f, cardY + 98.0f, 156.0f, p1Role,
+        std::string p1Role = (pvpFirstPlayer == 1) ? (tiengViet ? "Bên Đỏ" : "Red Side") : (tiengViet ? "Bên Đen" : "Black Side");
+        addCycle(card1X + ctrlOffsetX, cardY + 98.0f, topCycleValW, p1Role,
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 pvpFirstPlayer = (pvpFirstPlayer == 1) ? 2 : 1;
@@ -5155,13 +5160,13 @@ void GameManager::khoiTaoPlaySetupButtons() {
         bP1AvaNext->setColors(sf::Color(242, 232, 206), sf::Color(255, 224, 128), sf::Color(255, 250, 220));
         playSetupButtons.push_back(std::move(bP1AvaNext));
 
-        // Player 2 Card (Right): input at (680, 141, 216, 34)
-        inputP2Name->setPosition(card2X + 66.0f, cardY + 48.0f);
-        inputP2Name->setSize(216.0f, 34.0f);
+        // Player 2 Card (Right): input at (718, 141, 200, 34)
+        inputP2Name->setPosition(card2X + ctrlOffsetX, cardY + 48.0f);
+        inputP2Name->setSize(topInputW, 34.0f);
         inputP2Name->setParchmentStyle(true);
 
-        std::string p2Role = (pvpFirstPlayer == 1) ? (tiengViet ? "BÊN ĐEN" : "BLACK SIDE") : (tiengViet ? "BÊN ĐỎ" : "RED SIDE");
-        addCycle(card2X + 66.0f, cardY + 98.0f, 156.0f, p2Role,
+        std::string p2Role = (pvpFirstPlayer == 1) ? (tiengViet ? "Bên Đen" : "Black Side") : (tiengViet ? "Bên Đỏ" : "Red Side");
+        addCycle(card2X + ctrlOffsetX, cardY + 98.0f, topCycleValW, p2Role,
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 pvpFirstPlayer = (pvpFirstPlayer == 1) ? 2 : 1;
@@ -5193,16 +5198,16 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     } else {
         // --- 2. Player vs AI Setup ---
-        inputAiPlayerName->setPosition(card1X + 66.0f, cardY + 48.0f);
-        inputAiPlayerName->setSize(216.0f, 34.0f);
+        inputAiPlayerName->setPosition(card1X + ctrlOffsetX, cardY + 48.0f);
+        inputAiPlayerName->setSize(topInputW, 34.0f);
         inputAiPlayerName->setParchmentStyle(true);
 
         auto getSideLabel = [this, tiengViet]() -> std::string {
-            if (aiFirstChoice == 0) return tiengViet ? "BÊN ĐỎ (ĐI TIÊN)" : "RED (FIRST)";
-            if (aiFirstChoice == 1) return tiengViet ? "BÊN ĐEN (ĐI HẬU)" : "BLACK (SECOND)";
-            return tiengViet ? "NGẪU NHIÊN" : "RANDOM SIDE";
+            if (aiFirstChoice == 0) return tiengViet ? "Bên Đỏ (Tiên)" : "Red (1st)";
+            if (aiFirstChoice == 1) return tiengViet ? "Bên Đen (Hậu)" : "Black (2nd)";
+            return tiengViet ? "Ngẫu Nhiên" : "Random";
         };
-        addCycle(card1X + 66.0f, cardY + 98.0f, 156.0f, getSideLabel(),
+        addCycle(card1X + ctrlOffsetX, cardY + 98.0f, topCycleValW, getSideLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 aiFirstChoice = (aiFirstChoice + 2) % 3;
@@ -5234,11 +5239,11 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
         // Right Card (AI Opponent):
         auto getDiffLabel = [this, tiengViet]() -> std::string {
-            if (aiDifficulty == DoKho::DE) return tiengViet ? "DỄ" : "EASY";
-            if (aiDifficulty == DoKho::TRUNG_BINH) return tiengViet ? "TRUNG BÌNH" : "MEDIUM";
-            return tiengViet ? "KHÓ" : "HARD";
+            if (aiDifficulty == DoKho::DE) return tiengViet ? "Dễ" : "Easy";
+            if (aiDifficulty == DoKho::TRUNG_BINH) return tiengViet ? "Trung Bình" : "Medium";
+            return tiengViet ? "Khó" : "Hard";
         };
-        addCycle(card2X + 66.0f, cardY + 48.0f, 156.0f, getDiffLabel(),
+        addCycle(card2X + ctrlOffsetX, cardY + 48.0f, topCycleValW, getDiffLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 if (aiDifficulty == DoKho::KHO) aiDifficulty = DoKho::TRUNG_BINH;
@@ -5254,10 +5259,10 @@ void GameManager::khoiTaoPlaySetupButtons() {
                 khoiTaoPlaySetupButtons();
             });
 
-        std::string aiSideStr = (aiFirstChoice == 0) ? (tiengViet ? "ĐI HẬU (ĐEN)" : "BLACK (2ND)")
-                             : ((aiFirstChoice == 1) ? (tiengViet ? "ĐI TIÊN (ĐỎ)" : "RED (1ST)")
-                                                     : (tiengViet ? "NGẪU NHIÊN" : "RANDOM"));
-        addCycle(card2X + 66.0f, cardY + 98.0f, 156.0f, aiSideStr,
+        std::string aiSideStr = (aiFirstChoice == 0) ? (tiengViet ? "Bên Đen (Hậu)" : "Black (2nd)")
+                             : ((aiFirstChoice == 1) ? (tiengViet ? "Bên Đỏ (Tiên)" : "Red (1st)")
+                                                     : (tiengViet ? "Ngẫu Nhiên" : "Random"));
+        addCycle(card2X + ctrlOffsetX, cardY + 98.0f, topCycleValW, aiSideStr,
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 aiFirstChoice = (aiFirstChoice + 2) % 3;
@@ -5272,7 +5277,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     // --- 4 Column Cycles in "TÙY CHỌN TRẬN ĐẤU" ---
     // Col 1: Match Timer (col1X = 158.0f)
-    addCycle(158.0f + 6.0f, colCycleY, 136.0f, getTimerLabel(),
+    addCycle(158.0f + 5.0f, colCycleY, 144.0f, getTimerLabel(),
         [this]() {
             soundManager.play(SoundType::CLICK);
             if (thoiGianVanDau == 0.0f) thoiGianVanDau = 1800.0f;
@@ -5293,12 +5298,12 @@ void GameManager::khoiTaoPlaySetupButtons() {
         });
 
     // Col 2: Rules (col2X = 382.0f)
-    addCycle(382.0f + 6.0f, colCycleY, 136.0f, tiengViet ? "CỜ TƯỚNG CƠ BẢN" : "STANDARD RULES",
+    addCycle(382.0f + 5.0f, colCycleY, 144.0f, tiengViet ? "Luật Cơ Bản" : "Standard Rules",
         [this]() { soundManager.play(SoundType::CLICK); },
         [this]() { soundManager.play(SoundType::CLICK); });
 
     // Col 3: Board Theme (col3X = 606.0f)
-    addCycle(606.0f + 6.0f, colCycleY, 136.0f, getBoardThemeLabel(),
+    addCycle(606.0f + 5.0f, colCycleY, 144.0f, getBoardThemeLabel(),
         [this]() {
             soundManager.play(SoundType::CLICK);
             boardTheme = static_cast<BoardTheme>((static_cast<int>(boardTheme) + 3) % 4);
@@ -5311,7 +5316,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
         });
 
     // Col 4: Piece Style (col4X = 830.0f)
-    addCycle(830.0f + 6.0f, colCycleY, 136.0f, getPieceStyleLabel(),
+    addCycle(830.0f + 5.0f, colCycleY, 144.0f, getPieceStyleLabel(),
         [this]() {
             soundManager.play(SoundType::CLICK);
             pieceStyle = static_cast<PieceStyle>((static_cast<int>(pieceStyle) + 3) % 4);
@@ -5717,7 +5722,7 @@ void GameManager::vePlaySetup() {
         sf::Text lName1;
         lName1.setFont(fBold);
         lName1.setString(toUtf8(tiengViet ? "TÊN:" : "NAME:"));
-        lName1.setCharacterSize(14);
+        lName1.setCharacterSize(13);
         lName1.setStyle(sf::Text::Bold);
         lName1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect nb1 = lName1.getLocalBounds();
@@ -5731,7 +5736,7 @@ void GameManager::vePlaySetup() {
         sf::Text lRole1;
         lRole1.setFont(fBold);
         lRole1.setString(toUtf8(tiengViet ? "VAI TRÒ:" : "ROLE:"));
-        lRole1.setCharacterSize(14);
+        lRole1.setCharacterSize(13);
         lRole1.setStyle(sf::Text::Bold);
         lRole1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect rb1 = lRole1.getLocalBounds();
@@ -5767,7 +5772,7 @@ void GameManager::vePlaySetup() {
         sf::Text lName2;
         lName2.setFont(fBold);
         lName2.setString(toUtf8(tiengViet ? "TÊN:" : "NAME:"));
-        lName2.setCharacterSize(14);
+        lName2.setCharacterSize(13);
         lName2.setStyle(sf::Text::Bold);
         lName2.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect nb2 = lName2.getLocalBounds();
@@ -5780,7 +5785,7 @@ void GameManager::vePlaySetup() {
         sf::Text lRole2;
         lRole2.setFont(fBold);
         lRole2.setString(toUtf8(tiengViet ? "VAI TRÒ:" : "ROLE:"));
-        lRole2.setCharacterSize(14);
+        lRole2.setCharacterSize(13);
         lRole2.setStyle(sf::Text::Bold);
         lRole2.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect rb2 = lRole2.getLocalBounds();
@@ -5817,7 +5822,7 @@ void GameManager::vePlaySetup() {
         sf::Text lName1;
         lName1.setFont(fBold);
         lName1.setString(toUtf8(tiengViet ? "TÊN:" : "NAME:"));
-        lName1.setCharacterSize(14);
+        lName1.setCharacterSize(13);
         lName1.setStyle(sf::Text::Bold);
         lName1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect nb1 = lName1.getLocalBounds();
@@ -5830,7 +5835,7 @@ void GameManager::vePlaySetup() {
         sf::Text lRole1;
         lRole1.setFont(fBold);
         lRole1.setString(toUtf8(tiengViet ? "VAI TRÒ:" : "ROLE:"));
-        lRole1.setCharacterSize(14);
+        lRole1.setCharacterSize(13);
         lRole1.setStyle(sf::Text::Bold);
         lRole1.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect rb1 = lRole1.getLocalBounds();
@@ -5865,7 +5870,7 @@ void GameManager::vePlaySetup() {
         sf::Text lDiff;
         lDiff.setFont(fBold);
         lDiff.setString(toUtf8(tiengViet ? "ĐỘ KHÓ:" : "DIFF:"));
-        lDiff.setCharacterSize(14);
+        lDiff.setCharacterSize(13);
         lDiff.setStyle(sf::Text::Bold);
         lDiff.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect db = lDiff.getLocalBounds();
@@ -5875,8 +5880,8 @@ void GameManager::vePlaySetup() {
 
         sf::Text lFirst;
         lFirst.setFont(fBold);
-        lFirst.setString(toUtf8(tiengViet ? "ĐI TRƯỚC:" : "SIDE:"));
-        lFirst.setCharacterSize(14);
+        lFirst.setString(toUtf8(tiengViet ? "VAI TRÒ:" : "SIDE:"));
+        lFirst.setCharacterSize(13);
         lFirst.setStyle(sf::Text::Bold);
         lFirst.setFillColor(sf::Color(255, 235, 165));
         sf::FloatRect fb = lFirst.getLocalBounds();
