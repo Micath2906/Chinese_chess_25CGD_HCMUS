@@ -11,7 +11,8 @@ enum class SoundType {
     VICTORY,
     DEFEAT,
     CLICK,
-    ILLEGAL
+    ILLEGAL,
+    WRONG = ILLEGAL
 };
 
 enum class BgmTrack {

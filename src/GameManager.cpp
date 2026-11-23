@@ -718,8 +718,8 @@ void GameManager::capNhatViTriNutCaiDat() {
     }
 
     float sbY = 534.0f;
-    float sbW = 98.0f;
-    float sbGap = 12.5f;
+    float sbW = 80.0f;
+    float sbGap = 12.0f;
     for (size_t i = 0; i < soundboardButtons.size(); ++i) {
         soundboardButtons[i]->setPosition(sX + i * (sbW + sbGap), sbY);
         soundboardButtons[i]->setSize(sbW, 44.0f);
@@ -896,14 +896,15 @@ void GameManager::khoiTaoDashboardSettings() {
         soundManager.getBgmVolume(), Loc::get(LocKey::SETTING_BGM_VOL), fBold,
         [this](float val) { soundManager.setBgmVolume(val); });
 
-    // Soundboard Test Buttons (98px each, perfectly filling the 540px span)
-    const float sbW = 98.0f;
+    // Soundboard Test Buttons (6 buttons evenly distributed across 540px)
+    const float sbW = 80.0f;
     soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Nước Đi" : "Move", fBold, [this]() { soundManager.play(SoundType::MOVE); }));
     soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Ăn Quân" : "Capture", fBold, [this]() { soundManager.play(SoundType::CAPTURE); }));
-    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Chiếu Tướng" : "Check", fBold, [this]() { soundManager.play(SoundType::CHECK); }));
-    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Chiến Thắng" : "Victory", fBold, [this]() { soundManager.play(SoundType::VICTORY); }));
-    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Nhấp Chuột" : "Click", fBold, [this]() { soundManager.play(SoundType::CLICK); }));
-    for (auto& sb : soundboardButtons) sb->setCharacterSize(13);
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Chiếu" : "Check", fBold, [this]() { soundManager.play(SoundType::CHECK); }));
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Thắng" : "Win", fBold, [this]() { soundManager.play(SoundType::VICTORY); }));
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Đi Sai" : "Wrong", fBold, [this]() { soundManager.play(SoundType::WRONG); }));
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, sbW, 40.0f, isVi ? "Nhấp" : "Click", fBold, [this]() { soundManager.play(SoundType::CLICK); }));
+    for (auto& sb : soundboardButtons) sb->setCharacterSize(12);
 
     // 3. Gameplay Controls (7 buttons)
     settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 315.0f, 42.0f, "", fBold, [this]() {
@@ -2577,7 +2578,7 @@ void GameManager::chonQuan(int hang, int cot) {
             lyDoNuocDiSai = (Loc::getLanguage() == Language::TIENG_VIET)
                 ? "Không thể chọn quân cờ của đối phương!"
                 : "Cannot select opponent's piece!";
-            soundManager.play(SoundType::ILLEGAL);
+            soundManager.play(SoundType::WRONG);
         }
     }
 }
@@ -2660,13 +2661,20 @@ void GameManager::diChuyenQuan(int hang, int cot) {
             } else if (biChieu) {
                 if (checkAlarmSound) soundManager.play(SoundType::CHECK);
             }
+        } else {
+            viTriNuocDiSai = sf::Vector2i(hang, cot);
+            thoiGianNuocDiSai = 2.0f;
+            lyDoNuocDiSai = (Loc::getLanguage() == Language::TIENG_VIET)
+                ? "Nước đi không hợp lệ!"
+                : "Illegal move!";
+            soundManager.play(SoundType::WRONG);
         }
     } else {
         std::string lyDo = xacDinhLyDoNuocDiSai(quanDangChon, hang, cot);
         viTriNuocDiSai = sf::Vector2i(hang, cot);
         thoiGianNuocDiSai = 2.0f;
         lyDoNuocDiSai = lyDo;
-        soundManager.play(SoundType::ILLEGAL);
+        soundManager.play(SoundType::WRONG);
     }
 }
 
