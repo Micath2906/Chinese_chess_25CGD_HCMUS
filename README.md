@@ -40,7 +40,10 @@
 - **Menu trang sách hoạt họa**: Hiệu ứng mở/đóng cuốn sách mượt mà, phân trang trực quan với đầy đủ các mục: *Chọn chế độ chơi*, *Nạp ván cờ*, *Cài đặt hệ thống*, *Thông tin kiến trúc*, *Xác nhận thoát*.
 - **Typography Hán – Nôm Việt hóa cao cấp**: Tích hợp các bộ phông chữ mang đậm nét thư pháp cổ điển Á Đông (**Viaoda Libre**, **Nôm Na Tống**) kết hợp **Pixeloid Sans**, hiển thị nét dày dặn (**Bold**), tương phản cao, chống vỡ hạt trên màn hình độ phân giải cao (1920x1080).
 - **Hệ thống Badge & Điểm nhấn hoàng kim**: Các chỉ số âm lượng, trạng thái BẬT/TẮT được thiết kế nguyên khối sang trọng trên nền giấy ấm viền hổ phách, hiệu ứng 4 góc vàng kim khi di chuột hoặc điều hướng bàn phím.
-- **Tùy biến Quân cờ & Bàn cờ**: Tùy chọn kiểu quân Gỗ thực tế (*Realistic Wood*), Chữ Hán truyền thống (*Traditional Hanzi*), Ký hiệu chữ cái (*Modern Alphabet*), hiệu ứng Hào quang vương giả (*King Aura*) và rơi lá trúc (*Bamboo Atmosphere*).
+- **Tùy biến Quân cờ & Bàn cờ**: 
+  - 4 kiểu quân cờ: Gỗ thực tế (*Realistic Wood* - nạp từ texture chi tiết), Việt hóa (*Vietnamese*), Rút gọn (*Short Code*), Quốc tế (*International*) - 3 kiểu sau được kết xuất linh hoạt bằng typography kết hợp phông chữ Nôm Na Tống / Viaoda Libre.
+  - 4 chủ đề bàn cờ: Gỗ Cổ Điển (*Classic Wood*), Bạch Ngọc (*Imperial Jade*), Thao Thiết Mực (*Midnight Ink*), Trúc Vàng (*Warm Bamboo*).
+  - Hiệu ứng khí quyển rơi lá trúc (*Bamboo Atmosphere*) tăng chiều sâu không gian.
 
 ### 2. Chuẩn hóa 100% Luật Di Chuyển Cờ Tướng
 - **Tướng (General)**: Di chuyển 1 ô ngang/dọc trong Cung 3x3; kiểm tra nghiêm ngặt quy tắc chống mặt Tướng (*Flying Generals*).
@@ -65,14 +68,14 @@
 - **Tạm dừng & Trợ giúp**: Tạm dừng trận đấu, xin hòa cờ, đầu hàng và xem lại luật chơi ngay trong ván.
 
 ### 5. Âm thanh & Đa ngôn ngữ
-- **Âm thanh chân thực**: Hiệu ứng tiếng gõ quân cờ cạch trên mặt gỗ, tiếng ăn quân, chuông báo chiếu tướng, tiếng đàn tranh Guzheng cổ phong nền tĩnh lặng.
+- **Âm thanh chân thực**: Hiệu ứng tiếng gõ quân cờ cạch trên mặt gỗ, tiếng ăn quân dứt khoát, chuông báo chiếu tướng, tiếng đàn tranh / nhạc cụ cổ truyền Á Đông tĩnh lặng.
 - **Đa ngôn ngữ (Localization)**: Chuyển đổi linh hoạt giữa **Tiếng Việt** và **English** theo thời gian thực mà không cần khởi động lại trò chơi.
 
 ---
 
 ## 🏛️ Kiến trúc OOP & Design Patterns
 
-Dự án áp dụng chặt chẽ 4 nguyên lý lập trình hướng đối tượng cùng 6 mẫu thiết kế (**Design Patterns**) kinh điển:
+Dự án áp dụng chặt chẽ 4 nguyên lý lập trình hướng đối tượng cùng 8 mẫu thiết kế (**Design Patterns**) kinh điển:
 
 ```mermaid
 flowchart TD
@@ -88,12 +91,16 @@ flowchart TD
     P3["Strategy Pattern\n(Thuật toán AI Minimax / Alpha-Beta)"]:::pattern
     P4["Factory Method Pattern\n(Khởi tạo đa hình 7 quân cờ)"]:::pattern
     P5["Prototype Pattern\n(Sao chép sâu trạng thái bàn cờ)"]:::pattern
-    P6["Singleton & Observer\n(SoundManager & Localization)"]:::pattern
+    P6["Observer Pattern\n(Localization Đa ngôn ngữ)"]:::pattern
+    P7["Singleton + Flyweight + Facade\n(AssetManager Quản lý tài nguyên)"]:::pattern
+    P8["Strategy Pattern\n(TurnOrderRandomizer Tung đồng xu)"]:::pattern
 
     GameManager --> P1
     GameManager --> P2
     GameManager --> P3
     GameManager --> P6
+    GameManager --> P7
+    GameManager --> P8
     BanCo --> P4
     BanCo --> P5
     P4 --> QuanCo
@@ -111,7 +118,14 @@ flowchart TD
 3. **Strategy Pattern**: Thuật toán AI được đóng gói thành chiến lược độc lập (`ChessAI`), cho phép chuyển đổi linh hoạt độ sâu tìm kiếm và ma trận đánh giá điểm số tương ứng với các cấp độ Dễ / Vừa / Khó.
 4. **Factory Method Pattern**: Lớp `QuanCoFactory` chịu trách nhiệm khởi tạo đa hình các loại quân cờ dựa trên mã loại quân và màu sắc mà không để lộ logic khởi tạo ra bên ngoài.
 5. **Prototype Pattern**: Phương thức `clone()` thực hiện Deep Copy đối tượng bàn cờ, cho phép AI giả lập hàng ngàn nhánh nước đi trên cây tìm kiếm mà không làm ảnh hưởng đến ván cờ thực tế.
-6. **Singleton & Observer Pattern**: `SoundManager` và `Localization` áp dụng Singleton để duy trì một phiên bản duy nhất trong suốt vòng đời ứng dụng; đồng thời thông báo cập nhật giao diện khi người dùng chuyển đổi ngôn ngữ hoặc cài đặt âm thanh.
+6. **Observer Pattern**: `Localization` quản lý dịch ngôn ngữ tập trung và cập nhật giao diện thời gian thực khi người dùng chuyển đổi ngôn ngữ.
+7. **Meyers Singleton, Flyweight Cache & Facade Pattern (AssetManager)**:
+   - `AssetManager` áp dụng **Meyers Singleton** đảm bảo duy trì một đối tượng quản lý duy nhất, thread-safe.
+   - Áp dụng **Flyweight Pattern** qua template `ResourceCache<Resource, Id>` để chia sẻ texture, font, sound buffer; tránh nạp trùng lặp.
+   - Cung cấp giao diện **Facade** thống nhất cho toàn bộ hệ thống (`Menu`, `GameManager`, `FantasyUI`, `SoundManager`) nạp tài nguyên mà không cần xử lý đường dẫn ổ đĩa thủ công.
+   - Hỗ trợ cơ chế tự động dò tìm thư mục gốc `detectAssetsRoot()` và kiểm tra toàn vẹn tài nguyên qua CLI `--check-assets`.
+8. **Strategy Pattern (TurnOrderRandomizer)**:
+   - Đóng gói thuật toán tung đồng xu ngẫu nhiên xác định lượt đi bằng `std::mt19937`, hỗ trợ seed tùy chọn phục vụ kiểm thử đơn vị độc lập.
 
 ---
 
@@ -119,14 +133,23 @@ flowchart TD
 
 ```
 CoTuong/
-├── assets/                     # Tài nguyên hình ảnh, hiệu ứng UI và phông chữ
-│   ├── Complete_UI_Book_.../   # Bộ sprite Cuốn sách cổ TravelBook Lite
-│   ├── font/                   # Bộ phông chữ: Viaoda Libre, Nôm Na Tống, Pixeloid Sans
-│   └── background play.jpg     # Hình nền ván cờ độ phân giải cao
+├── assets/                     # Thư mục duy nhất chứa toàn bộ tài nguyên
+│   ├── audio/                  # Âm thanh hiệu ứng (.ogg, .wav) và nhạc nền
+│   │   ├── music/              # golden_gleam.ogg
+│   │   └── sfx/                # select.wav, dat_co.ogg, an_co.ogg, chieu_tuong.wav, win.wav
+│   ├── fonts/                  # Phông chữ: Viaoda Libre, Nôm Na Tống, Pixeloid Sans
+│   └── textures/               # Hình ảnh và giao diện
+│       ├── backgrounds/        # xiangqi_background_pavilion.png
+│       ├── board/              # board.png
+│       ├── pieces/             # 14 tệp r_*.png, b_*.png
+│       └── ui/                 # xiangqi_oriental_sheet.png, travelbook/
 ├── include/                    # Header files (.h)
+│   ├── AssetManager.h          # Singleton & Flyweight Resource Manager
+│   ├── AssetPaths.h            # Enum định danh và bảng đăng ký tài nguyên
 │   ├── Atmosphere.h            # Hiệu ứng khí quyển rơi lá trúc
 │   ├── BanCo.h                 # Quản lý ma trận bàn cờ, nước đi, luật kiểm tra
 │   ├── ChessAI.h               # Thuật toán AI Minimax & Alpha-Beta
+│   ├── FantasyUI.h             # Bộ kết xuất 9-slice UI cổ phong
 │   ├── GameManager.h           # Bộ điều phối toàn bộ trò chơi, HUD và vòng lặp chính
 │   ├── KeyConfig.h             # Cấu hình bộ phím điều khiển
 │   ├── Localization.h          # Hệ thống đa ngôn ngữ (Tiếng Việt & English)
@@ -136,22 +159,27 @@ CoTuong/
 │   ├── Slider.h                # Thanh trượt điều chỉnh âm lượng
 │   ├── SoundManager.h          # Bộ quản lý âm thanh và nhạc nền
 │   ├── TextInput.h             # Hộp nhập văn bản tên kỳ thủ
+│   ├── TurnOrderRandomizer.h   # Thuật toán tung đồng xu ngẫu nhiên
+│   ├── UIAtlas.h               # Atlas tọa độ sprite sheet giao diện
 │   └── [Xe, Ma, Voi, ...].h    # 7 lớp quân cờ cụ thể
 ├── src/                        # File mã nguồn triển khai (.cpp)
+│   ├── AssetManager.cpp
 │   ├── BanCo.cpp
 │   ├── ChessAI.cpp
+│   ├── FantasyUI.cpp
 │   ├── GameManager.cpp
 │   ├── Localization.cpp
 │   ├── Menu.cpp
 │   ├── SoundManager.cpp
 │   ├── TextInput.cpp
+│   ├── TurnOrderRandomizer.cpp
 │   └── [QuanCo, Xe, ...].cpp
-├── resources/                  # Bản sao tài nguyên dự phòng (fonts, sounds)
 ├── SFML/                       # Bộ thư viện SFML 2.6.2 (64-bit Windows)
 ├── ChayGame.bat                # Script chạy game nhanh 1-click cho Windows
 ├── CMakeLists.txt              # Cấu hình biên dịch CMake đa nền tảng
-├── CoTuong.exe                 # File thực thi đã biên dịch sẵn (Release x64)
-├── main.cpp                    # Điểm khởi đầu chương trình (Entry point)
+├── CREDITS.md                  # Ghi nhận nguồn gốc và bản quyền tài nguyên
+├── LICENSE                     # Giấy phép MIT cho mã nguồn
+├── main.cpp                    # Điểm khởi đầu chương trình (Entry point & CLI validation)
 └── README.md                   # Tài liệu hướng dẫn dự án
 ```
 

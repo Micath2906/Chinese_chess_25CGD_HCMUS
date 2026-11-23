@@ -19,10 +19,10 @@
   - Nước đi chỉ hợp lệ khi không để Tướng phe mình bị chiếu
   - Gợi ý nước đi (Legal move dots) chuẩn xác 100%
   - Tự động phát hiện Chiếu tướng, Chiếu bí (Checkmate) và Bí nước (Stalemate)
-- [x] **Hệ thống Âm thanh đa dạng (100% C++ & SFML Audio)**:
-  - Sinh âm thanh thời gian thực (Procedural Audio Synthesis) qua `sf::SoundBuffer`
-  - Âm thanh nước đi (wood tap), ăn quân (heavy capture), chiếu tướng (warning chime), chiến thắng (fanfare), thất bại
-  - Điều chỉnh âm lượng (25%, 50%, 75%, 100%) và Bật/Tắt âm thanh trong Settings
+- [x] **Hệ thống Âm thanh & Nhạc nền (SFML Audio & AssetManager)**:
+  - Tải và phát âm thanh từ tệp chất lượng cao (`.ogg`, `.wav`) tối ưu hóa quản lý tài nguyên tập trung qua `AssetManager`.
+  - Hiệu ứng âm thanh đa dạng: đặt quân cờ (wood tap), ăn quân (heavy capture), cảnh báo chiếu tướng (warning chime), chiến thắng (fanfare).
+  - Nhạc nền cổ trang thư thái (`golden_gleam.ogg`), hỗ trợ điều chỉnh âm lượng (Master, BGM, SFX) độc lập và Bật/Tắt trong Cài đặt.
 - [x] **Chế độ chơi đa dạng (Game Modes)**:
   - Chế độ 2 người chơi (PvP đối kháng cục bộ)
   - Chế độ Chơi với máy (AI - PvE):
