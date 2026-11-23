@@ -5246,8 +5246,10 @@ void GameManager::khoiTaoPlaySetupButtons() {
     // --- Bottom Action Buttons ---
     const float btmY = 600.0f;
     const float btmH = 46.0f;
+    const float btmBtnW = 160.0f;
+    const float nextBtnX = 1058.0f - btmBtnW; // 898.0f, symmetrically balanced with Back button at 142.0f
 
-    auto backBtn = std::make_unique<Button>(142.0f, btmY, 160.0f, btmH,
+    auto backBtn = std::make_unique<Button>(142.0f, btmY, btmBtnW, btmH,
         tiengViet ? "Quay lại" : "Back", fBold, [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = TrangThai::TITLE_SCREEN;
@@ -5265,7 +5267,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
     };
 
     if (playSetupMode == 1) {
-        auto nextBtn = std::make_unique<Button>(818.0f, btmY, 240.0f, btmH,
+        auto nextBtn = std::make_unique<Button>(nextBtnX, btmY, btmBtnW, btmH,
             tiengViet ? "Tiếp theo" : "Next", fBold, [this, trimStr, tiengViet]() {
             soundManager.play(SoundType::CLICK);
             std::string n1 = trimStr(inputP1Name->getValue());
@@ -5293,7 +5295,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
             ? (tiengViet ? "Tiếp theo" : "Next")
             : (tiengViet ? "Vào trận đấu" : "Start Match");
 
-        auto actBtn = std::make_unique<Button>(818.0f, btmY, 240.0f, btmH, actLabel, fBold, [this, trimStr, tiengViet, needsRoll]() {
+        auto actBtn = std::make_unique<Button>(nextBtnX, btmY, btmBtnW, btmH, actLabel, fBold, [this, trimStr, tiengViet, needsRoll]() {
             soundManager.play(SoundType::CLICK);
             std::string n = trimStr(inputAiPlayerName->getValue());
             if (n.empty()) n = tiengViet ? "Người chơi" : "Player";
