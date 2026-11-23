@@ -6,7 +6,6 @@ out/
 GEMINI.md
 AGENTS.md
 
-
 # IDE specific
 .vscode/
 .vs/
@@ -22,6 +21,8 @@ AGENTS.md
 *.obj
 *.dll
 !SFML/bin/*.dll
+*.pdb
+SFML/lib/Debug/*.pdb
 
 *.so
 *.dylib
@@ -31,9 +32,6 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
-
-# Resources (if large)
-# resources/
 
 # OS specific
 .DS_Store

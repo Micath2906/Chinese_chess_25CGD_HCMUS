@@ -44,12 +44,9 @@ vcpkg integrate install
 3. Giải nén vào thư mục (ví dụ: `C:\SFML`)
 4. Thêm vào biến môi trường hoặc cấu hình trong CMake
 
-### Bước 3: Cài đặt font
+### Bước 3: Tài nguyên (Assets)
 
-1. Tạo thư mục: `resources/fonts/`
-2. Copy font **arial.ttf** vào thư mục này
-   - Font có sẵn trong Windows: `C:\Windows\Fonts\arial.ttf`
-   - Hoặc tải font Unicode hỗ trợ tiếng Việt
+Toàn bộ phông chữ Unicode (Viaoda Libre, Nôm Na Tống, Pixeloid Sans), hình ảnh bàn cờ, 14 quân cờ, spritesheet UI và âm thanh đã được tích hợp sẵn đầy đủ trong thư mục `assets/` của dự án. Không cần tải hay cài đặt thêm font ngoài.
 
 ### Bước 4: Build Project
 
@@ -66,8 +63,16 @@ cmake ..
 cmake --build . --config Release
 ```
 
-### Bước 5: Chạy game
+### Bước 5: Kiểm tra tài nguyên & Chạy game
+
 ```bash
+# Kiểm tra toàn vẹn tài nguyên game:
+CoTuong.exe --check-assets
+# Kỳ vọng: in "[OK] All required assets are present and validated successfully." và kết quả kiểm thử TurnOrderRandomizer
+
+# Chạy game trực tiếp:
+CoTuong.exe
+```
 cd build\Release
 CoTuong.exe
 ```
@@ -135,16 +140,15 @@ make
   set(SFML_DIR "C:/SFML/lib/cmake/SFML")
   ```
 
-### 2. "Cannot open arial.ttf"
+### 2. Lỗi thiếu tài nguyên (Missing assets)
 **Giải pháp:**
-- Tạo thư mục `resources/fonts/`
-- Copy file `arial.ttf` vào đó
-- Hoặc thay đổi đường dẫn font trong code
+- Chạy `CoTuong.exe --check-assets` để kiểm tra danh sách file thiếu
+- Đảm bảo thư mục `assets/` nằm cùng cấp với file thực thi hoặc ở thư mục gốc dự án
 
 ### 3. Missing DLL files (Windows)
 **Giải pháp:**
-- Copy tất cả file `.dll` từ SFML vào thư mục chứa `.exe`
-- Hoặc thêm đường dẫn SFML/bin vào PATH
+- CMake đã tự động sao chép các file `.dll` cần thiết vào thư mục build
+- Nếu chạy độc lập, copy các file `.dll` từ `SFML/bin/` vào thư mục chứa `CoTuong.exe`
 
 ### 4. Build failed với MSVC
 **Giải pháp:**
@@ -161,11 +165,12 @@ Co_tuong/
 ├── build/
 │   └── Release/
 │       ├── CoTuong.exe
-│       └── sfml-*.dll (Windows)
-├── resources/
+│       ├── openal32.dll
+│       └── assets/
+├── assets/
 │   ├── fonts/
-│   │   └── arial.ttf
-│   └── sounds/ (tương lai)
+│   ├── textures/
+│   └── audio/
 ├── include/
 ├── src/
 └── ...
@@ -178,6 +183,17 @@ Co_tuong/
 Sau khi build xong, chạy:
 
 ```bash
+# Kiểm tra tự động tính toàn vẹn của assets & thuật toán tung đồng xu
+CoTuong.exe --check-assets
+```
+Kết quả mong đợi:
+```
+[OK] All required assets are present and validated successfully.
+[TEST] Running TurnOrderRandomizer unit test...
+  - Deterministic seed test: PASSED
+  - 1000 trials distribution: Red ~50% / Black ~50%
+[OK] TurnOrderRandomizer unit test passed successfully.
+```
 # Windows
 cd build\Release
 CoTuong.exe
