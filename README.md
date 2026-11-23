@@ -224,6 +224,8 @@ cd Release
 
 ## 👥 Tác giả & Bản quyền
 
-- **Môn học**: Phương Pháp Lập Trình Hướng Đối Tượng 2 (OOP)
+- **Môn học**: Phương Pháp Lập Trình Hướng Đối Tượng (OOP2) - Khóa 2025-2026.
 - **Đơn vị đào tạo**: Khoa Công nghệ Thông tin – Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM (HCMUS).
-- **Giấy phép**: Phát hành theo giấy phép **MIT License**. Tự do sử dụng, chỉnh sửa và phân phối cho mục đích học tập và nghiên cứu phi thương mại.
+- **Mã nguồn (Source Code)**: Phát hành theo giấy phép **MIT License**. Xem chi tiết tại [LICENSE](LICENSE).
+- **Tài nguyên bên thứ ba (Third-party Assets)**: Xem danh sách chi tiết bản quyền các phông chữ, hình ảnh, âm thanh và thư viện tại [CREDITS.md](CREDITS.md).
+
