@@ -60,73 +60,34 @@ void SoundManager::khoiTao() {
         }
     }
 
-    // Other sounds
+    // Check sound
     bufferCheck = am.sound(SoundId::CHECK);
-    std::string checkCustom[] = {
-        am.resolvePath("audio/sfx/check.mp3"),
-        am.resolvePath("audio/sfx/check.wav"),
-        am.resolvePath("audio/sfx/check.ogg")
-    };
-    for (const auto& f : checkCustom) {
-        if (!f.empty() && bufferCheck.loadFromFile(f)) break;
-    }
     if (bufferCheck.getSampleCount() > 0) {
         soundCheck.setBuffer(bufferCheck);
     }
 
+    // Victory sound
     bufferVictory = am.sound(SoundId::WIN);
-    std::string winCustom[] = {
-        am.resolvePath("audio/sfx/win.mp3"),
-        am.resolvePath("audio/sfx/win.wav"),
-        am.resolvePath("audio/sfx/win.ogg")
-    };
-    for (const auto& f : winCustom) {
-        if (!f.empty() && bufferVictory.loadFromFile(f)) break;
-    }
     if (bufferVictory.getSampleCount() > 0) {
         soundVictory.setBuffer(bufferVictory);
     }
 
+    // Click / Select sound
     bufferClick = am.sound(SoundId::SELECT);
-    std::string selectCustom[] = {
-        am.resolvePath("audio/sfx/select.mp3"),
-        am.resolvePath("audio/sfx/select.wav"),
-        am.resolvePath("audio/sfx/select.ogg")
-    };
-    for (const auto& f : selectCustom) {
-        if (!f.empty() && bufferClick.loadFromFile(f)) break;
-    }
     if (bufferClick.getSampleCount() > 0) {
         soundClick.setBuffer(bufferClick);
     }
 
     // Custom Defeat sound
-    std::string loseCustom[] = {
-        am.resolvePath("audio/sfx/lose.mp3"),
-        am.resolvePath("audio/sfx/lose.wav"),
-        am.resolvePath("audio/sfx/lose.ogg")
-    };
-    for (const auto& f : loseCustom) {
-        if (!f.empty() && bufferDefeat.loadFromFile(f)) {
-            soundDefeat.setBuffer(bufferDefeat);
-            break;
-        }
+    bufferDefeat = am.sound(SoundId::LOSE);
+    if (bufferDefeat.getSampleCount() > 0) {
+        soundDefeat.setBuffer(bufferDefeat);
     }
 
     // Custom Wrong / Illegal move sound
-    std::string wrongCustom[] = {
-        am.resolvePath("audio/sfx/wrong.mp3"),
-        am.resolvePath("audio/sfx/wrong.wav"),
-        am.resolvePath("audio/sfx/wrong.ogg"),
-        am.resolvePath("audio/sfx/illegal.mp3"),
-        am.resolvePath("audio/sfx/illegal.wav"),
-        am.resolvePath("audio/sfx/illegal.ogg")
-    };
-    for (const auto& f : wrongCustom) {
-        if (!f.empty() && bufferIllegal.loadFromFile(f)) {
-            soundIllegal.setBuffer(bufferIllegal);
-            break;
-        }
+    bufferIllegal = am.sound(SoundId::WRONG);
+    if (bufferIllegal.getSampleCount() > 0) {
+        soundIllegal.setBuffer(bufferIllegal);
     }
 
     currentTrack = BgmTrack::MENU;

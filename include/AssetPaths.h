@@ -100,6 +100,8 @@ enum class SoundId {
     CHECK,
     WIN,
     SELECT,
+    LOSE,
+    WRONG,
     COUNT
 };
 
@@ -221,11 +223,13 @@ constexpr std::array<FontAssetDef, static_cast<size_t>(FontId::COUNT)> FONTS = {
 }};
 
 constexpr std::array<SoundAssetDef, static_cast<size_t>(SoundId::COUNT)> SOUNDS = {{
-    { SoundId::MOVE,              "audio/sfx/move.ogg" },
+    { SoundId::MOVE,              "audio/sfx/move.wav" },
     { SoundId::CAPTURE,           "audio/sfx/capture.ogg" },
     { SoundId::CHECK,             "audio/sfx/check.wav" },
     { SoundId::WIN,               "audio/sfx/win.wav" },
-    { SoundId::SELECT,            "audio/sfx/select.wav" }
+    { SoundId::SELECT,            "audio/sfx/select.wav" },
+    { SoundId::LOSE,              "audio/sfx/lose.wav" },
+    { SoundId::WRONG,             "audio/sfx/wrong.wav" }
 }};
 
 constexpr std::array<MusicAssetDef, static_cast<size_t>(MusicId::COUNT)> MUSIC = {{
