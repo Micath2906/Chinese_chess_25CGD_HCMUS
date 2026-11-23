@@ -290,7 +290,7 @@ std::string Loc::get(LocKey key) {
 
         // Random Scene & Alerts
         case LocKey::PROCEED_TO_ROLL:
-            return vi ? "Tiếp tục: Bốc thăm lượt đi >>" : "Proceed: Roll Turn Order >>";
+            return vi ? "Tiếp theo >>" : "Next >>";
         case LocKey::RANDOM_TITLE:
             return vi ? "Bốc Thăm Lượt Đi" : "Turn Order Randomizer";
         case LocKey::RANDOM_SUBTITLE:

@@ -4046,10 +4046,9 @@ void GameManager::khoiTaoPlaySetupButtons() {
         inputP2Name->setParchmentStyle(true);
         addAvatarCycle(724.0f, 296.0f, p2CharIndex);
 
-        // Settings 2-Column Grid:
-        // Left Column (Timer & Board Theme):
-        // Row 1 (Y = 422): Match Timer at (X=336, valW=140, total=200, ends at 536)
-        addCycle(336.0f, 422.0f, 140.0f, getTimerLabel(),
+        // Settings 2-Column Grid (Row 1: Timer & Rules, Row 2: Board Theme & Piece Style, Row 3: Previews)
+        // Row 1 Left (Y = 420): Match Timer at X=336
+        addCycle(336.0f, 420.0f, 140.0f, getTimerLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 if (thoiGianVanDau == 0.0f) thoiGianVanDau = 1800.0f;
@@ -4069,8 +4068,8 @@ void GameManager::khoiTaoPlaySetupButtons() {
                 khoiTaoPlaySetupButtons();
             });
 
-        // Row 2 (Y = 468): Board Theme at (X=336, valW=140, total=200, ends at 536)
-        addCycle(336.0f, 468.0f, 140.0f, getBoardThemeLabel(),
+        // Row 2 Left (Y = 466): Board Theme at X=336
+        addCycle(336.0f, 466.0f, 140.0f, getBoardThemeLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 boardTheme = static_cast<BoardTheme>((static_cast<int>(boardTheme) + 3) % 4);
@@ -4082,9 +4081,8 @@ void GameManager::khoiTaoPlaySetupButtons() {
                 khoiTaoPlaySetupButtons();
             });
 
-        // Right Column:
-        // Row 1 (Y = 422): Piece Style at (X=744, valW=140, total=200, ends at 944)
-        addCycle(744.0f, 422.0f, 140.0f, getPieceStyleLabel(),
+        // Row 2 Right (Y = 466): Piece Style at X=744
+        addCycle(744.0f, 466.0f, 140.0f, getPieceStyleLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 pieceStyle = static_cast<PieceStyle>((static_cast<int>(pieceStyle) + 3) % 4);
@@ -4144,9 +4142,8 @@ void GameManager::khoiTaoPlaySetupButtons() {
                 khoiTaoPlaySetupButtons();
             });
 
-        // Settings 2-Column Grid (exact same as PvP):
-        // Left Column:
-        addCycle(336.0f, 422.0f, 140.0f, getTimerLabel(),
+        // Settings 2-Column Grid (Row 1: Timer & Rules, Row 2: Board Theme & Piece Style, Row 3: Previews)
+        addCycle(336.0f, 420.0f, 140.0f, getTimerLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 if (thoiGianVanDau == 0.0f) thoiGianVanDau = 1800.0f;
@@ -4166,7 +4163,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
                 khoiTaoPlaySetupButtons();
             });
 
-        addCycle(336.0f, 468.0f, 140.0f, getBoardThemeLabel(),
+        addCycle(336.0f, 466.0f, 140.0f, getBoardThemeLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 boardTheme = static_cast<BoardTheme>((static_cast<int>(boardTheme) + 3) % 4);
@@ -4179,7 +4176,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
             });
 
         // Right Column:
-        addCycle(744.0f, 422.0f, 140.0f, getPieceStyleLabel(),
+        addCycle(744.0f, 466.0f, 140.0f, getPieceStyleLabel(),
             [this]() {
                 soundManager.play(SoundType::CLICK);
                 pieceStyle = static_cast<PieceStyle>((static_cast<int>(pieceStyle) + 3) % 4);
@@ -4247,7 +4244,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
 
     if (playSetupMode == 1) {
         auto rollBtn = std::make_unique<Button>(actX, btmY, actW, btmH,
-            tiengViet ? "Tung đồng xu >>" : "Roll Turn Order >>", fBold, [this, trimStr, tiengViet]() {
+            tiengViet ? "Tiếp theo >>" : "Next >>", fBold, [this, trimStr, tiengViet]() {
             soundManager.play(SoundType::CLICK);
             std::string n1 = trimStr(inputP1Name->getValue());
             std::string n2 = trimStr(inputP2Name->getValue());
@@ -4272,7 +4269,7 @@ void GameManager::khoiTaoPlaySetupButtons() {
     } else if (playSetupMode == 0) {
         bool needsRoll = (aiFirstChoice == 2);
         std::string actLabel = needsRoll
-            ? (tiengViet ? "Tung đồng xu >>" : "Roll Turn Order >>")
+            ? (tiengViet ? "Tiếp theo >>" : "Next >>")
             : (tiengViet ? "Vào trận đấu >>" : "Start Match >>");
 
         auto actBtn = std::make_unique<Button>(actX, btmY, actW, btmH, actLabel, fBold, [this, trimStr, tiengViet, needsRoll]() {
@@ -4400,7 +4397,6 @@ void GameManager::vePieceStylePreview(sf::RenderWindow& win, float x, float y, f
 void GameManager::veBoardThemePreview(sf::RenderWindow& win, float x, float y, float w, float h) {
     auto& assets = getMenuAssets();
     sf::Font& fBold = assets.fontBoldLoaded ? assets.fontBold : fontBold;
-    sf::Font& fVN = assets.vnFontLoaded ? assets.vnFont : fBold;
     bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
 
     // 1. Subtle Aged Xuan inset container
@@ -4411,23 +4407,23 @@ void GameManager::veBoardThemePreview(sf::RenderWindow& win, float x, float y, f
     box.setOutlineColor(sf::Color(65, 42, 22));
     win.draw(box);
 
-    // 2. Left Label: "Mẫu bàn cờ:" / "Board Sample:"
+    // 2. Left Label: "Mẫu bàn:" / "Board Sample:"
     sf::Text lbl;
     lbl.setFont(fBold);
-    lbl.setString(toUtf8(vi ? "Mẫu bàn cờ:" : "Board Sample:"));
+    lbl.setString(toUtf8(vi ? "Mẫu bàn:" : "Board Sample:"));
     lbl.setCharacterSize(14);
     lbl.setStyle(sf::Text::Bold);
     lbl.setFillColor(sf::Color(36, 20, 12));
     sf::FloatRect lb = lbl.getLocalBounds();
     lbl.setOrigin(0.0f, std::round(lb.top + lb.height / 2.0f));
-    lbl.setPosition(x + 12.0f, std::round(y + h / 2.0f));
+    lbl.setPosition(x + 10.0f, std::round(y + h / 2.0f));
     win.draw(lbl);
 
     // 3. Mini Board Canvas to the right of the label
-    float canvasX = x + 130.0f;
-    float canvasY = y + 7.0f;
-    float canvasW = w - 142.0f;
-    float canvasH = h - 14.0f;
+    float canvasX = x + 116.0f;
+    float canvasY = y + 5.0f;
+    float canvasW = w - 126.0f;
+    float canvasH = h - 10.0f;
 
     sf::Color boardBgCol(220, 185, 135);
     sf::Color borderCol(70, 40, 20);
@@ -4451,7 +4447,7 @@ void GameManager::veBoardThemePreview(sf::RenderWindow& win, float x, float y, f
         riverCol = sf::Color(68, 38, 18, 220);
     }
 
-    // Mini board background
+    // Mini board background surface
     sf::RectangleShape boardSurface(sf::Vector2f(canvasW, canvasH));
     boardSurface.setPosition(canvasX, canvasY);
     boardSurface.setFillColor(boardBgCol);
@@ -4460,55 +4456,116 @@ void GameManager::veBoardThemePreview(sf::RenderWindow& win, float x, float y, f
     win.draw(boardSurface);
 
     // Inner rim
-    sf::RectangleShape innerBorder(sf::Vector2f(canvasW - 6.0f, canvasH - 6.0f));
-    innerBorder.setPosition(canvasX + 3.0f, canvasY + 3.0f);
+    sf::RectangleShape innerBorder(sf::Vector2f(canvasW - 4.0f, canvasH - 4.0f));
+    innerBorder.setPosition(canvasX + 2.0f, canvasY + 2.0f);
     innerBorder.setFillColor(sf::Color::Transparent);
     innerBorder.setOutlineThickness(1.0f);
-    innerBorder.setOutlineColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 140));
+    innerBorder.setOutlineColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 120));
     win.draw(innerBorder);
 
-    // Draw horizontal grid lines across the canvas
-    float lineY1 = canvasY + 9.0f;
-    float lineY2 = canvasY + canvasH / 2.0f;
-    float lineY3 = canvasY + canvasH - 9.0f;
-
-    auto drawHLine = [&](float ly) {
-        sf::RectangleShape hl(sf::Vector2f(canvasW - 12.0f, 1.0f));
-        hl.setPosition(canvasX + 6.0f, ly);
-        hl.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 170));
-        win.draw(hl);
-    };
-    drawHLine(lineY1);
-    drawHLine(lineY2);
-    drawHLine(lineY3);
-
-    // Draw vertical column grid lines
-    int numCols = 11;
-    float colSpacing = (canvasW - 20.0f) / static_cast<float>(numCols - 1);
-    for (int c = 0; c < numCols; ++c) {
-        float cx = canvasX + 10.0f + static_cast<float>(c) * colSpacing;
-        sf::RectangleShape vlTop(sf::Vector2f(1.0f, canvasH / 2.0f - 4.0f));
-        vlTop.setPosition(cx, canvasY + 4.0f);
-        vlTop.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 130));
-        win.draw(vlTop);
-
-        sf::RectangleShape vlBtm(sf::Vector2f(1.0f, canvasH / 2.0f - 4.0f));
-        vlBtm.setPosition(cx, canvasY + canvasH / 2.0f);
-        vlBtm.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 130));
-        win.draw(vlBtm);
+    // Subtle horizontal wood grain stripes
+    for (float gy = canvasY + 6.0f; gy < canvasY + canvasH - 4.0f; gy += 8.0f) {
+        sf::RectangleShape gr(sf::Vector2f(canvasW - 6.0f, 1.0f));
+        gr.setPosition(canvasX + 3.0f, std::round(gy));
+        gr.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 25));
+        win.draw(gr);
     }
 
-    // Traditional Xiangqi River Calligraphy in the center
+    // Central River zone
+    float riverTop = canvasY + canvasH / 2.0f - 5.0f;
+    float riverBtm = canvasY + canvasH / 2.0f + 5.0f;
+    sf::RectangleShape riverZone(sf::Vector2f(canvasW - 6.0f, riverBtm - riverTop));
+    riverZone.setPosition(canvasX + 3.0f, riverTop);
+    riverZone.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 20));
+    win.draw(riverZone);
+
+    // Horizontal grid rows
+    float rowsY[] = {
+        canvasY + 3.0f,
+        canvasY + (riverTop - canvasY) * 0.5f + 1.5f,
+        riverTop,
+        riverBtm,
+        riverBtm + (canvasY + canvasH - riverBtm) * 0.5f - 1.5f,
+        canvasY + canvasH - 3.0f
+    };
+    for (float ry : rowsY) {
+        sf::RectangleShape hl(sf::Vector2f(canvasW - 6.0f, 1.0f));
+        hl.setPosition(canvasX + 3.0f, std::round(ry));
+        hl.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 170));
+        win.draw(hl);
+    }
+
+    // Vertical column grid lines (9 columns)
+    int numCols = 9;
+    float colSpacing = (canvasW - 14.0f) / static_cast<float>(numCols - 1);
+    for (int c = 0; c < numCols; ++c) {
+        float cx = canvasX + 7.0f + static_cast<float>(c) * colSpacing;
+        if (c == 0 || c == numCols - 1) {
+            sf::RectangleShape vl(sf::Vector2f(1.0f, canvasH - 6.0f));
+            vl.setPosition(cx, canvasY + 3.0f);
+            vl.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 180));
+            win.draw(vl);
+        } else {
+            sf::RectangleShape vlTop(sf::Vector2f(1.0f, riverTop - (canvasY + 3.0f)));
+            vlTop.setPosition(cx, canvasY + 3.0f);
+            vlTop.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 130));
+            win.draw(vlTop);
+
+            sf::RectangleShape vlBtm(sf::Vector2f(1.0f, (canvasY + canvasH - 3.0f) - riverBtm));
+            vlBtm.setPosition(cx, riverBtm);
+            vlBtm.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 130));
+            win.draw(vlBtm);
+        }
+    }
+
+    // Palace diagonal cross in top and bottom territories (columns 3 to 5)
+    float pX1 = canvasX + 7.0f + 3.0f * colSpacing;
+    float pX2 = canvasX + 7.0f + 5.0f * colSpacing;
+    auto drawDiag = [&](sf::Vector2f p1, sf::Vector2f p2) {
+        sf::Vector2f diff = p2 - p1;
+        float len = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+        if (len > 0.001f) {
+            sf::RectangleShape seg(sf::Vector2f(len, 1.0f));
+            seg.setPosition(p1);
+            seg.setRotation(std::atan2(diff.y, diff.x) * 180.0f / 3.14159265f);
+            seg.setFillColor(sf::Color(lineCol.r, lineCol.g, lineCol.b, 110));
+            win.draw(seg);
+        }
+    };
+    drawDiag(sf::Vector2f(pX1, rowsY[0]), sf::Vector2f(pX2, rowsY[2]));
+    drawDiag(sf::Vector2f(pX2, rowsY[0]), sf::Vector2f(pX1, rowsY[2]));
+    drawDiag(sf::Vector2f(pX1, rowsY[3]), sf::Vector2f(pX2, rowsY[5]));
+    drawDiag(sf::Vector2f(pX2, rowsY[3]), sf::Vector2f(pX1, rowsY[5]));
+
+    // River Center Calligraphy: Latin ASCII / Vietnamese UTF-8 — NEVER PRODUCES TOFU BOXES
     sf::Text riverText;
-    riverText.setFont(fVN);
-    riverText.setCharacterSize(14);
+    riverText.setFont(fBold);
+    riverText.setCharacterSize(10);
     riverText.setStyle(sf::Text::Bold);
-    riverText.setString(toUtf8("楚  河              漢  界"));
+    riverText.setString(toUtf8(vi ? "— SỞ HÀ • HÁN GIỚI —" : "— CHU RIVER • HAN BORDER —"));
     riverText.setFillColor(riverCol);
     sf::FloatRect rtb = riverText.getLocalBounds();
     riverText.setOrigin(std::round(rtb.left + rtb.width / 2.0f), std::round(rtb.top + rtb.height / 2.0f));
-    riverText.setPosition(std::round(canvasX + canvasW / 2.0f), std::round(canvasY + canvasH / 2.0f - 1.0f));
+    riverText.setPosition(std::round(canvasX + canvasW / 2.0f), std::round(canvasY + canvasH / 2.0f - 0.5f));
     win.draw(riverText);
+
+    // Two miniature piece discs on board
+    float dotR = 4.5f;
+    sf::CircleShape dotBlack(dotR);
+    dotBlack.setOrigin(dotR, dotR);
+    dotBlack.setPosition(canvasX + 7.0f + 4.0f * colSpacing, rowsY[0]);
+    dotBlack.setFillColor(sf::Color(30, 36, 48));
+    dotBlack.setOutlineThickness(1.0f);
+    dotBlack.setOutlineColor(sf::Color(190, 215, 240));
+    win.draw(dotBlack);
+
+    sf::CircleShape dotRed(dotR);
+    dotRed.setOrigin(dotR, dotR);
+    dotRed.setPosition(canvasX + 7.0f + 4.0f * colSpacing, rowsY[5]);
+    dotRed.setFillColor(sf::Color(175, 25, 20));
+    dotRed.setOutlineThickness(1.0f);
+    dotRed.setOutlineColor(sf::Color(255, 225, 120));
+    win.draw(dotRed);
 }
 
 void GameManager::vePlaySetup() {
@@ -4662,7 +4719,7 @@ void GameManager::vePlaySetup() {
         rTitle.setPosition(208.0f, 388.0f);
         window.draw(rTitle);
 
-        // Left Column: Match Timer (Row 1) & Board Theme (Row 2) (Vertically centered)
+        // Row 1: Match Timer (Left) & Match Rules (Right)
         sf::Text lTimer;
         lTimer.setFont(fBold);
         lTimer.setCharacterSize(15);
@@ -4671,9 +4728,39 @@ void GameManager::vePlaySetup() {
         lTimer.setFillColor(sf::Color(245, 230, 185));
         sf::FloatRect tbTimer = lTimer.getLocalBounds();
         lTimer.setOrigin(0.0f, std::round(tbTimer.top + tbTimer.height / 2.0f));
-        lTimer.setPosition(208.0f, 439.0f);
+        lTimer.setPosition(208.0f, 437.0f);
         window.draw(lTimer);
 
+        sf::Text lRules;
+        lRules.setFont(fBold);
+        lRules.setCharacterSize(15);
+        lRules.setStyle(sf::Text::Bold);
+        lRules.setString(toUtf8(tiengViet ? "Luật thi đấu:" : "Match Rules:"));
+        lRules.setFillColor(sf::Color(245, 230, 185));
+        sf::FloatRect rb = lRules.getLocalBounds();
+        lRules.setOrigin(0.0f, std::round(rb.top + rb.height / 2.0f));
+        lRules.setPosition(612.0f, 437.0f);
+        window.draw(lRules);
+
+        sf::RectangleShape rBadge(sf::Vector2f(200.0f, 34.0f));
+        rBadge.setPosition(744.0f, 420.0f);
+        rBadge.setFillColor(sf::Color(28, 36, 48, 220));
+        rBadge.setOutlineThickness(1.2f);
+        rBadge.setOutlineColor(sf::Color(70, 95, 130));
+        window.draw(rBadge);
+
+        sf::Text rVal;
+        rVal.setFont(fBold);
+        rVal.setCharacterSize(13);
+        rVal.setStyle(sf::Text::Bold);
+        rVal.setString(toUtf8(tiengViet ? "Chuẩn Quốc Tế (9x10)" : "Standard Xiangqi (9x10)"));
+        rVal.setFillColor(sf::Color(255, 230, 150));
+        sf::FloatRect rvb = rVal.getLocalBounds();
+        rVal.setOrigin(std::round(rvb.left + rvb.width / 2.0f), std::round(rvb.top + rvb.height / 2.0f));
+        rVal.setPosition(844.0f, 437.0f);
+        window.draw(rVal);
+
+        // Row 2: Board Theme (Left) & Piece Style (Right)
         sf::Text lBoard;
         lBoard.setFont(fBold);
         lBoard.setCharacterSize(15);
@@ -4682,10 +4769,9 @@ void GameManager::vePlaySetup() {
         lBoard.setFillColor(sf::Color(245, 230, 185));
         sf::FloatRect tbBoard = lBoard.getLocalBounds();
         lBoard.setOrigin(0.0f, std::round(tbBoard.top + tbBoard.height / 2.0f));
-        lBoard.setPosition(208.0f, 485.0f);
+        lBoard.setPosition(208.0f, 483.0f);
         window.draw(lBoard);
 
-        // Right Column: Piece Style (Row 1) & Piece Sample (Row 2)
         sf::Text lStyle;
         lStyle.setFont(fBold);
         lStyle.setCharacterSize(15);
@@ -4694,14 +4780,12 @@ void GameManager::vePlaySetup() {
         lStyle.setFillColor(sf::Color(245, 230, 185));
         sf::FloatRect tbStyle = lStyle.getLocalBounds();
         lStyle.setOrigin(0.0f, std::round(tbStyle.top + tbStyle.height / 2.0f));
-        lStyle.setPosition(612.0f, 439.0f);
+        lStyle.setPosition(612.0f, 483.0f);
         window.draw(lStyle);
 
-        // Piece Style Live Preview box
-        vePieceStylePreview(window, 612.0f, 468.0f, 332.0f, 34.0f);
-
-        // Board Theme Sample Canvas (Replaces the old instruction text box)
-        veBoardThemePreview(window, 204.0f, 516.0f, 792.0f, 58.0f);
+        // Row 3: Symmetrical Previews side-by-side (Board Sample on Left, Piece Sample on Right)
+        veBoardThemePreview(window, 208.0f, 514.0f, 384.0f, 46.0f);
+        vePieceStylePreview(window, 612.0f, 514.0f, 384.0f, 46.0f);
 
     } else if (playSetupMode == 0) {
         // --- 2. PLAYER VS AI SETUP ---
@@ -4814,6 +4898,7 @@ void GameManager::vePlaySetup() {
         rTitle.setPosition(208.0f, 388.0f);
         window.draw(rTitle);
 
+        // Row 1: Match Timer (Left) & Match Rules (Right)
         sf::Text lTimer;
         lTimer.setFont(fBold);
         lTimer.setCharacterSize(15);
@@ -4822,9 +4907,39 @@ void GameManager::vePlaySetup() {
         lTimer.setFillColor(sf::Color(245, 230, 185));
         sf::FloatRect tbTimer = lTimer.getLocalBounds();
         lTimer.setOrigin(0.0f, std::round(tbTimer.top + tbTimer.height / 2.0f));
-        lTimer.setPosition(208.0f, 439.0f);
+        lTimer.setPosition(208.0f, 437.0f);
         window.draw(lTimer);
 
+        sf::Text lRules;
+        lRules.setFont(fBold);
+        lRules.setCharacterSize(15);
+        lRules.setStyle(sf::Text::Bold);
+        lRules.setString(toUtf8(tiengViet ? "Luật thi đấu:" : "Match Rules:"));
+        lRules.setFillColor(sf::Color(245, 230, 185));
+        sf::FloatRect rb = lRules.getLocalBounds();
+        lRules.setOrigin(0.0f, std::round(rb.top + rb.height / 2.0f));
+        lRules.setPosition(612.0f, 437.0f);
+        window.draw(lRules);
+
+        sf::RectangleShape rBadge(sf::Vector2f(200.0f, 34.0f));
+        rBadge.setPosition(744.0f, 420.0f);
+        rBadge.setFillColor(sf::Color(28, 36, 48, 220));
+        rBadge.setOutlineThickness(1.2f);
+        rBadge.setOutlineColor(sf::Color(70, 95, 130));
+        window.draw(rBadge);
+
+        sf::Text rVal;
+        rVal.setFont(fBold);
+        rVal.setCharacterSize(13);
+        rVal.setStyle(sf::Text::Bold);
+        rVal.setString(toUtf8(tiengViet ? "Chuẩn Quốc Tế (9x10)" : "Standard Xiangqi (9x10)"));
+        rVal.setFillColor(sf::Color(255, 230, 150));
+        sf::FloatRect rvb = rVal.getLocalBounds();
+        rVal.setOrigin(std::round(rvb.left + rvb.width / 2.0f), std::round(rvb.top + rvb.height / 2.0f));
+        rVal.setPosition(844.0f, 437.0f);
+        window.draw(rVal);
+
+        // Row 2: Board Theme (Left) & Piece Style (Right)
         sf::Text lBoard;
         lBoard.setFont(fBold);
         lBoard.setCharacterSize(15);
@@ -4833,7 +4948,7 @@ void GameManager::vePlaySetup() {
         lBoard.setFillColor(sf::Color(245, 230, 185));
         sf::FloatRect tbBoard = lBoard.getLocalBounds();
         lBoard.setOrigin(0.0f, std::round(tbBoard.top + tbBoard.height / 2.0f));
-        lBoard.setPosition(208.0f, 485.0f);
+        lBoard.setPosition(208.0f, 483.0f);
         window.draw(lBoard);
 
         sf::Text lStyle;
@@ -4844,13 +4959,12 @@ void GameManager::vePlaySetup() {
         lStyle.setFillColor(sf::Color(245, 230, 185));
         sf::FloatRect tbStyle = lStyle.getLocalBounds();
         lStyle.setOrigin(0.0f, std::round(tbStyle.top + tbStyle.height / 2.0f));
-        lStyle.setPosition(612.0f, 439.0f);
+        lStyle.setPosition(612.0f, 483.0f);
         window.draw(lStyle);
 
-        vePieceStylePreview(window, 612.0f, 468.0f, 332.0f, 34.0f);
-
-        // Board Theme Sample Canvas (Replaces the old instruction text box)
-        veBoardThemePreview(window, 204.0f, 516.0f, 792.0f, 58.0f);
+        // Row 3: Symmetrical Previews side-by-side (Board Sample on Left, Piece Sample on Right)
+        veBoardThemePreview(window, 208.0f, 514.0f, 384.0f, 46.0f);
+        vePieceStylePreview(window, 612.0f, 514.0f, 384.0f, 46.0f);
 
     } else {
         // --- 3. DEMO SIMULATION SETUP ---
