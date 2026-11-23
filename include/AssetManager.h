@@ -114,7 +114,7 @@ public:
     // Texture Access
     const sf::Texture& texture(TextureId id);
     const sf::Texture& getPieceTexture(const std::string& tenQuan, Mau mau);
-    const sf::Texture& getAvatarTexture(int index);
+    const sf::Texture& getAvatarTexture(int index, Mau mau = Mau::DO);
 
     // Font Access
     const sf::Font& font(FontId id);

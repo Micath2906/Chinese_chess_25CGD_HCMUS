@@ -178,18 +178,6 @@ std::string Loc::get(LocKey key) {
             return vi ? "Cánh Đào Hồng (Peach)" : "Peach Blossoms";
         case LocKey::ATMOSPHERE_SPARKS:
             return vi ? "Tàn Lửa Vàng (Sparks)" : "Golden Sparks";
-        case LocKey::PIECE_AURA_LABEL:
-            return vi ? "Hào quang quân cờ: " : "Piece Aura: ";
-        case LocKey::AURA_CLASSIC:
-            return vi ? "Vành Gỗ Cổ Điển" : "Classic Wood Trim";
-        case LocKey::AURA_GOLD:
-            return vi ? "Hoàng Kim Hào Quang" : "Imperial Gold Aura";
-        case LocKey::AURA_FLAME:
-            return vi ? "Xích Long Viêm (Hỏa)" : "Dragon Flame Aura";
-        case LocKey::AURA_THUNDER:
-            return vi ? "Lam Lôi Phong (Ngọc)" : "Thunder Jade Aura";
-        case LocKey::AURA_VOID:
-            return vi ? "Hắc Diệu Ma Thạch" : "Shadow Void Aura";
 
         // Gameplay Settings
         case LocKey::SETTING_LANG:
@@ -332,11 +320,11 @@ std::string Loc::get(LocKey key) {
 std::string Loc::getCharName(int index) {
     bool vi = (currentLang == Language::TIENG_VIET);
     switch (index % 5) {
-        case 0: return vi ? "Tướng Quân" : "General";
-        case 1: return vi ? "Quân Sư" : "Strategist";
-        case 2: return vi ? "Kỳ Vương" : "Grandmaster";
-        case 3: return vi ? "Hiệp Khách" : "Knight";
-        case 4: return vi ? "Thư Sinh" : "Scholar";
+        case 0: return vi ? "Tướng" : "General";
+        case 1: return vi ? "Xe" : "Chariot";
+        case 2: return vi ? "Mã" : "Horse";
+        case 3: return vi ? "Pháo" : "Cannon";
+        case 4: return vi ? "Binh" : "Soldier";
         default: return vi ? "Kỳ Thủ" : "Player";
     }
 }
@@ -344,11 +332,11 @@ std::string Loc::getCharName(int index) {
 std::string Loc::getCharDesc(int index) {
     bool vi = (currentLang == Language::TIENG_VIET);
     switch (index % 5) {
-        case 0: return vi ? "Tiên phong dũng mãnh, phong cách công phá vũ bão" : "Brave vanguard, aggressive offensive style";
-        case 1: return vi ? "Mưu lược sâu xa, tính toán từng nước cờ chặt chẽ" : "Deep tactical thinker, meticulous positional planner";
-        case 2: return vi ? "Kỳ nghệ uyên thâm, công thủ toàn diện kỳ tài" : "Legendary master, perfectly balanced play";
-        case 3: return vi ? "Linh hoạt biến hóa, phản công bất ngờ xuất quỷ nhập thần" : "Agile and flexible, swift counter-attacks";
-        case 4: return vi ? "Phong thái ung dung, cẩn trọng phòng ngự vững như bàn thạch" : "Composed and wise, rock-solid defense";
+        case 0: return vi ? "Chủ soái thống lĩnh toàn quân" : "Supreme Commander";
+        case 1: return vi ? "Uy lực viễn chinh, tung hoành ngang dọc" : "Mighty Chariot, supreme mobility";
+        case 2: return vi ? "Linh hoạt vượt cản, phản công bất ngờ" : "Agile Steed, leaps and bounds";
+        case 3: return vi ? "Pháo hỏa cách sơn, công kích từ xa" : "Artillery Cannon, fires over mounts";
+        case 4: return vi ? "Tiến bước vững vàng, không bao giờ thoái lui" : "Steadfast Soldier, never retreats";
         default: return "";
     }
 }

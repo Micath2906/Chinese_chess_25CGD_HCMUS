@@ -34,13 +34,6 @@ enum class TextureId {
     PIECE_B_PHAO,
     PIECE_B_TOT,
 
-    // Avatars
-    AVATAR_0,
-    AVATAR_1,
-    AVATAR_2,
-    AVATAR_3,
-    AVATAR_4,
-
     // TravelBook UI Sprites
     TB_BAR_01A,
     TB_BUTTON_VALUE_01A,
@@ -146,13 +139,6 @@ constexpr std::array<TextureAssetDef, static_cast<size_t>(TextureId::COUNT)> TEX
     { TextureId::PIECE_B_XE,          "textures/pieces/b_xe.png",                              TextureLoadPolicy::MASK_WHITE_SMOOTH },
     { TextureId::PIECE_B_PHAO,        "textures/pieces/b_phao.png",                            TextureLoadPolicy::MASK_WHITE_SMOOTH },
     { TextureId::PIECE_B_TOT,         "textures/pieces/b_tot.png",                             TextureLoadPolicy::MASK_WHITE_SMOOTH },
-
-    // Avatars
-    { TextureId::AVATAR_0,            "textures/avatars/emoji_cho_ava_03.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_1,            "textures/avatars/emoji_cho_ava_07.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_2,            "textures/avatars/emoji_cho_ava_10.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_3,            "textures/avatars/emoji_cho_ava_18.png",                 TextureLoadPolicy::PIXEL_ART },
-    { TextureId::AVATAR_4,            "textures/avatars/emoji_cho_ava_24.png",                 TextureLoadPolicy::PIXEL_ART },
 
     // TravelBook UI Sprites
     { TextureId::TB_BAR_01A,          "textures/ui/travelbook/UI_TravelBook_Bar01a.png",         TextureLoadPolicy::PIXEL_ART },

@@ -13,6 +13,7 @@
 #include "TextInput.h"
 #include "Slider.h"
 #include "Atmosphere.h"
+#include "TurnOrderRandomizer.h"
 
 enum class TrangThai {
     MENU_CHINH,
@@ -52,14 +53,6 @@ enum class PieceStyle {
     VIETNAMESE,
     SHORT_CODE,
     INTERNATIONAL
-};
-
-enum class PieceAura {
-    CLASSIC_WOOD,
-    IMPERIAL_GOLD,
-    DRAGON_FLAME,
-    THUNDER_CYAN,
-    SHADOW_VOID
 };
 
 struct SaveSlotInfo {
@@ -104,10 +97,6 @@ private:
     // Menus
     Menu menuChinh;
     Menu menuPlaySub;
-    Menu menuPvpSetup;
-    Menu menuPvpSetupP1;
-    Menu menuPvpSetupP2;
-    Menu menuPvaiSetup;
     Menu menuLoad;
     Menu menuSettings;
     Menu menuKeybinding;
@@ -132,11 +121,8 @@ private:
     // Atmosphere system
     AtmosphereSystem atmosphere;
 
-    // Piece aura
-    PieceAura p1Aura;
-    PieceAura p2Aura;
-    PieceAura auraDo;
-    PieceAura auraDen;
+    // Turn order randomization
+    TurnOrderRandomizer turnRandomizer;
 
     // Sliders
     std::unique_ptr<Slider> sliderMaster;
@@ -333,9 +319,7 @@ private:
     sf::Vector2i chuyenDoiToaDoManHinhThanhBanCo(const sf::Vector2i& viTriChuot);
     sf::Vector2f chuyenDoiToaDoBanCoThanhManHinh(int hang, int cot);
     std::string layKyHieuQuanTheoStyle(const std::string& tenGoc, Mau mau) const;
-    std::string layTenPieceAura(PieceAura aura) const;
-    void veAuraQuan(sf::Vector2f pos, float r, PieceAura aura, bool isKing);
-    void veAvatarPortrait(sf::Vector2f center, float radius, int charIndex, Mau mau, PieceAura aura, bool activeGlow = false);
+    void veAvatarPortrait(sf::Vector2f center, float radius, int charIndex, Mau mau, bool activeGlow = false);
     std::string xacDinhLyDoNuocDiSai(std::shared_ptr<QuanCo> quan, int hMoi, int cMoi);
 
     // Random Turn Scene
@@ -366,8 +350,6 @@ private:
     // Screens
     void veMenuChinh();
     void vePlaySubmenu();
-    void vePvpSetup();
-    void vePvaiSetup();
     void veLoadMenu();
     void veSettingsMenu();
     void veKeybindingMenu();

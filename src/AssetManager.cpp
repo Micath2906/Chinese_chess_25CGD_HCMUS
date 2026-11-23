@@ -203,10 +203,25 @@ const sf::Texture& AssetManager::getPieceTexture(const std::string& tenQuan, Mau
     return texture(id);
 }
 
-const sf::Texture& AssetManager::getAvatarTexture(int index) {
+const sf::Texture& AssetManager::getAvatarTexture(int index, Mau mau) {
     int clamped = std::clamp(index, 0, 4);
-    TextureId id = static_cast<TextureId>(static_cast<int>(TextureId::AVATAR_0) + clamped);
-    return texture(id);
+    if (mau == Mau::DO) {
+        switch (clamped) {
+            case 0: return texture(TextureId::PIECE_R_TUONG);
+            case 1: return texture(TextureId::PIECE_R_XE);
+            case 2: return texture(TextureId::PIECE_R_MA);
+            case 3: return texture(TextureId::PIECE_R_PHAO);
+            case 4: default: return texture(TextureId::PIECE_R_TOT);
+        }
+    } else {
+        switch (clamped) {
+            case 0: return texture(TextureId::PIECE_B_TUONG);
+            case 1: return texture(TextureId::PIECE_B_XE);
+            case 2: return texture(TextureId::PIECE_B_MA);
+            case 3: return texture(TextureId::PIECE_B_PHAO);
+            case 4: default: return texture(TextureId::PIECE_B_TOT);
+        }
+    }
 }
 
 bool AssetManager::loadFont(FontId id) {

@@ -111,12 +111,6 @@ enum class LocKey {
     ATMOSPHERE_LEAVES,
     ATMOSPHERE_PETALS,
     ATMOSPHERE_SPARKS,
-    PIECE_AURA_LABEL,
-    AURA_CLASSIC,
-    AURA_GOLD,
-    AURA_FLAME,
-    AURA_THUNDER,
-    AURA_VOID,
 
     // Gameplay Settings
     SETTING_LANG,
