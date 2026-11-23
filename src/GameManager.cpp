@@ -5924,20 +5924,21 @@ void GameManager::vePlaySetup() {
 
         sf::Text txt1;
         txt1.setFont(fBold);
-        txt1.setCharacterSize(11);
+        txt1.setCharacterSize(13);
         txt1.setStyle(sf::Text::Bold);
         txt1.setString(toUtf8(line1));
-        txt1.setFillColor(sf::Color(245, 230, 180));
-        txt1.setPosition(col2X + 32.0f, py);
+        txt1.setFillColor(sf::Color(255, 240, 200));
+        txt1.setPosition(col2X + 34.0f, py - 2.0f);
         window.draw(txt1);
 
         if (!line2.empty()) {
             sf::Text txt2;
             txt2.setFont(fBold);
-            txt2.setCharacterSize(10);
+            txt2.setCharacterSize(12);
+            txt2.setStyle(sf::Text::Bold);
             txt2.setString(toUtf8(line2));
-            txt2.setFillColor(sf::Color(190, 175, 140));
-            txt2.setPosition(col2X + 32.0f, py + 15.0f);
+            txt2.setFillColor(sf::Color(215, 195, 155));
+            txt2.setPosition(col2X + 34.0f, py + 16.0f);
             window.draw(txt2);
         }
     };
@@ -6076,11 +6077,12 @@ void GameManager::veLoadMenu() {
 
             // Date / Time Info
             sf::Text detDate;
-            detDate.setFont(font);
-            detDate.setCharacterSize(13);
+            detDate.setFont(fontBold);
+            detDate.setCharacterSize(14);
+            detDate.setStyle(sf::Text::Bold);
             detDate.setString(toUtf8((tiengViet ? "Thời gian: " : "Saved on: ") + info.thoiGian));
-            detDate.setFillColor(isSel ? sf::Color(80, 45, 25) : sf::Color(210, 185, 140));
-            detDate.setPosition(535.0f, sy + 21.0f);
+            detDate.setFillColor(isSel ? sf::Color(80, 45, 25) : sf::Color(220, 195, 150));
+            detDate.setPosition(535.0f, sy + 20.0f);
             window.draw(detDate);
 
             // Player Matchup Details
@@ -6118,11 +6120,12 @@ void GameManager::veLoadMenu() {
 
             // Move count
             sf::Text detStats;
-            detStats.setFont(font);
+            detStats.setFont(fontBold);
             detStats.setCharacterSize(14);
+            detStats.setStyle(sf::Text::Bold);
             std::string statsStr = (tiengViet ? "Đã đi: " : "Total Moves: ") + std::to_string(info.soNuoc) + (tiengViet ? " nước" : " moves");
             detStats.setString(toUtf8(statsStr));
-            detStats.setFillColor(isSel ? sf::Color(90, 55, 30) : sf::Color(225, 200, 155));
+            detStats.setFillColor(isSel ? sf::Color(90, 55, 30) : sf::Color(235, 210, 165));
             detStats.setPosition(180.0f, sy + 92.0f);
             window.draw(detStats);
 
@@ -6150,7 +6153,7 @@ void GameManager::veLoadMenu() {
             window.draw(turnTxt);
         } else {
             sf::Text emp;
-            emp.setFont(font);
+            emp.setFont(fontBold);
             emp.setCharacterSize(16);
             emp.setStyle(sf::Text::Bold);
             emp.setString(toUtf8(tiengViet ? "Ô Nhớ Trống  (Chưa có dữ liệu ván đấu)" : "Empty Save Slot  (No saved game data)"));
@@ -6518,7 +6521,7 @@ void GameManager::veSettingsMenu() {
             window.draw(gpGuideDiv);
 
             sf::Text gpGuideContent;
-            gpGuideContent.setFont(f);
+            gpGuideContent.setFont(fBold);
             gpGuideContent.setString(toUtf8(tiengViet
                 ? "• Hiển thị: Bật/tắt chế độ toàn màn hình hoặc cửa sổ, hiển thị hệ tọa độ 1-9 & A-J.\n"
                   "• Trợ giúp nước đi: Bật/tắt gợi ý nước đi hợp lệ, vòng sáng nước đi cuối và cảnh báo Chiếu.\n"
@@ -6526,9 +6529,10 @@ void GameManager::veSettingsMenu() {
                 : "• Display: Switch between Fullscreen and Windowed mode, toggle coordinates.\n"
                   "• Assists: Toggle valid move dots, last move highlight, and king check alarms.\n"
                   "• AI Pacing: Switch between natural deliberate timing and instant responses."));
-            gpGuideContent.setCharacterSize(12);
-            gpGuideContent.setLineSpacing(1.24f);
-            gpGuideContent.setFillColor(sf::Color(220, 205, 175));
+            gpGuideContent.setCharacterSize(13);
+            gpGuideContent.setStyle(sf::Text::Bold);
+            gpGuideContent.setLineSpacing(1.28f);
+            gpGuideContent.setFillColor(sf::Color(235, 220, 190));
             gpGuideContent.setPosition(gpGuideX + 16.0f, gpGuideY + 40.0f);
             window.draw(gpGuideContent);
 
@@ -6573,25 +6577,27 @@ void GameManager::veSettingsMenu() {
                 sf::Text st;
                 st.setFont(fBold);
                 st.setString(toUtf8(sub));
-                st.setCharacterSize(12);
-                st.setFillColor(sf::Color(225, 185, 105));
+                st.setCharacterSize(13);
+                st.setStyle(sf::Text::Bold);
+                st.setFillColor(sf::Color(235, 195, 115));
                 sf::FloatRect stb = st.getLocalBounds();
                 st.setOrigin(std::round(stb.left + stb.width / 2.0f), std::round(stb.top + stb.height / 2.0f));
-                st.setPosition(cx + cardW / 2.0f, cardY + 60.0f);
+                st.setPosition(cx + cardW / 2.0f, cardY + 58.0f);
                 window.draw(st);
 
                 sf::RectangleShape div(sf::Vector2f(cardW - 40.0f, 1.0f));
-                div.setPosition(cx + 20.0f, cardY + 78.0f);
+                div.setPosition(cx + 20.0f, cardY + 76.0f);
                 div.setFillColor(sf::Color(165, 125, 60, 160));
                 window.draw(div);
 
                 sf::Text d;
-                d.setFont(f);
+                d.setFont(fBold);
                 d.setString(toUtf8(desc1 + "\n" + desc2 + "\n" + desc3));
-                d.setCharacterSize(12);
-                d.setLineSpacing(1.34f);
-                d.setFillColor(sf::Color(220, 205, 175));
-                d.setPosition(cx + 18.0f, cardY + 96.0f);
+                d.setCharacterSize(14);
+                d.setStyle(sf::Text::Bold);
+                d.setLineSpacing(1.38f);
+                d.setFillColor(sf::Color(245, 235, 205));
+                d.setPosition(cx + 18.0f, cardY + 92.0f);
                 window.draw(d);
 
                 // Imperial Seal Status Badge
@@ -6605,7 +6611,7 @@ void GameManager::veSettingsMenu() {
                 sf::Text statText;
                 statText.setFont(fBold);
                 statText.setString(toUtf8(status));
-                statText.setCharacterSize(13);
+                statText.setCharacterSize(14);
                 statText.setStyle(sf::Text::Bold);
                 statText.setFillColor(isCurrent ? sf::Color(255, 245, 200) : sf::Color(225, 205, 165));
                 sf::FloatRect bgb = statText.getLocalBounds();
@@ -6631,12 +6637,13 @@ void GameManager::veSettingsMenu() {
                 sf::Color(22, 42, 65, 230));
 
             sf::Text langHint;
-            langHint.setFont(f);
+            langHint.setFont(fBold);
             langHint.setString(toUtf8(tiengViet
                 ? "Nhấp vào thẻ ngôn ngữ tương ứng để thay đổi giao diện tức thì."
                 : "Click either card to switch the interface language immediately."));
-            langHint.setCharacterSize(13);
-            langHint.setFillColor(sf::Color(230, 205, 145));
+            langHint.setCharacterSize(14);
+            langHint.setStyle(sf::Text::Bold);
+            langHint.setFillColor(sf::Color(255, 230, 160));
             sf::FloatRect lhb = langHint.getLocalBounds();
             langHint.setOrigin(std::round(lhb.left + lhb.width / 2.0f), std::round(lhb.top + lhb.height / 2.0f));
             langHint.setPosition(rightPanelX + rightW / 2.0f, cardY + cardH + 28.0f);
@@ -6713,15 +6720,16 @@ void GameManager::veSettingsMenu() {
                 window.draw(ctrlGuideDiv);
 
                 sf::Text ctrlGuideContent;
-                ctrlGuideContent.setFont(f);
+                ctrlGuideContent.setFont(fBold);
                 ctrlGuideContent.setString(toUtf8(tiengViet
                     ? "• Chuột: Nhấp chuột trái để chọn quân cờ và điểm đến. Nhấp chuột phải để hủy chọn.\n"
                       "• Phím tắt nhanh: U (Đi lại / Undo)  •  ESC (Hủy chọn / Bảng tạm dừng)  •  Q (Thoát nhanh)."
                     : "• Mouse: Left click to select piece and target square. Right click to deselect.\n"
                       "• Quick Hotkeys: U (Undo last move)  •  ESC (Deselect / Pause menu)  •  Q (Quick Quit)."));
-                ctrlGuideContent.setCharacterSize(12);
-                ctrlGuideContent.setLineSpacing(1.24f);
-                ctrlGuideContent.setFillColor(sf::Color(220, 205, 175));
+                ctrlGuideContent.setCharacterSize(13);
+                ctrlGuideContent.setStyle(sf::Text::Bold);
+                ctrlGuideContent.setLineSpacing(1.28f);
+                ctrlGuideContent.setFillColor(sf::Color(235, 220, 190));
                 ctrlGuideContent.setPosition(ctrlGuideX + 16.0f, ctrlGuideY + 38.0f);
                 window.draw(ctrlGuideContent);
             }
