@@ -1851,12 +1851,12 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
             if (key == sf::Keyboard::W || key == sf::Keyboard::Up) {
                 soundManager.play(SoundType::CLICK);
-                titleMenuIndex = (titleMenuIndex + 4) % 5;
+                titleMenuIndex = (titleMenuIndex + 3) % 4;
                 return;
             }
             if (key == sf::Keyboard::S || key == sf::Keyboard::Down) {
                 soundManager.play(SoundType::CLICK);
-                titleMenuIndex = (titleMenuIndex + 1) % 5;
+                titleMenuIndex = (titleMenuIndex + 1) % 4;
                 return;
             }
             if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
@@ -1880,9 +1880,6 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
                     playSetupMode = 2;
                     khoiTaoPlaySetupButtons();
                     trangThai = TrangThai::PVP_SETUP;
-                } else if (titleMenuIndex == 3) {
-                    trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
-                    trangThai = TrangThai::SETTINGS_MENU;
                 } else {
                     titleSubMenu = TitleSubMenu::PLAY_LOAD;
                     titleMenuIndex = 0;
@@ -6609,16 +6606,14 @@ void GameManager::capNhatHoverTitleScreen(const sf::Vector2i& viTri) {
         else if (titleBtnLoadHovered) titleMenuIndex = 1;
         else if (titleBtnBackHovered) titleMenuIndex = 2;
     } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
-        titleBtnPvpHovered          = titleBtnPvpRect.contains(mx, my);
-        titleBtnPvaiHovered         = titleBtnPvaiRect.contains(mx, my);
-        titleBtnDemoHovered         = titleBtnDemoRect.contains(mx, my);
-        titleBtnSettingsMenuHovered = titleBtnSettingsMenuRect.contains(mx, my);
-        titleBtnModeBackHovered     = titleBtnModeBackRect.contains(mx, my);
+        titleBtnPvpHovered      = titleBtnPvpRect.contains(mx, my);
+        titleBtnPvaiHovered     = titleBtnPvaiRect.contains(mx, my);
+        titleBtnDemoHovered     = titleBtnDemoRect.contains(mx, my);
+        titleBtnModeBackHovered = titleBtnModeBackRect.contains(mx, my);
         if (titleBtnPvpHovered) titleMenuIndex = 0;
         else if (titleBtnPvaiHovered) titleMenuIndex = 1;
         else if (titleBtnDemoHovered) titleMenuIndex = 2;
-        else if (titleBtnSettingsMenuHovered) titleMenuIndex = 3;
-        else if (titleBtnModeBackHovered) titleMenuIndex = 4;
+        else if (titleBtnModeBackHovered) titleMenuIndex = 3;
     }
 }
 
@@ -6706,12 +6701,6 @@ void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
             playSetupMode = 2;
             khoiTaoPlaySetupButtons();
             trangThai = TrangThai::PVP_SETUP;
-            return;
-        }
-        if (titleBtnSettingsMenuRect.contains(x, y)) {
-            soundManager.play(SoundType::CLICK);
-            trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
-            trangThai = TrangThai::SETTINGS_MENU;
             return;
         }
         if (titleBtnModeBackRect.contains(x, y)) {
@@ -6859,25 +6848,21 @@ void GameManager::veTitleScreen() {
                         titleBtnBackHovered || titleMenuIndex == 2,
                         titleBtnBackRect);
     } else if (titleSubMenu == TitleSubMenu::MODE_SELECT) {
-        drawTitleButton(sf::Vector2f(600.0f, 235.0f), 1.04f,
+        drawTitleButton(sf::Vector2f(600.0f, 258.0f), 1.10f,
                         isVi ? "Đấu 2 Người (PvP)" : "Two Players (PvP)",
                         titleBtnPvpHovered || titleMenuIndex == 0,
                         titleBtnPvpRect);
-        drawTitleButton(sf::Vector2f(600.0f, 298.0f), 1.04f,
+        drawTitleButton(sf::Vector2f(600.0f, 328.0f), 1.10f,
                         isVi ? "Đấu Với Máy (AI)" : "Play vs AI",
                         titleBtnPvaiHovered || titleMenuIndex == 1,
                         titleBtnPvaiRect);
-        drawTitleButton(sf::Vector2f(600.0f, 361.0f), 1.04f,
+        drawTitleButton(sf::Vector2f(600.0f, 398.0f), 1.10f,
                         isVi ? "Xem Máy Đấu (Demo)" : "Watch AI Demo",
                         titleBtnDemoHovered || titleMenuIndex == 2,
                         titleBtnDemoRect);
-        drawTitleButton(sf::Vector2f(600.0f, 424.0f), 1.04f,
-                        isVi ? "Cài Đặt Chuyên Sâu" : "Settings",
-                        titleBtnSettingsMenuHovered || titleMenuIndex == 3,
-                        titleBtnSettingsMenuRect);
-        drawTitleButton(sf::Vector2f(600.0f, 487.0f), 0.98f,
+        drawTitleButton(sf::Vector2f(600.0f, 466.0f), 1.04f,
                         isVi ? "Quay lại" : "Back",
-                        titleBtnModeBackHovered || titleMenuIndex == 4,
+                        titleBtnModeBackHovered || titleMenuIndex == 3,
                         titleBtnModeBackRect);
     }
 

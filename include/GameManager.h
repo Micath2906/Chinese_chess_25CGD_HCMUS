@@ -270,16 +270,14 @@ private:
     sf::FloatRect titleBtnLoadRect;
     sf::FloatRect titleBtnBackRect;
 
-    // Submenu 2: Modes & Settings
+    // Submenu 2: Game Modes
     bool titleBtnPvpHovered = false;
     bool titleBtnPvaiHovered = false;
     bool titleBtnDemoHovered = false;
-    bool titleBtnSettingsMenuHovered = false;
     bool titleBtnModeBackHovered = false;
     sf::FloatRect titleBtnPvpRect;
     sf::FloatRect titleBtnPvaiRect;
     sf::FloatRect titleBtnDemoRect;
-    sf::FloatRect titleBtnSettingsMenuRect;
     sf::FloatRect titleBtnModeBackRect;
 
 public:
