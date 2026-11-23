@@ -184,11 +184,11 @@ void GameManager::khoiTaoTatCaMenu() {
 
     // Menu buttons (standard proportional ~ 220px x 48px)
     bool isVi = (Loc::getLanguage() == Language::TIENG_VIET);
-    menuChinh.themButton(0, 0, 240.0f, 44.0f, isVi ? "CHƠI MỚI" : "PLAY", [this]() {
+    menuChinh.themButton(0, 0, 240.0f, 44.0f, isVi ? "CHƠI" : "PLAY", [this]() {
         soundManager.play(SoundType::CLICK);
         menuChinh.setSection(MenuSection::PLAY);
     });
-    menuChinh.themButton(0, 0, 240.0f, 44.0f, isVi ? "TIẾP TỤC" : "LOAD", [this]() {
+    menuChinh.themButton(0, 0, 240.0f, 44.0f, isVi ? "TẢI VÁN ĐẤU" : "LOAD GAME", [this]() {
         soundManager.play(SoundType::CLICK);
         capNhatThongTinSlots();
         menuChinh.setSection(MenuSection::LOAD);
@@ -197,7 +197,7 @@ void GameManager::khoiTaoTatCaMenu() {
         soundManager.play(SoundType::CLICK);
         menuChinh.setSection(MenuSection::SETTINGS);
     });
-    menuChinh.themButton(0, 0, 240.0f, 44.0f, isVi ? "THÔNG TIN" : "INFORMATION", [this]() {
+    menuChinh.themButton(0, 0, 240.0f, 44.0f, isVi ? "THÔNG TIN" : "INFO & RULES", [this]() {
         soundManager.play(SoundType::CLICK);
         menuChinh.setSection(MenuSection::INFO);
     });
@@ -235,6 +235,10 @@ void GameManager::khoiTaoTatCaMenu() {
         playSetupMode = 2;
         khoiTaoPlaySetupButtons();
         trangThai = TrangThai::PVP_SETUP;
+    };
+    menuChinh.onOpenSettings = [this]() {
+        soundManager.play(SoundType::CLICK);
+        menuChinh.setSection(MenuSection::SETTINGS);
     };
 
     menuChinh.onSelectSlot = [this](int slot) {
@@ -522,10 +526,10 @@ void GameManager::khoiTaoTatCaMenu() {
 void GameManager::capNhatNhanNut() {
     // 1. Menu Chinh (5 mục)
     bool isVi = (Loc::getLanguage() == Language::TIENG_VIET);
-    if (auto b = menuChinh.layButton(0)) b->setLabel(isVi ? "CHƠI MỚI" : "PLAY");
-    if (auto b = menuChinh.layButton(1)) b->setLabel(isVi ? "TIẾP TỤC" : "LOAD");
+    if (auto b = menuChinh.layButton(0)) b->setLabel(isVi ? "CHƠI" : "PLAY");
+    if (auto b = menuChinh.layButton(1)) b->setLabel(isVi ? "TẢI VÁN ĐẤU" : "LOAD GAME");
     if (auto b = menuChinh.layButton(2)) b->setLabel(Loc::get(LocKey::MENU_SETTINGS));
-    if (auto b = menuChinh.layButton(3)) b->setLabel(isVi ? "THÔNG TIN" : "INFORMATION");
+    if (auto b = menuChinh.layButton(3)) b->setLabel(isVi ? "THÔNG TIN" : "INFO & RULES");
     if (auto b = menuChinh.layButton(4)) b->setLabel(Loc::get(LocKey::MENU_EXIT));
     menuChinh.capNhatNutTrangPhai();
 
@@ -1790,11 +1794,12 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
             return;
         }
         if (key == sf::Keyboard::M) {
-            soundManager.setAmThanhBat(!soundManager.getAmThanhBat());
+            soundManager.setBgmBat(!soundManager.getBgmBat());
             soundManager.play(SoundType::CLICK);
+            luuCaiDat();
             bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
-            hienToast(soundManager.getAmThanhBat() ? (vi ? "Âm thanh: BẬT" : "Audio: ON") 
-                                                  : (vi ? "Âm thanh: TẮT" : "Audio: MUTE"));
+            hienToast(soundManager.getBgmBat() ? (vi ? "Nhạc nền: BẬT" : "BGM: ON") 
+                                               : (vi ? "Nhạc nền: TẮT" : "BGM: OFF"));
             return;
         }
         if (key == sf::Keyboard::I) {
@@ -1831,6 +1836,16 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         if (key == sf::Keyboard::D || key == sf::Keyboard::Right) {
             menuChinh.navigateRight();
             soundManager.play(SoundType::CLICK);
+            return;
+        }
+        if (key == sf::Keyboard::M) {
+            soundManager.setBgmBat(!soundManager.getBgmBat());
+            soundManager.play(SoundType::CLICK);
+            luuCaiDat();
+            bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
+            hienToast(soundManager.getBgmBat() ? (vi ? "Nhạc nền: BẬT" : "BGM: ON") 
+                                               : (vi ? "Nhạc nền: TẮT" : "BGM: OFF"));
+            menuChinh.capNhatNutTrangPhai();
             return;
         }
         if (key == sf::Keyboard::Escape) {
@@ -6519,11 +6534,12 @@ void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
     }
 
     if (titleSoundRect.contains(x, y)) {
-        soundManager.setAmThanhBat(!soundManager.getAmThanhBat());
+        soundManager.setBgmBat(!soundManager.getBgmBat());
         soundManager.play(SoundType::CLICK);
+        luuCaiDat();
         bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
-        hienToast(soundManager.getAmThanhBat() ? (vi ? "Âm thanh: BẬT" : "Audio: ON") 
-                                              : (vi ? "Âm thanh: TẮT" : "Audio: MUTE"));
+        hienToast(soundManager.getBgmBat() ? (vi ? "Nhạc nền: BẬT" : "BGM: ON") 
+                                           : (vi ? "Nhạc nền: TẮT" : "BGM: OFF"));
         return;
     }
 
@@ -6681,12 +6697,12 @@ void GameManager::veTitleScreen() {
         window.draw(gearSp);
     }
 
-    // Button 2: Sound (Bottom-Left: 116, 735)
+    // Button 2: Sound (Bottom-Left: 116, 735) - Quick BGM Toggle
     drawCircularButton(sf::Vector2f(116.0f, 735.0f), 24.0f, titleBtnSoundHovered, titleSoundRect);
-    bool soundOn = soundManager.getAmThanhBat();
+    bool bgmOn = soundManager.getBgmBat();
     {
         sf::Color iconCol = titleBtnSoundHovered ? sf::Color(255, 235, 140) : sf::Color(245, 235, 215);
-        if (!soundOn) iconCol = sf::Color(180, 160, 150, 180);
+        if (!bgmOn) iconCol = sf::Color(180, 160, 150, 180);
 
         // Speaker box (body)
         sf::RectangleShape spkBox(sf::Vector2f(6.0f, 10.0f));
@@ -6704,7 +6720,7 @@ void GameManager::veTitleScreen() {
         spkCone.setFillColor(iconCol);
         window.draw(spkCone);
 
-        if (soundOn) {
+        if (bgmOn) {
             // Sound wave 1
             sf::RectangleShape w1a(sf::Vector2f(2.0f, 6.0f));
             w1a.setPosition(125.0f, 729.0f);
@@ -6754,6 +6770,73 @@ void GameManager::veTitleScreen() {
         infoText.setOrigin(std::round(ib.left + ib.width / 2.0f), std::round(ib.top + ib.height / 2.0f));
         infoText.setPosition(1148.0f, 734.0f);
         window.draw(infoText);
+    }
+
+    // Tooltips on hover for Corner Buttons
+    if (titleBtnSettingsHovered) {
+        std::string tipStr = isVi ? "Cài đặt [S]" : "Settings [S]";
+        sf::Text tipTxt;
+        tipTxt.setFont(isVi ? fontVnBold : fontEnBold);
+        tipTxt.setString(toUtf8(tipStr));
+        tipTxt.setCharacterSize(13);
+        tipTxt.setFillColor(sf::Color(255, 235, 140));
+        sf::FloatRect tb = tipTxt.getLocalBounds();
+        tipTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+        tipTxt.setPosition(52.0f, 692.0f);
+
+        sf::RectangleShape tipBg(sf::Vector2f(tb.width + 16.0f, 24.0f));
+        tipBg.setOrigin(std::round((tb.width + 16.0f) / 2.0f), 12.0f);
+        tipBg.setPosition(52.0f, 692.0f);
+        tipBg.setFillColor(sf::Color(22, 15, 10, 235));
+        tipBg.setOutlineThickness(1.0f);
+        tipBg.setOutlineColor(sf::Color(210, 170, 75));
+
+        window.draw(tipBg);
+        window.draw(tipTxt);
+    }
+
+    if (titleBtnSoundHovered) {
+        std::string tipStr = isVi ? "Nhạc nền [M]" : "Music BGM [M]";
+        sf::Text tipTxt;
+        tipTxt.setFont(isVi ? fontVnBold : fontEnBold);
+        tipTxt.setString(toUtf8(tipStr));
+        tipTxt.setCharacterSize(13);
+        tipTxt.setFillColor(sf::Color(255, 235, 140));
+        sf::FloatRect tb = tipTxt.getLocalBounds();
+        tipTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+        tipTxt.setPosition(116.0f, 692.0f);
+
+        sf::RectangleShape tipBg(sf::Vector2f(tb.width + 16.0f, 24.0f));
+        tipBg.setOrigin(std::round((tb.width + 16.0f) / 2.0f), 12.0f);
+        tipBg.setPosition(116.0f, 692.0f);
+        tipBg.setFillColor(sf::Color(22, 15, 10, 235));
+        tipBg.setOutlineThickness(1.0f);
+        tipBg.setOutlineColor(sf::Color(210, 170, 75));
+
+        window.draw(tipBg);
+        window.draw(tipTxt);
+    }
+
+    if (titleBtnInfoHovered) {
+        std::string tipStr = isVi ? "Thông tin [I]" : "Info [I]";
+        sf::Text tipTxt;
+        tipTxt.setFont(isVi ? fontVnBold : fontEnBold);
+        tipTxt.setString(toUtf8(tipStr));
+        tipTxt.setCharacterSize(13);
+        tipTxt.setFillColor(sf::Color(255, 235, 140));
+        sf::FloatRect tb = tipTxt.getLocalBounds();
+        tipTxt.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+        tipTxt.setPosition(1148.0f, 692.0f);
+
+        sf::RectangleShape tipBg(sf::Vector2f(tb.width + 16.0f, 24.0f));
+        tipBg.setOrigin(std::round((tb.width + 16.0f) / 2.0f), 12.0f);
+        tipBg.setPosition(1148.0f, 692.0f);
+        tipBg.setFillColor(sf::Color(22, 15, 10, 235));
+        tipBg.setOutlineThickness(1.0f);
+        tipBg.setOutlineColor(sf::Color(210, 170, 75));
+
+        window.draw(tipBg);
+        window.draw(tipTxt);
     }
 }
 

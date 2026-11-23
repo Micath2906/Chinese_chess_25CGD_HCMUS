@@ -187,6 +187,7 @@ public:
     std::function<void()> onPlayPvp;
     std::function<void()> onPlayPvai;
     std::function<void()> onPlayDemo;
+    std::function<void()> onOpenSettings;
 
     std::function<void(int slot)> onSelectSlot;
     std::function<void(int slot)> onLoadSlot;

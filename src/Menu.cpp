@@ -413,6 +413,8 @@ void Menu::triggerOpenAnimation(MenuSection targetSection) {
     isBookClosing = false;
     isBookClosed = false;
     animClock.restart();
+    currentFocus = MenuFocus::MAIN_MENU;
+    rightPageIndex = 0;
     capNhatNutTrangPhai();
 }
 
@@ -574,30 +576,38 @@ void Menu::capNhatNutTrangPhai() {
     if (activeSection == MenuSection::PLAY) {
         const float playX = 657.0f;
         const float playW = 296.0f;
-        const float playH = 48.0f;
-        const float playY = 256.0f;
-        const float stepY = 62.0f;
+        const float playH = 42.0f;
+        const float playY = 246.0f;
+        const float stepY = 49.0f;
 
         rightPageButtons.emplace_back(playX, playY, playW, playH,
             tiengViet ? "Đấu 2 Người (PvP)" : "Two Players (PvP)", f, [this]() {
             if (onPlayPvp) onPlayPvp();
         });
         rightPageButtons.back().setIcon(&assets.iconPlay);
-        rightPageButtons.back().setCharacterSize(16);
+        rightPageButtons.back().setCharacterSize(15);
 
         rightPageButtons.emplace_back(playX, playY + stepY, playW, playH,
             tiengViet ? "Đấu Với Máy (PvAI)" : "Player vs AI", f, [this]() {
             if (onPlayPvai) onPlayPvai();
         });
         rightPageButtons.back().setIcon(&assets.iconLoad);
-        rightPageButtons.back().setCharacterSize(16);
+        rightPageButtons.back().setCharacterSize(15);
 
         rightPageButtons.emplace_back(playX, playY + stepY * 2.0f, playW, playH,
             tiengViet ? "Xem Máy Đấu (Demo)" : "Demo Match", f, [this]() {
             if (onPlayDemo) onPlayDemo();
         });
         rightPageButtons.back().setIcon(&assets.iconInfo);
-        rightPageButtons.back().setCharacterSize(16);
+        rightPageButtons.back().setCharacterSize(15);
+
+        rightPageButtons.emplace_back(playX, playY + stepY * 3.0f, playW, playH,
+            tiengViet ? "Cài Đặt (Settings)" : "Settings", f, [this]() {
+            if (onOpenSettings) onOpenSettings();
+            else setSection(MenuSection::SETTINGS);
+        });
+        rightPageButtons.back().setIcon(&assets.iconSettings);
+        rightPageButtons.back().setCharacterSize(15);
     }
     // Load section
     else if (activeSection == MenuSection::LOAD) {
@@ -1065,11 +1075,11 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     const float btnSpacing = 62.0f;
 
     const std::vector<std::string> mainBtnLabels = {
-        tiengViet ? "CHƠI MỚI" : "Play",
-        tiengViet ? "TIẾP TỤC" : "Load Game",
-        tiengViet ? "CÀI ĐẶT" : "Settings",
-        tiengViet ? "THÔNG TIN" : "Rules & Info",
-        tiengViet ? "THOÁT" : "Exit"
+        tiengViet ? "CHƠI" : "PLAY",
+        tiengViet ? "TẢI VÁN ĐẤU" : "LOAD GAME",
+        tiengViet ? "CÀI ĐẶT" : "SETTINGS",
+        tiengViet ? "THÔNG TIN" : "INFO & RULES",
+        tiengViet ? "THOÁT" : "EXIT"
     };
 
     auto drawEbonyOrFallback = [&](sf::FloatRect rect, OrientalPanelStyle style) {
@@ -1250,7 +1260,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
         }
 
         if (hoverBack) {
-            sf::RectangleShape tipBg(sf::Vector2f(116.0f, 26.0f));
+            sf::RectangleShape tipBg(sf::Vector2f(130.0f, 26.0f));
             tipBg.setPosition(220.0f, 126.0f);
             tipBg.setFillColor(sf::Color(22, 15, 10, 235));
             tipBg.setOutlineThickness(1.0f);
@@ -1259,12 +1269,12 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
 
             sf::Text tipTxt;
             tipTxt.setFont(fBold);
-            tipTxt.setString(toUtf8(tiengViet ? "Thu gọn [ESC]" : "Collapse [ESC]"));
+            tipTxt.setString(toUtf8(tiengViet ? "Quay lại [ESC]" : "Back [ESC]"));
             tipTxt.setCharacterSize(13);
             tipTxt.setFillColor(sf::Color(255, 228, 125));
             sf::FloatRect ttb = tipTxt.getLocalBounds();
             tipTxt.setOrigin(std::round(ttb.left + ttb.width / 2.0f), std::round(ttb.top + ttb.height / 2.0f));
-            tipTxt.setPosition(278.0f, 139.0f);
+            tipTxt.setPosition(285.0f, 139.0f);
             window.draw(tipTxt);
         }
 
@@ -1309,11 +1319,11 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 btn.draw(window);
             }
 
-            // Mode preview card below the 3 cards (eliminates dead space)
-            drawEbonyOrFallback(sf::FloatRect(645.0f, 444.0f, 320.0f, 220.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+            // Mode preview card below the 4 buttons (eliminates dead space)
+            drawEbonyOrFallback(sf::FloatRect(645.0f, 446.0f, 320.0f, 218.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
 
             int previewMode = 0;
-            for (size_t i = 0; i < rightPageButtons.size() && i < 3; ++i) {
+            for (size_t i = 0; i < rightPageButtons.size() && i < 4; ++i) {
                 if (rightPageButtons[i].isHovered() || (keyboardNavActive && currentFocus == MenuFocus::SUB_MENU && static_cast<int>(i) == rightPageIndex)) {
                     previewMode = static_cast<int>(i);
                     break;
@@ -1331,14 +1341,19 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
                 mDesc = tiengViet
                     ? "Thi đấu cùng AI Minimax.\nTùy chọn phe Đỏ/Đen, cấp độ\nvà thời gian suy nghĩ."
                     : "Battle our Minimax engine.\nChoose your side, timer\nand AI difficulty level.";
-            } else {
+            } else if (previewMode == 2) {
                 mHead = tiengViet ? "MÁY ĐẤU DEMO" : "DEMO MATCH";
                 mDesc = tiengViet
                     ? "Xem hai kỳ thủ AI tự động\nđối đầu và phân tích các\nthế trận kinh điển."
                     : "Watch two AI engines play\nautonomously in real time.\nStudy classic endgames.";
+            } else {
+                mHead = tiengViet ? "CÀI ĐẶT HỆ THỐNG" : "GAME SETTINGS";
+                mDesc = tiengViet
+                    ? "Tùy chỉnh âm lượng BGM/SFX,\ngiao diện bàn cờ, quân cờ,\nngôn ngữ và phím điều khiển."
+                    : "Configure sound & BGM volume,\nboard theme, piece styles,\nlanguages and keybindings.";
             }
 
-            drawParchmentHeader(mHead, rightCenterX, 474.0f, 22, true);
+            drawParchmentHeader(mHead, rightCenterX, 474.0f, 20, true);
 
             sf::RectangleShape pLine(sf::Vector2f(270.0f, 2.0f));
             pLine.setPosition(rightCenterX - 135.0f, 498.0f);
@@ -1348,13 +1363,13 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
             sf::Text mdTxt;
             mdTxt.setFont(fBold);
             mdTxt.setString(toUtf8(mDesc));
-            mdTxt.setCharacterSize(16);
+            mdTxt.setCharacterSize(15);
             mdTxt.setStyle(sf::Text::Bold);
             mdTxt.setFillColor(sf::Color(35, 18, 10));
-            mdTxt.setLineSpacing(1.25f);
+            mdTxt.setLineSpacing(1.2f);
             sf::FloatRect mdb = mdTxt.getLocalBounds();
             mdTxt.setOrigin(std::round(mdb.left + mdb.width / 2.0f), std::round(mdb.top + mdb.height / 2.0f));
-            mdTxt.setPosition(rightCenterX, 566.0f);
+            mdTxt.setPosition(rightCenterX, 564.0f);
             window.draw(mdTxt);
         }
         else if (activeSection == MenuSection::LOAD) {
@@ -1802,7 +1817,7 @@ void Menu::draw(sf::RenderWindow& window, bool tiengViet) {
     footerTxt.setFont(fBold);
     std::string footerPrompt = (isBookClosed || bookProgress < 0.7f)
         ? (tiengViet ? "[W/S] Di chuyển   |   [Enter] Chọn   |   [ESC] Quay lại" : "[W/S] Navigate   |   [Enter] Select   |   [ESC] Back")
-        : (tiengViet ? "[W/S] Lên/Xuống   |   [A/D] Đổi bảng   |   [Enter] Chọn   |   [ESC] Thu gọn" : "[W/S] Navigate   |   [A/D] Switch Panel   |   [Enter] Select   |   [ESC] Back");
+        : (tiengViet ? "[W/S] Lên/Xuống   |   [A/D] Đổi bảng   |   [Enter] Chọn   |   [ESC] Quay lại" : "[W/S] Navigate   |   [A/D] Switch Panel   |   [Enter] Select   |   [ESC] Back");
     footerTxt.setString(toUtf8(footerPrompt));
     footerTxt.setCharacterSize(14);
     footerTxt.setStyle(sf::Text::Bold);
