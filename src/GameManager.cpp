@@ -6799,6 +6799,17 @@ void GameManager::veIntroMenu() {
 
     const sf::Color inkDark(35, 18, 10);
 
+    const float colW = 472.0f;
+    const float colH = 478.0f;
+    const float col1X = 118.0f;
+    const float col2X = 610.0f;
+    const float colY = 132.0f;
+    const float padX = 18.0f;
+    const float contentW = colW - padX * 2.0f; // 436.0f
+    const float col1TextX = col1X + padX;      // 136.0f
+    const float col2TextX = col2X + padX;      // 628.0f
+    const unsigned int contentCharSize = tiengViet ? 13 : 12;
+
     auto drawXuanColumnHeader = [&](float centerX, float topY, const std::string& headerText, float divStartX, float divWidth) {
         sf::Text sh;
         sh.setFont(fontBold);
@@ -6822,9 +6833,9 @@ void GameManager::veIntroMenu() {
         window.draw(div);
     };
 
-    // 3. Left Symmetrical Column: OOP Project & Design Patterns (X=124, Y=132, W=464, H=476)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(124.0f, 132.0f, 464.0f, 476.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
-    drawXuanColumnHeader(356.0f, 154.0f, tiengViet ? "ĐỒ ÁN OOP & THIẾT KẾ" : "OOP PROJECT & DESIGN", 146.0f, 420.0f);
+    // 3. Left Symmetrical Column: OOP Project & Design Patterns
+    FantasyUI::get().drawPanel(window, sf::FloatRect(col1X, colY, colW, colH), OrientalPanelStyle::PARCHMENT_SCROLL);
+    drawXuanColumnHeader(col1X + colW / 2.0f, 154.0f, tiengViet ? "ĐỒ ÁN OOP & THIẾT KẾ" : "OOP PROJECT & DESIGN", col1TextX, contentW);
 
     std::string oopText = tiengViet
         ? "• TRƯỜNG ĐH KHOA HỌC TỰ NHIÊN (HCMUS)\n"
@@ -6859,51 +6870,51 @@ void GameManager::veIntroMenu() {
     sf::Text oopContent;
     oopContent.setFont(fontBold);
     oopContent.setString(toUtf8(oopText));
-    oopContent.setCharacterSize(13);
+    oopContent.setCharacterSize(contentCharSize);
     oopContent.setStyle(sf::Text::Bold);
     oopContent.setLineSpacing(1.22f);
     oopContent.setFillColor(inkDark);
-    oopContent.setPosition(146.0f, 186.0f);
+    oopContent.setPosition(col1TextX, 186.0f);
     window.draw(oopContent);
 
-    // 4. Right Symmetrical Column: 7 Piece Rules & Controls (X=612, Y=132, W=464, H=476)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(612.0f, 132.0f, 464.0f, 476.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
-    drawXuanColumnHeader(844.0f, 154.0f, tiengViet ? "LUẬT 7 QUÂN CỜ & ĐIỀU KHIỂN" : "7 PIECES RULES & CONTROLS", 634.0f, 420.0f);
+    // 4. Right Symmetrical Column: 7 Piece Rules & Controls
+    FantasyUI::get().drawPanel(window, sf::FloatRect(col2X, colY, colW, colH), OrientalPanelStyle::PARCHMENT_SCROLL);
+    drawXuanColumnHeader(col2X + colW / 2.0f, 154.0f, tiengViet ? "LUẬT 7 QUÂN CỜ & ĐIỀU KHIỂN" : "7 PIECES RULES & CONTROLS", col2TextX, contentW);
 
     std::string rulesText = tiengViet
         ? "1. XE: Đi ngang/dọc tùy ý; bị cản bởi quân cờ.\n"
           "2. PHÁO: Đi như Xe; ăn quân phải nhảy qua 1 ngòi.\n"
-          "3. MÃ: Đi chữ Nhật (2x1); cản chân tại mắt Mã kề sát.\n"
+          "3. MÃ: Đi chữ Nhật (2x1); cản chân tại mắt Mã.\n"
           "4. TƯỢNG: Đi chéo 2 ô; không qua sông; cản mắt.\n"
-          "5. SĨ: Đi chéo 1 ô bên trong phạm vi Cung Cửu Cung.\n"
+          "5. SĨ: Đi chéo 1 ô bên trong Cung Cửu Cung.\n"
           "6. TƯỚNG: Đi 1 ô ngang/dọc trong Cung;\n"
-          "   Hai Tướng không được đối mặt trực tiếp trên một cột.\n"
+          "   Hai Tướng không đối mặt trực tiếp trên cùng cột.\n"
           "7. TỐT: Đi thẳng 1 ô; qua sông đi thêm ngang, không lùi.\n\n"
           "• THAO TÁC TRẬN ĐẤU:\n"
-          "  - Chuột: Nhấp chọn quân cờ và điểm đến hợp lệ.\n"
-          "  - Bàn phím: W/A/S/D di chuyển ô chọn, Enter để chọn.\n"
+          "  - Chuột: Nhấp chọn quân cờ và ô đích hợp lệ.\n"
+          "  - Bàn phím: W/A/S/D di chuyển, Enter để chọn/đi.\n"
           "  - Phím tắt: ESC (Hủy / Tạm dừng), U (Đi lại / Undo)."
         : "1. CHARIOT: Moves orthogonally any distance.\n"
           "2. CANNON: Moves like Chariot; jumps 1 piece to capture.\n"
-          "3. HORSE: Moves in L-shape (2x1); hobbled at adjacent eye.\n"
-          "4. ELEPHANT: Diagonal 2 squares; own side only; eye-blocked.\n"
+          "3. HORSE: Moves in L-shape (2x1); hobbled at foot / eye.\n"
+          "4. ELEPHANT: Diagonal 2 squares; own side; eye-blocked.\n"
           "5. ADVISOR: Diagonal 1 square within Palace.\n"
-          "6. GENERAL: 1 step in Palace (horizontal or vertical);\n"
-          "   Generals cannot face each other directly without pieces.\n"
-          "7. SOLDIER: 1 forward; gains sideways moves across river.\n\n"
+          "6. GENERAL: 1 step in Palace (horizontal / vertical);\n"
+          "   Cannot face enemy General directly on open file.\n"
+          "7. SOLDIER: 1 forward; moves sideways across river.\n\n"
           "• MATCH CONTROLS:\n"
-          "  - Mouse: Left click pieces and highlighted target squares.\n"
-          "  - Keyboard: W/A/S/D move cursor, Enter select / move piece.\n"
-          "  - Hotkeys: ESC (Deselect / Pause), U (Undo last move).";
+          "  - Mouse: Left click to select piece & destination.\n"
+          "  - Keyboard: W/A/S/D move cursor, Enter to select.\n"
+          "  - Hotkeys: ESC (Deselect / Pause), U (Undo move).";
 
     sf::Text rulesContent;
     rulesContent.setFont(fontBold);
     rulesContent.setString(toUtf8(rulesText));
-    rulesContent.setCharacterSize(13);
+    rulesContent.setCharacterSize(contentCharSize);
     rulesContent.setStyle(sf::Text::Bold);
     rulesContent.setLineSpacing(1.22f);
     rulesContent.setFillColor(inkDark);
-    rulesContent.setPosition(634.0f, 186.0f);
+    rulesContent.setPosition(col2TextX, 186.0f);
     window.draw(rulesContent);
 
     // 5. Centered Bottom Action Button (X=490, Y=624, W=220, H=44)
