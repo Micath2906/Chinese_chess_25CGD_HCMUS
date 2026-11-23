@@ -10,8 +10,13 @@ SoundManager::SoundManager()
     bgmBat(true),
     masterVolume(80.0f),
     sfxVolume(80.0f),
-    bgmVolume(50.0f) {
+    bgmVolume(50.0f),
+    currentTrack(BgmTrack::MENU),
+    menuMusicLoaded(false),
+    matchMusicLoaded(false) {
 }
+
+SoundManager::~SoundManager() = default;
 
 void SoundManager::khoiTao() {
     sinhAmThanh(); // Fallback synthetic sounds in case audio file is unavailable
@@ -30,11 +35,29 @@ void SoundManager::khoiTao() {
         soundCapture.setBuffer(bufferCapture);
     }
 
-    // BGM sound
-    std::string bgmPath = am.getMusicPath(MusicId::BGM_MAIN);
-    if (!bgmPath.empty() && bufferBgm.loadFromFile(bgmPath)) {
-        soundBgm.setBuffer(bufferBgm);
-        soundBgm.setLoop(true);
+    // 1. Menu BGM: Lotus Pond - Loop (ambient background for menus, setup, title, etc.)
+    musicMenu = std::make_unique<sf::Music>();
+    std::string pathLotus = am.getMusicPath(MusicId::LOTUS_POND);
+    if (!pathLotus.empty() && musicMenu->openFromFile(pathLotus)) {
+        musicMenu->setLoop(true);
+        menuMusicLoaded = true;
+    }
+
+    // 2. Match BGM: Dragon Dance - Loop (dramatic martial music when playing chess)
+    musicMatch = std::make_unique<sf::Music>();
+    std::string pathDragon = am.getMusicPath(MusicId::DRAGON_DANCE);
+    if (!pathDragon.empty() && musicMatch->openFromFile(pathDragon)) {
+        musicMatch->setLoop(true);
+        matchMusicLoaded = true;
+    }
+
+    // Fallback synthetic BGM in case WAV streams couldn't be loaded
+    if (!menuMusicLoaded && !matchMusicLoaded) {
+        std::string bgmPath = am.getMusicPath(MusicId::BGM_MAIN);
+        if (!bgmPath.empty() && bufferBgm.loadFromFile(bgmPath)) {
+            soundBgm.setBuffer(bufferBgm);
+            soundBgm.setLoop(true);
+        }
     }
 
     // Other sounds
@@ -53,9 +76,10 @@ void SoundManager::khoiTao() {
         soundClick.setBuffer(bufferClick);
     }
 
+    currentTrack = BgmTrack::MENU;
     capNhatAmLuong();
     if (amThanhBat && bgmBat) {
-        playBgm();
+        playBgm(BgmTrack::MENU);
     }
 }
 
@@ -71,6 +95,13 @@ void SoundManager::capNhatAmLuong() {
     soundClick.setVolume(effectiveSfx);
     soundIllegal.setVolume(effectiveSfx);
     soundBgm.setVolume(effectiveBgm);
+
+    if (musicMenu) {
+        musicMenu->setVolume(effectiveBgm);
+    }
+    if (musicMatch) {
+        musicMatch->setVolume(effectiveBgm);
+    }
 }
 
 void SoundManager::sinhAmThanh() {
@@ -238,15 +269,54 @@ void SoundManager::play(SoundType type) {
     }
 }
 
-void SoundManager::playBgm() {
-    if (amThanhBat && bgmBat) {
-        if (soundBgm.getStatus() != sf::Sound::Playing) {
+void SoundManager::switchToTrack(BgmTrack track) {
+    if (currentTrack == track) {
+        if (amThanhBat && bgmBat) {
+            sf::Music* cur = (track == BgmTrack::MENU) ? musicMenu.get() : musicMatch.get();
+            if (cur && cur->getStatus() == sf::Music::Stopped) {
+                cur->play();
+            } else if (!cur && soundBgm.getStatus() == sf::Sound::Stopped) {
+                soundBgm.play();
+            }
+        }
+        return;
+    }
+
+    currentTrack = track;
+    capNhatAmLuong();
+
+    if (track == BgmTrack::MENU) {
+        if (musicMatch && musicMatch->getStatus() == sf::Music::Playing) {
+            musicMatch->stop();
+        }
+        if (musicMenu && menuMusicLoaded) {
+            if (amThanhBat && bgmBat && musicMenu->getStatus() != sf::Music::Playing) {
+                musicMenu->play();
+            }
+        } else if (soundBgm.getStatus() != sf::Sound::Playing && amThanhBat && bgmBat) {
+            soundBgm.play();
+        }
+    } else { // MATCH
+        if (musicMenu && musicMenu->getStatus() == sf::Music::Playing) {
+            musicMenu->stop();
+        }
+        if (musicMatch && matchMusicLoaded) {
+            if (amThanhBat && bgmBat && musicMatch->getStatus() != sf::Music::Playing) {
+                musicMatch->play();
+            }
+        } else if (soundBgm.getStatus() != sf::Sound::Playing && amThanhBat && bgmBat) {
             soundBgm.play();
         }
     }
 }
 
+void SoundManager::playBgm(BgmTrack track) {
+    switchToTrack(track);
+}
+
 void SoundManager::stopBgm() {
+    if (musicMenu) musicMenu->stop();
+    if (musicMatch) musicMatch->stop();
     soundBgm.stop();
 }
 
@@ -258,10 +328,16 @@ void SoundManager::setAmThanhBat(bool bat) {
     amThanhBat = bat;
     capNhatAmLuong();
     if (!amThanhBat) {
+        if (musicMenu && musicMenu->getStatus() == sf::Music::Playing) musicMenu->pause();
+        if (musicMatch && musicMatch->getStatus() == sf::Music::Playing) musicMatch->pause();
         soundBgm.pause();
-    }
-    else if (bgmBat) {
-        playBgm();
+    } else if (bgmBat) {
+        sf::Music* cur = (currentTrack == BgmTrack::MENU) ? musicMenu.get() : musicMatch.get();
+        if (cur && cur->getStatus() != sf::Music::Playing) {
+            cur->play();
+        } else if (!cur && soundBgm.getStatus() != sf::Sound::Playing) {
+            soundBgm.play();
+        }
     }
 }
 
@@ -284,9 +360,15 @@ void SoundManager::setBgmBat(bool bat) {
     bgmBat = bat;
     capNhatAmLuong();
     if (bgmBat && amThanhBat) {
-        playBgm();
-    }
-    else {
+        sf::Music* cur = (currentTrack == BgmTrack::MENU) ? musicMenu.get() : musicMatch.get();
+        if (cur && cur->getStatus() != sf::Music::Playing) {
+            cur->play();
+        } else if (!cur && soundBgm.getStatus() != sf::Sound::Playing) {
+            soundBgm.play();
+        }
+    } else {
+        if (musicMenu && musicMenu->getStatus() == sf::Music::Playing) musicMenu->pause();
+        if (musicMatch && musicMatch->getStatus() == sf::Music::Playing) musicMatch->pause();
         soundBgm.pause();
     }
 }

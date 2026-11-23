@@ -104,8 +104,10 @@ enum class SoundId {
 };
 
 enum class MusicId {
-    BGM_MAIN,
-    COUNT
+    LOTUS_POND = 0,
+    DRAGON_DANCE = 1,
+    COUNT = 2,
+    BGM_MAIN = LOTUS_POND
 };
 
 enum class TextureLoadPolicy {
@@ -227,7 +229,8 @@ constexpr std::array<SoundAssetDef, static_cast<size_t>(SoundId::COUNT)> SOUNDS 
 }};
 
 constexpr std::array<MusicAssetDef, static_cast<size_t>(MusicId::COUNT)> MUSIC = {{
-    { MusicId::BGM_MAIN,          "audio/music/golden_gleam.ogg" }
+    { MusicId::LOTUS_POND,   "audio/music/Lotus Pond - Loop.wav" },
+    { MusicId::DRAGON_DANCE, "audio/music/Dragon Dance - Loop.wav" }
 }};
 
 } // namespace AssetRegistry

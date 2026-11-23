@@ -14,6 +14,11 @@ enum class SoundType {
     ILLEGAL
 };
 
+enum class BgmTrack {
+    MENU,  // Lotus Pond - Loop (everything: title, menus, settings, setups)
+    MATCH  // Dragon Dance - Loop (when playing chess in match)
+};
+
 class SoundManager {
 private:
     bool amThanhBat;      // Master audio toggle
@@ -41,17 +46,27 @@ private:
     sf::Sound soundIllegal;
     sf::Sound soundBgm;
 
+    std::unique_ptr<sf::Music> musicMenu;   // Lotus Pond - Loop
+    std::unique_ptr<sf::Music> musicMatch;  // Dragon Dance - Loop
+    BgmTrack currentTrack;
+    bool menuMusicLoaded;
+    bool matchMusicLoaded;
+
     void sinhAmThanh();
     void capNhatAmLuong();
 
 public:
     SoundManager();
+    ~SoundManager();
 
     void khoiTao();
     void play(SoundType type);
-    void playBgm();
+    void playBgm(BgmTrack track = BgmTrack::MENU);
+    void switchToTrack(BgmTrack track);
     void stopBgm();
     void testAudio();
+
+    BgmTrack getCurrentTrack() const { return currentTrack; }
 
     // Master
     void setAmThanhBat(bool bat);

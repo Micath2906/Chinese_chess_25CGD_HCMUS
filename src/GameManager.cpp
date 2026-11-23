@@ -1586,6 +1586,13 @@ void GameManager::chay() {
         float dt = clock.restart().asSeconds();
         
         xuLySuKien();
+
+        // Music track switching:
+        // Dragon Dance - Loop when playing chess; Lotus Pond - Loop for everything else
+        bool inMatch = (trangThai == TrangThai::DANG_CHOI) ||
+                       (trangThai == TrangThai::SETTINGS_MENU && trangThaiTruocSettings == TrangThai::DANG_CHOI) ||
+                       (trangThai == TrangThai::LOAD_MENU && trangThaiTruocLoad == TrangThai::DANG_CHOI);
+        soundManager.switchToTrack(inMatch ? BgmTrack::MATCH : BgmTrack::MENU);
         
         if (trangThai == TrangThai::DANG_CHOI && !banCo.getKetThuc() && !hienMenuPopUp) {
             // Immediate checkmate or stalemate safeguard
