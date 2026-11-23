@@ -147,7 +147,6 @@ private:
     std::unique_ptr<Slider> sliderMaster;
     std::unique_ptr<Slider> sliderSfx;
     std::unique_ptr<Slider> sliderBgm;
-    std::unique_ptr<Slider> sliderAtmosphere;
     std::vector<std::unique_ptr<Button>> soundboardButtons;
 
     // In-game buttons

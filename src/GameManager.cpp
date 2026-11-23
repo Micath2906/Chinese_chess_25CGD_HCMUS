@@ -535,7 +535,6 @@ void GameManager::capNhatNhanNut() {
     if (sliderMaster) sliderMaster->setTitle(Loc::get(LocKey::SETTING_MASTER_VOL));
     if (sliderSfx) sliderSfx->setTitle(Loc::get(LocKey::SETTING_SFX_VOL));
     if (sliderBgm) sliderBgm->setTitle(Loc::get(LocKey::SETTING_BGM_VOL));
-    if (sliderAtmosphere) sliderAtmosphere->setTitle(Loc::get(LocKey::SETTING_ATMOSPHERE_DENSITY));
 
     if (settingsAudioButtons.size() >= 2) {
         bool sfxOn = soundManager.getSfxBat();
@@ -552,11 +551,7 @@ void GameManager::capNhatNhanNut() {
         settingsAudioButtons[1]->setSelected(bgmOn);
     }
 
-    if (settingsGameplayButtons.size() >= 7) {
-        std::string atmoName = (atmosphere.getStyle() == AtmosphereStyle::BAMBOO_LEAVES) ? (isVi ? "Lá Trúc" : "Bamboo Leaves")
-                             : (atmosphere.getStyle() == AtmosphereStyle::PEACH_BLOSSOMS) ? (isVi ? "Hoa Đào" : "Peach Blossoms")
-                             : (isVi ? "Đốm Lửa" : "Floating Sparks");
-
+    if (settingsGameplayButtons.size() >= 6) {
         settingsGameplayButtons[0]->setLabel((isVi ? "Tốc độ AI: " : "AI Pacing: ") + std::string(aiThinkRealistic ? (isVi ? "< Tự nhiên >" : "< Natural >") : (isVi ? "< Tức thì >" : "< Instant >")));
         settingsGameplayButtons[0]->setSelected(aiThinkRealistic);
 
@@ -574,9 +569,6 @@ void GameManager::capNhatNhanNut() {
 
         settingsGameplayButtons[5]->setLabel((isVi ? "Hiển thị: " : "Display: ") + std::string(fullscreenMode ? (isVi ? "< Toàn Màn Hình >" : "< Fullscreen >") : (isVi ? "< Cửa Sổ >" : "< Windowed >")));
         settingsGameplayButtons[5]->setSelected(fullscreenMode);
-
-        settingsGameplayButtons[6]->setLabel(std::string(isVi ? "Khí quyển: " : "Atmosphere: ") + "< " + atmoName + " >");
-        settingsGameplayButtons[6]->setSelected(true);
     }
 
     if (settingsLanguageButtons.size() >= 2) {
@@ -748,17 +740,11 @@ void GameManager::capNhatViTriNutCaiDat() {
         settingsGameplayButtons[3]->setPosition(gpCol1X, gpRow3);
         settingsGameplayButtons[3]->setSize(gpW, gpH);
     }
-    if (settingsGameplayButtons.size() >= 7) {
+    if (settingsGameplayButtons.size() >= 6) {
         settingsGameplayButtons[4]->setPosition(gpCol2X, gpRow0);
         settingsGameplayButtons[4]->setSize(gpW, gpH);
         settingsGameplayButtons[5]->setPosition(gpCol2X, gpRow1);
         settingsGameplayButtons[5]->setSize(gpW, gpH);
-        settingsGameplayButtons[6]->setPosition(gpCol2X, gpRow2);
-        settingsGameplayButtons[6]->setSize(gpW, gpH);
-    }
-    if (sliderAtmosphere) {
-        sliderAtmosphere->setPosition(gpCol2X, 406.0f);
-        sliderAtmosphere->setWidth(gpW);
     }
 
     // Tab 3: Language (Full-height Imperial Decree Parchment Cards)
@@ -947,16 +933,7 @@ void GameManager::khoiTaoDashboardSettings() {
         soundManager.play(SoundType::CLICK);
         capNhatNhanNut();
     }));
-    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 315.0f, 42.0f, "", fBold, [this]() {
-        atmosphere.cycleStyle();
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
     for (auto& gb : settingsGameplayButtons) gb->setCharacterSize(13);
-
-    sliderAtmosphere = std::make_unique<Slider>(0.0f, 0.0f, 315.0f, 18.0f, 0.0f, 100.0f,
-        atmosphere.getDensity(), Loc::get(LocKey::SETTING_ATMOSPHERE_DENSITY), fBold,
-        [this](float val) { atmosphere.setDensity(val); });
 
     // 4. Language Selection Buttons (2 cards)
     settingsLanguageButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 310.0f, 280.0f, "", fBold, [this]() {
@@ -1288,7 +1265,6 @@ void GameManager::docCaiDat() {
             else if (key == "atmosphereDensity") {
                 float d = std::stof(val);
                 atmosphere.setDensity(d);
-                if (sliderAtmosphere) sliderAtmosphere->setValue(d);
             }
             else if (key == "p1Aura" || key == "p2Aura") {
                 // Deprecated: silently ignored for backward compatibility
@@ -1310,7 +1286,6 @@ void GameManager::khoiPhucCaiDatMacDinh() {
     if (sliderMaster) sliderMaster->setValue(80.0f);
     if (sliderSfx) sliderSfx->setValue(80.0f);
     if (sliderBgm) sliderBgm->setValue(50.0f);
-    if (sliderAtmosphere) sliderAtmosphere->setValue(50.0f);
 
     boardTheme = BoardTheme::CLASSIC_WOOD;
     pieceStyle = PieceStyle::REALISTIC_WOOD;
@@ -1739,8 +1714,6 @@ void GameManager::xuLySuKien() {
                     if (sliderMaster) sliderMaster->handleEvent(event, mousePos);
                     if (sliderSfx) sliderSfx->handleEvent(event, mousePos);
                     if (sliderBgm) sliderBgm->handleEvent(event, mousePos);
-                } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
-                    if (sliderAtmosphere) sliderAtmosphere->handleEvent(event, mousePos);
                 }
             }
         }
@@ -6496,7 +6469,6 @@ void GameManager::veSettingsMenu() {
 
         } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
             for (auto& btn : settingsGameplayButtons) btn->draw(window);
-            if (sliderAtmosphere) sliderAtmosphere->draw(window);
 
             float gpCol1X = 415.0f + offX;
             float gpCol2X = 735.0f + offX;
@@ -6511,7 +6483,7 @@ void GameManager::veSettingsMenu() {
 
             sf::Text col2Head;
             col2Head.setFont(fBold);
-            col2Head.setString(toUtf8(tiengViet ? "HIỂN THỊ & KHÍ QUYỂN" : "DISPLAY & ATMOSPHERE"));
+            col2Head.setString(toUtf8(tiengViet ? "HIỂN THỊ & GIAO DIỆN" : "DISPLAY & INTERFACE"));
             col2Head.setCharacterSize(13);
             col2Head.setFillColor(sf::Color(255, 220, 120));
             col2Head.setPosition(gpCol2X, 166.0f);
@@ -6548,10 +6520,10 @@ void GameManager::veSettingsMenu() {
             sf::Text gpGuideContent;
             gpGuideContent.setFont(f);
             gpGuideContent.setString(toUtf8(tiengViet
-                ? "• Khí quyển: Điều chỉnh mật độ hiệu ứng cánh hoa, lá tre và đốm sáng trên bàn cờ.\n"
+                ? "• Hiển thị: Bật/tắt chế độ toàn màn hình hoặc cửa sổ, hiển thị hệ tọa độ 1-9 & A-J.\n"
                   "• Trợ giúp nước đi: Bật/tắt gợi ý nước đi hợp lệ, vòng sáng nước đi cuối và cảnh báo Chiếu.\n"
                   "• Nhịp điệu AI: Tùy biến tốc độ suy nghĩ của máy (Tự nhiên hoặc Phản hồi tức thì)."
-                : "• Atmosphere: Adjust density of ambient falling leaves, petals, and embers on the board.\n"
+                : "• Display: Switch between Fullscreen and Windowed mode, toggle coordinates.\n"
                   "• Assists: Toggle valid move dots, last move highlight, and king check alarms.\n"
                   "• AI Pacing: Switch between natural deliberate timing and instant responses."));
             gpGuideContent.setCharacterSize(12);
