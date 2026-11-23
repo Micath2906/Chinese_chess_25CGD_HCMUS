@@ -61,6 +61,7 @@ public:
     // Luật chơi
     bool kiemTraChieu(Mau mauTuong) const;
     bool kiemTraChieuTuong() const;
+    std::vector<std::shared_ptr<QuanCo>> timCacQuanDangChieu(Mau mauBiChieu) const;
     bool kiemTraNuocDiHopLe(int hangBD, int cotBD, int hangKT, int cotKT) const;
     bool diChuyen(int hangBD, int cotBD, int hangKT, int cotKT);
     bool coNuocDiHopLe(Mau mau) const;

@@ -160,6 +160,7 @@ private:
     TrangThai trangThaiTruocIntro = TrangThai::TITLE_SCREEN;
     bool matchMenuTuDangChoi = false;
     bool daPhatAmKetThuc = false;
+    bool xemBanCoSauKetThuc = false;
     void capNhatFontTheoNgonNgu();
     void phatAmThanhKetThuc();
     
@@ -387,6 +388,7 @@ private:
     void veThanhBenPhai();
     void veThanhThongBao();
     void vePopupKetThuc();
+    void veBannerXemBanCo();
     void vePopupXinHoa();
     void vePopupNuocDiSai();
     void veVictoryParticles();

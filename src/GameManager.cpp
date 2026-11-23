@@ -1164,20 +1164,21 @@ void GameManager::khoiTaoNutTrongGame() {
 void GameManager::khoiTaoNutPopup() {
     popupButtons.clear();
     const float dw = 600.0f;
-    const float dh = 440.0f;
+    const float dh = 450.0f;
     const float dx = (1200.0f - dw) / 2.0f;
     const float dy = (800.0f - dh) / 2.0f;
-    const float pw = 230.0f;
-    const float ph = 46.0f;
-    const float py = dy + dh - 68.0f;
+    const float pw = 168.0f;
+    const float ph = 44.0f;
+    const float py = dy + dh - 64.0f;
 
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Font& fBtn = getMenuFont(tiengViet, true);
 
     auto& assets = getMenuAssets();
 
+    // 1. Play Again
     std::string againLabel = Loc::get(LocKey::PLAY_AGAIN) + " (Enter)";
-    auto btnAgain = std::make_unique<Button>(dx + 45.0f, py, pw, ph, againLabel, fBtn, [this]() {
+    auto btnAgain = std::make_unique<Button>(dx + 25.0f, py, pw, ph, againLabel, fBtn, [this]() {
         soundManager.play(SoundType::CLICK);
         batDauTroChoiMoi(cheDoChoi);
     });
@@ -1185,8 +1186,18 @@ void GameManager::khoiTaoNutPopup() {
     if (assets.iconPlay.getSize().x > 0) btnAgain->setIcon(&assets.iconPlay);
     popupButtons.push_back(std::move(btnAgain));
 
+    // 2. View Board (Xem bàn cờ)
+    std::string viewLabel = tiengViet ? "Xem bàn cờ (V)" : "View Board (V)";
+    auto btnView = std::make_unique<Button>(dx + 216.0f, py, pw, ph, viewLabel, fBtn, [this]() {
+        soundManager.play(SoundType::CLICK);
+        xemBanCoSauKetThuc = true;
+    });
+    btnView->setColors(sf::Color(45, 95, 140, 245), sf::Color(60, 125, 180, 255), sf::Color(30, 65, 100, 255));
+    popupButtons.push_back(std::move(btnView));
+
+    // 3. Back to Main Menu
     std::string backLabel = Loc::get(LocKey::BACK_MENU) + " (ESC)";
-    auto btnBack = std::make_unique<Button>(dx + dw - 45.0f - pw, py, pw, ph, backLabel, fBtn, [this]() {
+    auto btnBack = std::make_unique<Button>(dx + 407.0f, py, pw, ph, backLabel, fBtn, [this]() {
         soundManager.play(SoundType::CLICK);
         quayLaiMenu();
     });
@@ -1453,6 +1464,7 @@ void GameManager::batDauTroChoiMoi(CheDoChoi cheDo) {
     thoiGianChoAI = 0.0f;
     lyDoKetThuc = "";
     daPhatAmKetThuc = false;
+    xemBanCoSauKetThuc = false;
     toastTimer = 0.0f;
 
     soundManager.play(SoundType::MOVE);
@@ -1563,6 +1575,7 @@ bool GameManager::docTuSlot(int slotIndex) {
         aiDangSuyNghi = false;
         thoiGianChoAI = 0.0f;
         daPhatAmKetThuc = false;
+        xemBanCoSauKetThuc = false;
         dtClock.restart();
 
         soundManager.play(SoundType::CLICK);
@@ -1600,9 +1613,26 @@ void GameManager::chay() {
         xuLySuKien();
         
         if (trangThai == TrangThai::DANG_CHOI && !banCo.getKetThuc() && !hienMenuPopUp) {
-            capNhatDongHo(dt);
-            if (cheDoChoi == CheDoChoi::VOI_MAY) {
-                xuLyLuotAI(dt);
+            // Immediate checkmate or stalemate safeguard
+            if (!banCo.coNuocDiHopLe(banCo.getLuotChoi())) {
+                banCo.setKetThuc(true);
+                Mau benThang = (banCo.getLuotChoi() == Mau::DO) ? Mau::DEN : Mau::DO;
+                banCo.setNguoiThang(benThang);
+                bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong();
+                bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
+                if (biChieu) {
+                    lyDoKetThuc = tiengViet ? "Chiếu bí đối phương!" : "Checkmate!";
+                } else {
+                    lyDoKetThuc = tiengViet ? "Đối phương hết nước đi (Khốn bí)!" : "Opponent has no legal moves (Stalemate)!";
+                }
+                khoiTaoNutPopup();
+                soundManager.play(SoundType::VICTORY);
+                khoiTaoVictoryParticles();
+            } else {
+                capNhatDongHo(dt);
+                if (cheDoChoi == CheDoChoi::VOI_MAY) {
+                    xuLyLuotAI(dt);
+                }
             }
         }
         
@@ -1676,7 +1706,9 @@ void GameManager::xuLySuKien() {
     else if (trangThai == TrangThai::INTRODUCTION_MENU) menuIntro.update(mousePos);
     else if (trangThai == TrangThai::DANG_CHOI) {
         if (banCo.getKetThuc()) {
-            for (auto& btn : popupButtons) btn->update(mousePos);
+            if (!xemBanCoSauKetThuc) {
+                for (auto& btn : popupButtons) btn->update(mousePos);
+            }
         } else if (hienPopupXinHoa) {
             if (btnAcceptDraw) btnAcceptDraw->update(mousePos);
             if (btnDeclineDraw) btnDeclineDraw->update(mousePos);
@@ -1915,6 +1947,11 @@ void GameManager::xuLyClickChuot(const sf::Vector2i& viTri) {
     }
     else if (trangThai == TrangThai::DANG_CHOI) {
         if (banCo.getKetThuc()) {
+            if (xemBanCoSauKetThuc) {
+                xemBanCoSauKetThuc = false;
+                soundManager.play(SoundType::CLICK);
+                return;
+            }
             for (auto& btn : popupButtons) {
                 btn->handleClick(viTri);
             }
@@ -2324,6 +2361,11 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         }
         if (trangThai == TrangThai::DANG_CHOI) {
             if (banCo.getKetThuc()) {
+                if (xemBanCoSauKetThuc) {
+                    xemBanCoSauKetThuc = false;
+                    soundManager.play(SoundType::CLICK);
+                    return;
+                }
                 soundManager.play(SoundType::CLICK);
                 quayLaiMenu();
                 return;
@@ -2341,6 +2383,16 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
     // 4. In game navigation and shortcuts
     if (trangThai == TrangThai::DANG_CHOI) {
         if (banCo.getKetThuc()) {
+            if (xemBanCoSauKetThuc) {
+                xemBanCoSauKetThuc = false;
+                soundManager.play(SoundType::CLICK);
+                return;
+            }
+            if (key == sf::Keyboard::V) {
+                xemBanCoSauKetThuc = true;
+                soundManager.play(SoundType::CLICK);
+                return;
+            }
             if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
                 soundManager.play(SoundType::CLICK);
                 batDauTroChoiMoi(cheDoChoi);
@@ -2393,6 +2445,7 @@ void GameManager::capNhatDongHo(float dt) {
             lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Do het gio!" : "Red time out!";
             soundManager.play(SoundType::DEFEAT);
             khoiTaoVictoryParticles();
+            khoiTaoNutPopup();
         }
     } else {
         thoiGianConDen -= dt;
@@ -2403,6 +2456,7 @@ void GameManager::capNhatDongHo(float dt) {
             lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET) ? "Quan Den het gio!" : "Black time out!";
             soundManager.play(SoundType::VICTORY);
             khoiTaoVictoryParticles();
+            khoiTaoNutPopup();
         }
     }
 }
@@ -2431,7 +2485,7 @@ void GameManager::xuLyLuotAI(float dt) {
                 if (anQuan) soundManager.play(SoundType::CAPTURE);
                 else soundManager.play(SoundType::MOVE);
 
-                bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi());
+                bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong();
                 if (banCo.getKetThuc()) {
                     if (banCo.getNguoiThang() == Mau::HOA) {
                         if (banCo.isHoaDoLapLai()) {
@@ -2456,26 +2510,26 @@ void GameManager::xuLyLuotAI(float dt) {
                             : "AI checkmated you!";
                         soundManager.play(SoundType::DEFEAT);
                     }
+                    khoiTaoNutPopup();
                 } else if (biChieu) {
                     if (checkAlarmSound) soundManager.play(SoundType::CHECK);
                 }
             }
         } else {
             banCo.setKetThuc(true);
-            if (banCo.kiemTraChieu(aiMau)) {
-                banCo.setNguoiThang(aiPlayerSide);
+            banCo.setNguoiThang(aiPlayerSide);
+            if (banCo.kiemTraChieu(aiMau) || banCo.kiemTraChieuTuong()) {
                 lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
                     ? "Bạn đã chiếu bí máy AI!"
                     : "You checkmated the AI!";
-                soundManager.play(SoundType::VICTORY);
-                khoiTaoVictoryParticles();
             } else {
-                banCo.setNguoiThang(Mau::HOA);
                 lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
-                    ? "Máy AI không còn nước đi hợp lệ (Hòa cờ)."
-                    : "AI has no legal moves left (Draw).";
-                soundManager.play(SoundType::CLICK);
+                    ? "Máy AI hết nước đi (Khốn bí)!"
+                    : "AI has no legal moves (Stalemate)!";
             }
+            soundManager.play(SoundType::VICTORY);
+            khoiTaoVictoryParticles();
+            khoiTaoNutPopup();
         }
     }
 }
@@ -2535,7 +2589,7 @@ void GameManager::diChuyenQuan(int hang, int cot) {
             if (anQuan) soundManager.play(SoundType::CAPTURE);
             else soundManager.play(SoundType::MOVE);
 
-            bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi());
+            bool biChieu = banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong();
             if (banCo.getKetThuc()) {
                 if (banCo.getNguoiThang() == Mau::HOA) {
                     if (banCo.isHoaDoLapLai()) {
@@ -2549,12 +2603,20 @@ void GameManager::diChuyenQuan(int hang, int cot) {
                     }
                     soundManager.play(SoundType::CLICK);
                 } else {
-                    lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
-                        ? "Chiếu bí đối phương!"
-                        : "Checkmate!";
+                    bool biChieuMauThua = banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong();
+                    if (biChieuMauThua) {
+                        lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
+                            ? "Chiếu bí đối phương!"
+                            : "Checkmate!";
+                    } else {
+                        lyDoKetThuc = (Loc::getLanguage() == Language::TIENG_VIET)
+                            ? "Đối phương hết nước đi (Khốn bí)!"
+                            : "Opponent has no legal moves (Stalemate)!";
+                    }
                     soundManager.play(SoundType::VICTORY);
                     khoiTaoVictoryParticles();
                 }
+                khoiTaoNutPopup();
             } else if (biChieu) {
                 if (checkAlarmSound) soundManager.play(SoundType::CHECK);
             }
@@ -2608,6 +2670,7 @@ void GameManager::thucHienDauHang(Mau mau) {
     }
     soundManager.play(SoundType::DEFEAT);
     khoiTaoVictoryParticles();
+    khoiTaoNutPopup();
 }
 
 void GameManager::thucHienXinHoa() {
@@ -2628,6 +2691,7 @@ void GameManager::chapNhanHoa() {
     lyDoKetThuc = vi ? "Hai bên đã đồng thuận hòa cờ." : "Both players agreed to a draw.";
     soundManager.play(SoundType::CLICK);
     khoiTaoVictoryParticles();
+    khoiTaoNutPopup();
 }
 
 void GameManager::tuChoiHoa() {
@@ -3225,34 +3289,273 @@ void GameManager::veHighlights() {
         window.draw(xMark, 4, sf::Lines);
     }
 
-    // 4. King under CHECK Visual Effect (Dramatic pulsing aura & shockwave)
-    if (!banCo.getKetThuc() && banCo.kiemTraChieu(banCo.getLuotChoi())) {
+    // Helper lambdas for check and checkmate rendering
+    bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
+    float pulse = 0.5f + 0.5f * std::sin(bannerPulseClock.getElapsedTime().asSeconds() * 8.0f);
+
+    auto veTiaChieu = [&](sf::Vector2f pFrom, sf::Vector2f pTo, bool isCheckmate) {
+        sf::Vector2f diff = pTo - pFrom;
+        float dist = std::hypot(diff.x, diff.y);
+        if (dist <= 30.0f) return;
+
+        sf::Vector2f dir = diff / dist;
+        sf::Vector2f normal(-dir.y, dir.x);
+        sf::Vector2f pStart = pFrom + dir * 29.0f;
+        sf::Vector2f pEnd = pTo - dir * 29.0f;
+        float beamLen = dist - 58.0f;
+        if (beamLen <= 2.0f) return;
+
+        float angleDeg = std::atan2(dir.y, dir.x) * 180.0f / 3.14159265f;
+
+        // 1. Outer radiant glow beam
+        float beamThick = isCheckmate ? 5.5f : 4.2f;
+        sf::RectangleShape outerBeam(sf::Vector2f(beamLen, beamThick));
+        outerBeam.setOrigin(0.0f, beamThick / 2.0f);
+        outerBeam.setPosition(pStart);
+        outerBeam.setRotation(angleDeg);
+        sf::Color outerCol = isCheckmate ? sf::Color(255, 60, 30, static_cast<sf::Uint8>(170 + pulse * 75))
+                                         : sf::Color(255, 110, 30, static_cast<sf::Uint8>(150 + pulse * 65));
+        outerBeam.setFillColor(outerCol);
+        window.draw(outerBeam);
+
+        // 2. Inner blazing core line
+        sf::RectangleShape innerBeam(sf::Vector2f(beamLen, 2.0f));
+        innerBeam.setOrigin(0.0f, 1.0f);
+        innerBeam.setPosition(pStart);
+        innerBeam.setRotation(angleDeg);
+        innerBeam.setFillColor(sf::Color(255, 245, 170, 245));
+        window.draw(innerBeam);
+
+        // 3. Arrowhead pointing at the General
+        sf::ConvexShape arrow(3);
+        arrow.setPoint(0, pEnd);
+        arrow.setPoint(1, pEnd - dir * 14.0f + normal * 7.5f);
+        arrow.setPoint(2, pEnd - dir * 14.0f - normal * 7.5f);
+        arrow.setFillColor(isCheckmate ? sf::Color(255, 220, 80) : sf::Color(255, 180, 60));
+        arrow.setOutlineThickness(1.5f);
+        arrow.setOutlineColor(isCheckmate ? sf::Color(255, 40, 30) : sf::Color(210, 50, 20));
+        window.draw(arrow);
+
+        // 4. Energy pulse particle travelling continuously along the beam
+        float tPulse = std::fmod(bannerPulseClock.getElapsedTime().asSeconds() * 2.2f, 1.0f);
+        sf::Vector2f dotPos = pStart + dir * (beamLen * tPulse);
+        sf::CircleShape dot(isCheckmate ? 4.5f : 3.8f);
+        dot.setOrigin(dot.getRadius(), dot.getRadius());
+        dot.setPosition(dotPos);
+        dot.setFillColor(sf::Color(255, 255, 230, 250));
+        window.draw(dot);
+    };
+
+    auto veHuyHieuQuan = [&](sf::Vector2f pos, const std::string& text, sf::Color bgColor, sf::Color outlineColor, sf::Color textColor, bool placeAbove) {
+        sf::Font& f = getMenuFont(tiengViet, true);
+        sf::Text t;
+        t.setFont(f);
+        t.setCharacterSize(11);
+        t.setStyle(sf::Text::Bold);
+        t.setString(toUtf8(text));
+        t.setFillColor(textColor);
+        sf::FloatRect tb = t.getLocalBounds();
+
+        float pw = std::max(tb.width + 14.0f, 68.0f);
+        float ph = 18.0f;
+        float py = placeAbove ? (pos.y - 37.0f) : (pos.y + 37.0f);
+
+        sf::RectangleShape pill(sf::Vector2f(pw, ph));
+        pill.setOrigin(pw / 2.0f, ph / 2.0f);
+        pill.setPosition(pos.x, py);
+        pill.setFillColor(bgColor);
+        pill.setOutlineThickness(1.2f);
+        pill.setOutlineColor(outlineColor);
+        window.draw(pill);
+
+        t.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+        t.setPosition(std::round(pos.x), std::round(py));
+        window.draw(t);
+    };
+
+    // 4. King under CHECK Visual Effect (Dramatic pulsing aura, shockwave, checking pieces & attack beams)
+    if (!banCo.getKetThuc() && (banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong())) {
+        std::shared_ptr<QuanCo> tuongBiChieu = nullptr;
         for (const auto& q : banCo.getCacQuan()) {
             if (q && !q->getDaBiAn() && q->getMau() == banCo.getLuotChoi() && q->laTuong()) {
-                sf::Vector2f kPos = chuyenDoiToaDoBanCoThanhManHinh(q->getHang(), q->getCot());
-                float pulse = 0.5f + 0.5f * std::sin(bannerPulseClock.getElapsedTime().asSeconds() * 8.0f);
-                
-                // Pulsing red danger glow
-                float ringR = 34.0f + pulse * 6.0f;
-                sf::CircleShape checkRing(ringR);
-                checkRing.setOrigin(ringR, ringR);
-                checkRing.setPosition(kPos);
-                checkRing.setFillColor(sf::Color(255, 30, 20, static_cast<sf::Uint8>(60 + pulse * 70)));
-                checkRing.setOutlineThickness(2.5f);
-                checkRing.setOutlineColor(sf::Color(255, 60, 40, static_cast<sf::Uint8>(180 + pulse * 75)));
-                window.draw(checkRing);
-
-                // Expanding shockwave ring
-                float wavePulse = std::fmod(bannerPulseClock.getElapsedTime().asSeconds() * 1.5f, 1.0f);
-                float waveR = 28.0f + wavePulse * 24.0f;
-                sf::CircleShape wave(waveR);
-                wave.setOrigin(waveR, waveR);
-                wave.setPosition(kPos);
-                wave.setFillColor(sf::Color::Transparent);
-                wave.setOutlineThickness(2.0f);
-                wave.setOutlineColor(sf::Color(255, 50, 40, static_cast<sf::Uint8>((1.0f - wavePulse) * 210)));
-                window.draw(wave);
+                tuongBiChieu = q;
                 break;
+            }
+        }
+
+        if (tuongBiChieu) {
+            sf::Vector2f kPos = chuyenDoiToaDoBanCoThanhManHinh(tuongBiChieu->getHang(), tuongBiChieu->getCot());
+
+            // Pulsing red danger glow
+            float ringR = 34.0f + pulse * 6.0f;
+            sf::CircleShape checkRing(ringR);
+            checkRing.setOrigin(ringR, ringR);
+            checkRing.setPosition(kPos);
+            checkRing.setFillColor(sf::Color(255, 30, 20, static_cast<sf::Uint8>(60 + pulse * 70)));
+            checkRing.setOutlineThickness(2.5f);
+            checkRing.setOutlineColor(sf::Color(255, 60, 40, static_cast<sf::Uint8>(180 + pulse * 75)));
+            window.draw(checkRing);
+
+            // Expanding shockwave ring
+            float wavePulse = std::fmod(bannerPulseClock.getElapsedTime().asSeconds() * 1.5f, 1.0f);
+            float waveR = 28.0f + wavePulse * 24.0f;
+            sf::CircleShape wave(waveR);
+            wave.setOrigin(waveR, waveR);
+            wave.setPosition(kPos);
+            wave.setFillColor(sf::Color::Transparent);
+            wave.setOutlineThickness(2.0f);
+            wave.setOutlineColor(sf::Color(255, 50, 40, static_cast<sf::Uint8>((1.0f - wavePulse) * 210)));
+            window.draw(wave);
+
+            // Highlight all pieces actively delivering check
+            auto danhSachChieu = banCo.timCacQuanDangChieu(banCo.getLuotChoi());
+            for (const auto& qAtk : danhSachChieu) {
+                if (!qAtk || qAtk->getDaBiAn()) continue;
+                sf::Vector2f atkPos = chuyenDoiToaDoBanCoThanhManHinh(qAtk->getHang(), qAtk->getCot());
+
+                // Pulsing orange-gold aura on checking piece
+                float aRingR = 32.0f + pulse * 4.0f;
+                sf::CircleShape atkRing(aRingR);
+                atkRing.setOrigin(aRingR, aRingR);
+                atkRing.setPosition(atkPos);
+                atkRing.setFillColor(sf::Color(255, 140, 20, static_cast<sf::Uint8>(50 + pulse * 60)));
+                atkRing.setOutlineThickness(2.2f);
+                atkRing.setOutlineColor(sf::Color(255, 185, 40, static_cast<sf::Uint8>(190 + pulse * 65)));
+                window.draw(atkRing);
+
+                ve4GocLuaChon(window, sf::Vector2f(atkPos.x - 30.0f, atkPos.y - 30.0f), sf::Vector2f(60.0f, 60.0f), 1.0f, 1.1f);
+
+                // Laser trajectory from attacker to King
+                veTiaChieu(atkPos, kPos, false);
+            }
+
+            // Check if king has no legal escape moves
+            bool tuongCoNuocChay = false;
+            for (int r = 0; r < BanCo::getSOHANG(); ++r) {
+                for (int c = 0; c < BanCo::getSOCOT(); ++c) {
+                    if (banCo.kiemTraNuocDiHopLe(tuongBiChieu->getHang(), tuongBiChieu->getCot(), r, c)) {
+                        tuongCoNuocChay = true;
+                        break;
+                    }
+                }
+                if (tuongCoNuocChay) break;
+            }
+
+            // If king cannot move and move hints are ON: highlight friendly pieces that can rescue the king!
+            if (!tuongCoNuocChay && hienGoiY) {
+                for (const auto& qSave : banCo.getCacQuan()) {
+                    if (qSave && !qSave->getDaBiAn() && qSave->getMau() == banCo.getLuotChoi() && !qSave->laTuong()) {
+                        bool coNuocGiai = false;
+                        for (int r = 0; r < BanCo::getSOHANG(); ++r) {
+                            for (int c = 0; c < BanCo::getSOCOT(); ++c) {
+                                if (banCo.kiemTraNuocDiHopLe(qSave->getHang(), qSave->getCot(), r, c)) {
+                                    coNuocGiai = true;
+                                    break;
+                                }
+                            }
+                            if (coNuocGiai) break;
+                        }
+
+                        if (coNuocGiai) {
+                            sf::Vector2f savePos = chuyenDoiToaDoBanCoThanhManHinh(qSave->getHang(), qSave->getCot());
+                            sf::CircleShape saveRing(31.0f);
+                            saveRing.setOrigin(31.0f, 31.0f);
+                            saveRing.setPosition(savePos);
+                            saveRing.setFillColor(sf::Color(40, 200, 110, static_cast<sf::Uint8>(40 + pulse * 45)));
+                            saveRing.setOutlineThickness(2.0f);
+                            saveRing.setOutlineColor(sf::Color(65, 235, 140, static_cast<sf::Uint8>(170 + pulse * 70)));
+                            window.draw(saveRing);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 5. Post-Match CHECKMATE / VICTORY Highlights:
+    // Highlight the checkmating pieces, the defeated General, and attack trajectories
+    if (banCo.getKetThuc() && banCo.getNguoiThang() != Mau::HOA) {
+        Mau mauThang = banCo.getNguoiThang();
+        Mau mauThua = (mauThang == Mau::DO) ? Mau::DEN : Mau::DO;
+
+        std::shared_ptr<QuanCo> tuongThua = nullptr;
+        for (const auto& q : banCo.getCacQuan()) {
+            if (q && !q->getDaBiAn() && q->getMau() == mauThua && q->laTuong()) {
+                tuongThua = q;
+                break;
+            }
+        }
+
+        if (tuongThua) {
+            sf::Vector2f kPos = chuyenDoiToaDoBanCoThanhManHinh(tuongThua->getHang(), tuongThua->getCot());
+
+            // 1. Defeated General: Pulsing crimson danger ring
+            float ringR = 35.0f + pulse * 6.0f;
+            sf::CircleShape defeatedRing(ringR);
+            defeatedRing.setOrigin(ringR, ringR);
+            defeatedRing.setPosition(kPos);
+            defeatedRing.setFillColor(sf::Color(255, 30, 20, static_cast<sf::Uint8>(80 + pulse * 65)));
+            defeatedRing.setOutlineThickness(3.0f);
+            defeatedRing.setOutlineColor(sf::Color(255, 60, 40, static_cast<sf::Uint8>(200 + pulse * 55)));
+            window.draw(defeatedRing);
+
+            // Expanding shockwaves around fallen general
+            float wave1 = std::fmod(bannerPulseClock.getElapsedTime().asSeconds() * 1.4f, 1.0f);
+            float wave2 = std::fmod(bannerPulseClock.getElapsedTime().asSeconds() * 1.4f + 0.5f, 1.0f);
+            auto drawWave = [&](float wp) {
+                float wr = 28.0f + wp * 28.0f;
+                sf::CircleShape w(wr);
+                w.setOrigin(wr, wr);
+                w.setPosition(kPos);
+                w.setFillColor(sf::Color::Transparent);
+                w.setOutlineThickness(2.0f);
+                w.setOutlineColor(sf::Color(255, 50, 40, static_cast<sf::Uint8>((1.0f - wp) * 220)));
+                window.draw(w);
+            };
+            drawWave(wave1);
+            drawWave(wave2);
+
+            // Crimson corner brackets on General
+            ve4GocLuaChon(window, sf::Vector2f(kPos.x - 32.0f, kPos.y - 32.0f), sf::Vector2f(64.0f, 64.0f), 2.0f, 1.4f);
+
+            // Check if there are active checkmating attackers
+            auto danhSachChieu = banCo.timCacQuanDangChieu(mauThua);
+
+            // Badge on General
+            bool placeAboveK = (tuongThua->getHang() > 4);
+            if (!danhSachChieu.empty()) {
+                veHuyHieuQuan(kPos, tiengViet ? "BỊ CHIẾU BÍ" : "CHECKMATED",
+                             sf::Color(145, 18, 18, 240), sf::Color(255, 75, 65), sf::Color(255, 235, 140), placeAboveK);
+            } else {
+                veHuyHieuQuan(kPos, tiengViet ? "BỊ KHỐN BÍ" : "STALEMATED",
+                             sf::Color(140, 75, 15, 240), sf::Color(245, 150, 40), sf::Color(255, 240, 160), placeAboveK);
+            }
+
+            // 2. Checkmating Pieces: Radiant imperial gold aura, 4 corner brackets, badges & attack beams!
+            for (const auto& qAtk : danhSachChieu) {
+                if (!qAtk || qAtk->getDaBiAn()) continue;
+                sf::Vector2f atkPos = chuyenDoiToaDoBanCoThanhManHinh(qAtk->getHang(), qAtk->getCot());
+
+                // Glowing radiant imperial gold halo
+                float haloR = 34.0f + pulse * 5.0f;
+                sf::CircleShape halo(haloR);
+                halo.setOrigin(haloR, haloR);
+                halo.setPosition(atkPos);
+                halo.setFillColor(sf::Color(255, 195, 25, static_cast<sf::Uint8>(80 + pulse * 65)));
+                halo.setOutlineThickness(3.0f);
+                halo.setOutlineColor(sf::Color(255, 225, 75, static_cast<sf::Uint8>(210 + pulse * 45)));
+                window.draw(halo);
+
+                // Gold 4 corner brackets
+                ve4GocLuaChon(window, sf::Vector2f(atkPos.x - 32.0f, atkPos.y - 32.0f), sf::Vector2f(64.0f, 64.0f), 2.0f, 1.4f);
+
+                // Laser trajectory pointing straight at defeated General!
+                veTiaChieu(atkPos, kPos, true);
+
+                // Badge on checking piece
+                bool placeAboveAtk = (qAtk->getHang() > 4);
+                veHuyHieuQuan(atkPos, tiengViet ? "CHIẾU BÍ" : "CHECKMATE",
+                             sf::Color(145, 95, 15, 240), sf::Color(255, 215, 60), sf::Color(255, 250, 190), placeAboveAtk);
             }
         }
     }
@@ -3373,7 +3676,7 @@ void GameManager::veConTroBanPhim() {
 }
 
 void GameManager::veThanhThongBao() {
-    bool checkAlert = !banCo.getKetThuc() && banCo.kiemTraChieu(banCo.getLuotChoi());
+    bool checkAlert = !banCo.getKetThuc() && (banCo.kiemTraChieu(banCo.getLuotChoi()) || banCo.kiemTraChieuTuong());
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
     bool isRed = (banCo.getLuotChoi() == Mau::DO);
     float pulse = 0.5f + 0.5f * std::sin(bannerPulseClock.getElapsedTime().asSeconds() * 8.0f);
@@ -3423,21 +3726,54 @@ void GameManager::veThanhThongBao() {
             window.draw(t);
         }
     } else if (checkAlert) {
-        sf::RectangleShape banner(sf::Vector2f(bw, bh));
-        banner.setPosition(bx, by);
+        bool tuongCoNuocChay = false;
+        for (const auto& q : banCo.getCacQuan()) {
+            if (q && !q->getDaBiAn() && q->getMau() == banCo.getLuotChoi() && q->laTuong()) {
+                int hk = q->getHang();
+                int ck = q->getCot();
+                for (int r = 0; r < BanCo::getSOHANG(); ++r) {
+                    for (int c = 0; c < BanCo::getSOCOT(); ++c) {
+                        if (banCo.kiemTraNuocDiHopLe(hk, ck, r, c)) {
+                            tuongCoNuocChay = true;
+                            break;
+                        }
+                    }
+                    if (tuongCoNuocChay) break;
+                }
+                break;
+            }
+        }
+
+        float bannerW = tuongCoNuocChay ? 480.0f : 580.0f;
+        float bannerX = (1200.0f - bannerW) / 2.0f;
+
+        sf::RectangleShape banner(sf::Vector2f(bannerW, bh));
+        banner.setPosition(bannerX, by);
         banner.setFillColor(sf::Color(160, 20, 20, static_cast<sf::Uint8>(190 + pulse * 65)));
         banner.setOutlineThickness(2.5f);
         banner.setOutlineColor(sf::Color(255, 220, 60));
         window.draw(banner);
 
-        ve4GocLuaChon(window, sf::Vector2f(bx, by), sf::Vector2f(bw, bh), 2.0f, 1.5f);
+        ve4GocLuaChon(window, sf::Vector2f(bannerX, by), sf::Vector2f(bannerW, bh), 2.0f, 1.5f);
 
         sf::Text t;
         t.setFont(fontBold);
-        t.setCharacterSize(16);
+        t.setCharacterSize(tuongCoNuocChay ? 16 : 14);
         t.setStyle(sf::Text::Bold);
-        std::string sideStr = (banCo.getLuotChoi() == Mau::DO) ? (tiengViet ? "BÊN ĐỎ ĐANG BỊ CHIẾU TƯỚNG!" : "RED KING IS UNDER CHECK!")
-                                                              : (tiengViet ? "BÊN ĐEN ĐANG BỊ CHIẾU TƯỚNG!" : "BLACK KING IS UNDER CHECK!");
+
+        std::string sideStr;
+        if (!tuongCoNuocChay) {
+            if (banCo.getLuotChoi() == Mau::DO) {
+                sideStr = tiengViet ? "TƯỚNG ĐỎ HẾT ĐƯỜNG! HÃY DÙNG QUÂN KHÁC HÓA GIẢI!"
+                                   : "RED KING TRAPPED! USE ANOTHER PIECE TO BLOCK!";
+            } else {
+                sideStr = tiengViet ? "TƯỚNG ĐEN HẾT ĐƯỜNG! HÃY DÙNG QUÂN KHÁC HÓA GIẢI!"
+                                   : "BLACK KING TRAPPED! USE ANOTHER PIECE TO BLOCK!";
+            }
+        } else {
+            sideStr = (banCo.getLuotChoi() == Mau::DO) ? (tiengViet ? "BÊN ĐỎ ĐANG BỊ CHIẾU TƯỚNG!" : "RED KING IS UNDER CHECK!")
+                                                      : (tiengViet ? "BÊN ĐEN ĐANG BỊ CHIẾU TƯỚNG!" : "BLACK KING IS UNDER CHECK!");
+        }
         t.setString(toUtf8("[!]  " + sideStr + "  [!]"));
         t.setFillColor(sf::Color(255, 245, 120));
         sf::FloatRect tb = t.getLocalBounds();
@@ -4072,9 +4408,48 @@ void GameManager::veThanhBenPhai() {
     }
 }
 
+void GameManager::veBannerXemBanCo() {
+    bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
+    float pulse = 0.5f + 0.5f * std::sin(bannerPulseClock.getElapsedTime().asSeconds() * 6.0f);
+
+    float bw = 760.0f;
+    float bh = 44.0f;
+    float bx = (1200.0f - bw) / 2.0f;
+    float by = 746.0f;
+
+    // Dark wood background with golden border
+    sf::RectangleShape plaque(sf::Vector2f(bw, bh));
+    plaque.setPosition(bx, by);
+    plaque.setFillColor(sf::Color(18, 12, 10, static_cast<sf::Uint8>(230 + pulse * 25)));
+    plaque.setOutlineThickness(1.8f);
+    plaque.setOutlineColor(sf::Color(240, 195, 75, static_cast<sf::Uint8>(200 + pulse * 55)));
+    window.draw(plaque);
+
+    ve4GocLuaChon(window, sf::Vector2f(bx, by), sf::Vector2f(bw, bh), 2.0f, 1.2f);
+
+    sf::Font& f = getMenuFont(tiengViet, true);
+    sf::Text t;
+    t.setFont(f);
+    t.setCharacterSize(14);
+    t.setStyle(sf::Text::Bold);
+    t.setString(toUtf8(tiengViet
+        ? "[!] ĐANG XEM BÀN CỜ - NHẤP CHUỘT HOẶC NHẤN PHÍM BẤT KỲ / ESC ĐỂ MỞ LẠI BẢNG TỔNG KẾT [!]"
+        : "[!] VIEWING BOARD - CLICK ANYWHERE OR PRESS ANY KEY / ESC TO RE-OPEN MATCH REPORT [!]"));
+    t.setFillColor(sf::Color(255, 235, 140));
+    sf::FloatRect tb = t.getLocalBounds();
+    t.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
+    t.setPosition(std::round(bx + bw / 2.0f), std::round(by + bh / 2.0f));
+    window.draw(t);
+}
+
 void GameManager::vePopupKetThuc() {
     if (!daPhatAmKetThuc) {
         phatAmThanhKetThuc();
+    }
+
+    if (xemBanCoSauKetThuc) {
+        veBannerXemBanCo();
+        return;
     }
 
     // Dark overlay covering 100% of physical window pixels
@@ -4300,8 +4675,8 @@ void GameManager::vePopupKetThuc() {
     tHint.setFont(fBodyBold);
     tHint.setCharacterSize(14);
     tHint.setStyle(sf::Text::Bold);
-    tHint.setString(toUtf8(tiengViet ? "[ Phím Enter: Bắt đầu ván mới  |  Phím ESC: Về Menu chính ]"
-                                     : "[ Enter: Play Again  |  ESC: Main Menu ]"));
+    tHint.setString(toUtf8(tiengViet ? "[ Enter: Chơi lại  |  V: Xem bàn cờ  |  ESC: Về Menu chính ]"
+                                     : "[ Enter: Play Again  |  V: View Board  |  ESC: Main Menu ]"));
     tHint.setFillColor(sf::Color(235, 210, 155));
     sf::FloatRect hb = tHint.getLocalBounds();
     tHint.setOrigin(hb.left + hb.width / 2.0f, hb.top + hb.height / 2.0f);

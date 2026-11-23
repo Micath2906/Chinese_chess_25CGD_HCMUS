@@ -251,6 +251,46 @@ bool BanCo::kiemTraChieuTuong() const {
     return false;
 }
 
+std::vector<std::shared_ptr<QuanCo>> BanCo::timCacQuanDangChieu(Mau mauBiChieu) const {
+    std::vector<std::shared_ptr<QuanCo>> danhSach;
+    std::shared_ptr<QuanCo> tuong = nullptr;
+    for (const auto& quan : cacQuan) {
+        if (!quan->getDaBiAn() && quan->getMau() == mauBiChieu && quan->laTuong()) {
+            tuong = quan;
+            break;
+        }
+    }
+    
+    if (!tuong) return danhSach;
+    
+    int hangTuong = tuong->getHang();
+    int cotTuong = tuong->getCot();
+    
+    // Check direct attack from enemy pieces
+    for (const auto& quan : cacQuan) {
+        if (!quan->getDaBiAn() && quan->getMau() != mauBiChieu) {
+            if (quan->kiemTraNuocDi(*this, hangTuong, cotTuong)) {
+                danhSach.push_back(quan);
+            }
+        }
+    }
+    
+    // Check flying general
+    if (kiemTraChieuTuong()) {
+        for (const auto& quan : cacQuan) {
+            if (!quan->getDaBiAn() && quan->getMau() != mauBiChieu && quan->laTuong()) {
+                bool daCo = false;
+                for (const auto& existing : danhSach) {
+                    if (existing == quan) { daCo = true; break; }
+                }
+                if (!daCo) danhSach.push_back(quan);
+            }
+        }
+    }
+    
+    return danhSach;
+}
+
 bool BanCo::kiemTraNuocDiHopLe(int hangBD, int cotBD, int hangKT, int cotKT) const {
     auto quan = timQuan(hangBD, cotBD);
     if (!quan) return false;
@@ -310,16 +350,10 @@ bool BanCo::diChuyen(int hangBD, int cotBD, int hangKT, int cotKT) {
         nguoiThang = Mau::HOA;
         hoaDoLapLai = true;
     }
-    // Check checkmate or stalemate
+    // Check checkmate or stalemate (In Xiangqi, no legal moves is always a LOSS for the trapped side)
     else if (!coNuocDiHopLe(luotChoi)) {
         ketThuc = true;
-        if (kiemTraChieu(luotChoi)) {
-            // Đang bị chiếu mà không còn nước đi hợp lệ -> Chiếu bí! Bên chiếu thắng
-            nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
-        } else {
-            // Không bị chiếu nhưng không còn nước đi hợp lệ -> Xử hòa
-            nguoiThang = Mau::HOA;
-        }
+        nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
     }
     
     return true;
@@ -393,11 +427,7 @@ bool BanCo::diTiep() {
         hoaDoLapLai = true;
     } else if (!coNuocDiHopLe(luotChoi)) {
         ketThuc = true;
-        if (kiemTraChieu(luotChoi)) {
-            nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
-        } else {
-            nguoiThang = Mau::HOA;
-        }
+        nguoiThang = (luotChoi == Mau::DO) ? Mau::DEN : Mau::DO;
     }
     
     return true;
