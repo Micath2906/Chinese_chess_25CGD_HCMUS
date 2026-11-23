@@ -755,12 +755,12 @@ void GameManager::capNhatViTriNutCaiDat() {
 
     // Tab 3: Language (Full-height Imperial Decree Parchment Cards)
     if (settingsLanguageButtons.size() >= 2) {
-        float langCardW = 310.0f;
+        float langCardW = 330.0f;
         float langCardH = 345.0f;
         float langCardY = 175.0f;
-        settingsLanguageButtons[0]->setPosition(415.0f + offX, langCardY);
+        settingsLanguageButtons[0]->setPosition(397.0f + offX, langCardY);
         settingsLanguageButtons[0]->setSize(langCardW, langCardH);
-        settingsLanguageButtons[1]->setPosition(735.0f + offX, langCardY);
+        settingsLanguageButtons[1]->setPosition(743.0f + offX, langCardY);
         settingsLanguageButtons[1]->setSize(langCardW, langCardH);
     }
 
@@ -943,14 +943,14 @@ void GameManager::khoiTaoDashboardSettings() {
     for (auto& gb : settingsGameplayButtons) gb->setCharacterSize(13);
 
     // 4. Language Selection Buttons (2 cards)
-    settingsLanguageButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 310.0f, 280.0f, "", fBold, [this]() {
+    settingsLanguageButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 330.0f, 345.0f, "", fBold, [this]() {
         Loc::setLanguage(Language::TIENG_VIET);
         capNhatFontTheoNgonNgu();
         capNhatNhanNut();
         soundManager.play(SoundType::CLICK);
         hienToast("Đã chọn ngôn ngữ: Tiếng Việt");
     }));
-    settingsLanguageButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 310.0f, 280.0f, "", fBold, [this]() {
+    settingsLanguageButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 330.0f, 345.0f, "", fBold, [this]() {
         Loc::setLanguage(Language::ENGLISH);
         capNhatFontTheoNgonNgu();
         capNhatNhanNut();
@@ -6619,14 +6619,14 @@ void GameManager::veSettingsMenu() {
             window.draw(gpGuideContent);
 
         } else if (activeSettingsTab == SettingsTab::LANGUAGE) {
-            float card1X = 415.0f + offX;
-            float card2X = 735.0f + offX;
+            float card1X = 397.0f + offX;
+            float card2X = 743.0f + offX;
             float cardY = 175.0f;
-            float cardW = 310.0f;
+            float cardW = 330.0f;
             float cardH = 345.0f;
 
             auto drawLangCardDecor = [&](float cx, bool isCurrent, const std::string& title, const std::string& sub,
-                                        const std::string& desc1, const std::string& desc2, const std::string& desc3,
+                                        const std::vector<std::string>& descBullets,
                                         const std::string& status, sf::Color headerTint) {
                 sf::RectangleShape cardBg(sf::Vector2f(cardW, cardH));
                 cardBg.setPosition(cx, cardY);
@@ -6672,14 +6672,50 @@ void GameManager::veSettingsMenu() {
                 div.setFillColor(sf::Color(165, 125, 60, 160));
                 window.draw(div);
 
+                // Word-wrapped Bullet Points (Strict boundary guard: never overflows card borders)
+                const float textPadX = 18.0f;
+                const float maxTextW = cardW - textPadX * 2.0f;
+                const unsigned int descCharSize = 13;
+
+                std::string fullDesc;
+                for (size_t i = 0; i < descBullets.size(); ++i) {
+                    std::string item = descBullets[i];
+                    std::istringstream iss(item);
+                    std::string word;
+                    std::string curLine;
+                    std::string wrappedBullet;
+                    while (iss >> word) {
+                        std::string test = curLine.empty() ? word : (curLine + " " + word);
+                        sf::Text probe;
+                        probe.setFont(fBold);
+                        probe.setCharacterSize(descCharSize);
+                        probe.setStyle(sf::Text::Bold);
+                        probe.setString(toUtf8(test));
+                        if (probe.getLocalBounds().width > maxTextW && !curLine.empty()) {
+                            if (!wrappedBullet.empty()) wrappedBullet += "\n";
+                            wrappedBullet += curLine;
+                            curLine = "  " + word;
+                        } else {
+                            curLine = test;
+                        }
+                    }
+                    if (!curLine.empty()) {
+                        if (!wrappedBullet.empty()) wrappedBullet += "\n";
+                        wrappedBullet += curLine;
+                    }
+
+                    if (!fullDesc.empty()) fullDesc += "\n";
+                    fullDesc += wrappedBullet;
+                }
+
                 sf::Text d;
                 d.setFont(fBold);
-                d.setString(toUtf8(desc1 + "\n" + desc2 + "\n" + desc3));
-                d.setCharacterSize(14);
+                d.setString(toUtf8(fullDesc));
+                d.setCharacterSize(descCharSize);
                 d.setStyle(sf::Text::Bold);
-                d.setLineSpacing(1.38f);
+                d.setLineSpacing(1.32f);
                 d.setFillColor(sf::Color(245, 235, 205));
-                d.setPosition(cx + 18.0f, cardY + 92.0f);
+                d.setPosition(cx + textPadX, cardY + 90.0f);
                 window.draw(d);
 
                 // Imperial Seal Status Badge
@@ -6702,19 +6738,25 @@ void GameManager::veSettingsMenu() {
                 window.draw(statText);
             };
 
-            drawLangCardDecor(card1X, tiengViet,
-                "TIẾNG VIỆT", "Cờ Tướng Thuần Việt",
+            std::vector<std::string> viBullets = {
                 "• Giao diện chữ tiếng Việt chuẩn xác.",
                 "• Quân: Tướng, Sĩ, Tượng, Xe, Pháo, Mã, Tốt.",
-                "• Phông chữ cổ phong thuần Việt hiển thị rõ nét.",
+                "• Phông chữ cổ phong thuần Việt hiển thị rõ nét."
+            };
+            drawLangCardDecor(card1X, tiengViet,
+                "TIẾNG VIỆT", "Cờ Tướng Thuần Việt",
+                viBullets,
                 tiengViet ? "ĐANG SỬ DỤNG" : "NHẤN ĐỂ CHỌN",
                 sf::Color(75, 22, 18, 230));
 
-            drawLangCardDecor(card2X, !tiengViet,
-                "ENGLISH", "International Xiangqi",
+            std::vector<std::string> enBullets = {
                 "• Standard international English interface.",
                 "• Pieces: General, Advisor, Elephant, Rook, etc.",
-                "• Crisp pixel & vector typography.",
+                "• Crisp pixel & vector typography."
+            };
+            drawLangCardDecor(card2X, !tiengViet,
+                "ENGLISH", "International Xiangqi",
+                enBullets,
                 !tiengViet ? "CURRENTLY ACTIVE" : "CLICK TO SELECT",
                 sf::Color(22, 42, 65, 230));
 
