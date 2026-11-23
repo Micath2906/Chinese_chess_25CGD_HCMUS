@@ -115,7 +115,9 @@ std::string Loc::get(LocKey key) {
         case LocKey::TAB_GRAPHICS:
             return vi ? "ĐỒ HỌA & BÀN CỜ" : "GRAPHICS";
         case LocKey::TAB_GAMEPLAY:
-            return vi ? "TRÒ CHƠI" : "GAMEPLAY";
+            return vi ? "LỐI CHƠI" : "GAMEPLAY";
+        case LocKey::TAB_LANGUAGE:
+            return vi ? "NGÔN NGỮ" : "LANGUAGE";
         case LocKey::TAB_CONTROLS:
             return vi ? "ĐIỀU KHIỂN" : "CONTROLS";
 

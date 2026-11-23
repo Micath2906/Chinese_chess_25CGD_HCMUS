@@ -79,6 +79,7 @@ enum class LocKey {
     TAB_AUDIO,
     TAB_GRAPHICS,
     TAB_GAMEPLAY,
+    TAB_LANGUAGE,
     TAB_CONTROLS,
 
     // Audio Settings

@@ -36,10 +36,12 @@ enum class CheDoChoi {
 };
 
 enum class SettingsTab {
-    AUDIO,
-    GRAPHICS,
+    SOUND,
     GAMEPLAY,
-    CONTROLS
+    LANGUAGE,
+    CONTROLS,
+    AUDIO = SOUND,
+    GRAPHICS = GAMEPLAY
 };
 
 enum class BoardTheme {
@@ -92,6 +94,8 @@ private:
 
     // Settings state
     SettingsTab activeSettingsTab;
+    bool settingsDetailOpen;
+    float settingsSlideProgress;
     BoardTheme boardTheme;
     PieceStyle pieceStyle;
     bool hienGoiY;
@@ -121,11 +125,17 @@ private:
 
     // Settings buttons
     std::vector<std::unique_ptr<Button>> settingsTabButtons;
+    std::unique_ptr<Button> settingsCloseBtn;
+    std::unique_ptr<Button> settingsCollapseBtn;
     std::vector<std::unique_ptr<Button>> settingsAudioButtons;
     std::vector<std::unique_ptr<Button>> settingsGraphicsButtons;
     std::vector<std::unique_ptr<Button>> settingsGameplayButtons;
+    std::vector<std::unique_ptr<Button>> settingsLanguageButtons;
     std::vector<std::unique_ptr<Button>> settingsControlButtons;
     std::vector<std::unique_ptr<Button>> settingsBottomButtons;
+    void moMenuCaiDat(TrangThai trangThaiTruoc);
+    void capNhatCaiDat(float dt);
+    void capNhatViTriNutCaiDat();
     
     // Atmosphere system
     AtmosphereSystem atmosphere;

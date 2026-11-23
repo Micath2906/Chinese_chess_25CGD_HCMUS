@@ -23,12 +23,18 @@ static std::string layThoiGianHienTai() {
     return oss.str();
 }
 
+static inline float lerpVal(float a, float b, float t) {
+    return a + t * (b - a);
+}
+
 GameManager::GameManager() 
     : window(sf::VideoMode(1200, 800), "Co Tuong - Chinese Chess (HCMUS OOP)", sf::Style::Default),
       trangThai(TrangThai::TITLE_SCREEN),
       cheDoChoi(CheDoChoi::HAI_NGUOI),
       rebindingAction(KeyAction::COUNT),
-      activeSettingsTab(SettingsTab::AUDIO),
+      activeSettingsTab(SettingsTab::SOUND),
+      settingsDetailOpen(false),
+      settingsSlideProgress(0.0f),
       boardTheme(BoardTheme::CLASSIC_WOOD),
       pieceStyle(PieceStyle::REALISTIC_WOOD),
       playSetupMode(0),
@@ -518,11 +524,14 @@ void GameManager::capNhatNhanNut() {
 
     // 2. Settings Dashboard Tabs & Buttons
     if (settingsTabButtons.size() >= 4) {
-        settingsTabButtons[0]->setLabel(Loc::get(LocKey::TAB_AUDIO));
-        settingsTabButtons[1]->setLabel(Loc::get(LocKey::TAB_GRAPHICS));
-        settingsTabButtons[2]->setLabel(Loc::get(LocKey::TAB_GAMEPLAY));
-        settingsTabButtons[3]->setLabel(Loc::get(LocKey::TAB_CONTROLS));
+        settingsTabButtons[0]->setLabel(isVi ? "ÂM THANH" : "SOUND");
+        settingsTabButtons[1]->setLabel(isVi ? "LỐI CHƠI" : "GAMEPLAY");
+        settingsTabButtons[2]->setLabel(isVi ? "NGÔN NGỮ" : "LANGUAGE");
+        settingsTabButtons[3]->setLabel(isVi ? "ĐIỀU KHIỂN" : "CONTROLS");
     }
+    if (settingsCloseBtn) settingsCloseBtn->setLabel(isVi ? "ĐÓNG" : "CLOSE");
+    if (settingsCollapseBtn) settingsCollapseBtn->setLabel(isVi ? "◀ THU GỌN" : "◀ BACK");
+
     if (sliderMaster) sliderMaster->setTitle(Loc::get(LocKey::SETTING_MASTER_VOL));
     if (sliderSfx) sliderSfx->setTitle(Loc::get(LocKey::SETTING_SFX_VOL));
     if (sliderBgm) sliderBgm->setTitle(Loc::get(LocKey::SETTING_BGM_VOL));
@@ -539,32 +548,23 @@ void GameManager::capNhatNhanNut() {
         );
     }
 
-    if (settingsGraphicsButtons.size() >= 7) {
-        std::string themeName = (boardTheme == BoardTheme::CLASSIC_WOOD) ? (isVi ? "Gỗ Cổ Điển" : "Aged Wood")
-                              : (boardTheme == BoardTheme::IMPERIAL_JADE) ? (isVi ? "Ngọc Bích" : "Imperial Jade")
-                              : (boardTheme == BoardTheme::MIDNIGHT_INK) ? (isVi ? "Mực Đen" : "Midnight Ink")
-                              : (isVi ? "Trúc Thư" : "Warm Bamboo");
-        std::string pieceName = (pieceStyle == PieceStyle::REALISTIC_WOOD) ? (isVi ? "Gỗ Cổ Điển" : "Classic Wood")
-                              : (pieceStyle == PieceStyle::VIETNAMESE) ? (isVi ? "Việt Hóa" : "Vietnamese")
-                              : (pieceStyle == PieceStyle::SHORT_CODE) ? (isVi ? "Rút Gọn" : "Short Code")
-                              : (isVi ? "Quốc Tế" : "International");
+    if (settingsGameplayButtons.size() >= 7) {
         std::string atmoName = (atmosphere.getStyle() == AtmosphereStyle::BAMBOO_LEAVES) ? (isVi ? "Lá Trúc" : "Bamboo Leaves")
                              : (atmosphere.getStyle() == AtmosphereStyle::PEACH_BLOSSOMS) ? (isVi ? "Hoa Đào" : "Peach Blossoms")
                              : (isVi ? "Đốm Lửa" : "Floating Sparks");
 
-        settingsGraphicsButtons[0]->setLabel((isVi ? "Mặt bàn cờ: " : "Board Theme: ") + themeName);
-        settingsGraphicsButtons[1]->setLabel((isVi ? "Kiểu quân cờ: " : "Piece Style: ") + pieceName);
-        settingsGraphicsButtons[2]->setLabel((isVi ? "Gợi ý nước đi: " : "Move Hints: ") + std::string(hienGoiY ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
-        settingsGraphicsButtons[3]->setLabel((isVi ? "Nước vừa đi: " : "Last Move: ") + std::string(hienNuocDiCuoi ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
-        settingsGraphicsButtons[4]->setLabel((isVi ? "Tọa độ bàn cờ: " : "Coordinates: ") + std::string(hienToaDo ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
-        settingsGraphicsButtons[5]->setLabel((isVi ? "Hiển thị: " : "Display: ") + std::string(fullscreenMode ? (isVi ? "Toàn Màn Hình" : "Fullscreen") : (isVi ? "Cửa Sổ" : "Windowed")));
-        settingsGraphicsButtons[6]->setLabel((isVi ? "Khí quyển: " : "Atmosphere: ") + atmoName);
+        settingsGameplayButtons[0]->setLabel((isVi ? "Tốc độ AI: " : "AI Pacing: ") + std::string(aiThinkRealistic ? (isVi ? "Tự nhiên (450ms)" : "Natural (450ms)") : (isVi ? "Tức thì" : "Instant")));
+        settingsGameplayButtons[1]->setLabel((isVi ? "Báo chiếu tướng: " : "Check Alarm: ") + std::string(checkAlarmSound ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
+        settingsGameplayButtons[2]->setLabel((isVi ? "Gợi ý nước đi: " : "Move Hints: ") + std::string(hienGoiY ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
+        settingsGameplayButtons[3]->setLabel((isVi ? "Nước vừa đi: " : "Last Move: ") + std::string(hienNuocDiCuoi ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
+        settingsGameplayButtons[4]->setLabel((isVi ? "Tọa độ bàn cờ: " : "Coordinates: ") + std::string(hienToaDo ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
+        settingsGameplayButtons[5]->setLabel((isVi ? "Hiển thị: " : "Display: ") + std::string(fullscreenMode ? (isVi ? "Toàn Màn Hình" : "Fullscreen") : (isVi ? "Cửa Sổ" : "Windowed")));
+        settingsGameplayButtons[6]->setLabel((isVi ? "Khí quyển: " : "Atmosphere: ") + atmoName);
     }
 
-    if (settingsGameplayButtons.size() >= 3) {
-        settingsGameplayButtons[0]->setLabel(isVi ? "Ngôn ngữ: Tiếng Việt" : "Language: English");
-        settingsGameplayButtons[1]->setLabel((isVi ? "Tốc độ AI: " : "AI Pacing: ") + std::string(aiThinkRealistic ? (isVi ? "Tự nhiên (450ms)" : "Natural (450ms)") : (isVi ? "Tức thì" : "Instant")));
-        settingsGameplayButtons[2]->setLabel((isVi ? "Báo chiếu tướng: " : "Check Alarm: ") + std::string(checkAlarmSound ? (isVi ? "BẬT" : "ON") : (isVi ? "TẮT" : "OFF")));
+    if (settingsLanguageButtons.size() >= 2) {
+        settingsLanguageButtons[0]->setLabel(isVi ? "TIẾNG VIỆT" : "VIETNAMESE");
+        settingsLanguageButtons[1]->setLabel(isVi ? "ENGLISH" : "ENGLISH");
     }
 
     if (settingsControlButtons.size() >= 7) {
@@ -581,10 +581,9 @@ void GameManager::capNhatNhanNut() {
         }
     }
 
-    if (settingsBottomButtons.size() >= 3) {
+    if (settingsBottomButtons.size() >= 2) {
         settingsBottomButtons[0]->setLabel(Loc::get(LocKey::BTN_APPLY_SAVE));
         settingsBottomButtons[1]->setLabel(Loc::get(LocKey::BTN_RESTORE_DEFAULTS));
-        settingsBottomButtons[2]->setLabel(Loc::get(LocKey::BACK));
     }
 
     if (auto b = menuIntro.layButton(0)) {
@@ -611,242 +610,376 @@ void GameManager::dongMenuPopUp() {
     soundManager.play(SoundType::CLICK);
 }
 
+void GameManager::moMenuCaiDat(TrangThai trangThaiTruoc) {
+    trangThaiTruocSettings = trangThaiTruoc;
+    trangThai = TrangThai::SETTINGS_MENU;
+    settingsDetailOpen = false;
+    settingsSlideProgress = 0.0f;
+    rebindingAction = KeyAction::COUNT;
+    khoiTaoDashboardSettings();
+    capNhatViTriNutCaiDat();
+}
+
+void GameManager::capNhatCaiDat(float dt) {
+    float target = settingsDetailOpen ? 1.0f : 0.0f;
+    float speed = 5.2f;
+    if (std::abs(settingsSlideProgress - target) > 0.001f) {
+        if (settingsSlideProgress < target) {
+            settingsSlideProgress = std::min(target, settingsSlideProgress + dt * speed);
+        } else {
+            settingsSlideProgress = std::max(target, settingsSlideProgress - dt * speed);
+        }
+        capNhatViTriNutCaiDat();
+    } else {
+        if (settingsSlideProgress != target) {
+            settingsSlideProgress = target;
+            capNhatViTriNutCaiDat();
+        }
+    }
+}
+
+void GameManager::capNhatViTriNutCaiDat() {
+    float t = settingsSlideProgress * settingsSlideProgress * (3.0f - 2.0f * settingsSlideProgress);
+
+    // Left/Center Panel Geometry
+    float panelX = lerpVal(370.0f, 130.0f, t);
+    float panelY = lerpVal(140.0f, 120.0f, t);
+    float panelW = lerpVal(460.0f, 260.0f, t);
+    float panelH = lerpVal(520.0f, 560.0f, t);
+
+    // 4 Category Buttons
+    float btnW = lerpVal(380.0f, 224.0f, t);
+    float btnH = 58.0f;
+    for (size_t i = 0; i < settingsTabButtons.size() && i < 4; ++i) {
+        float bx = lerpVal(410.0f, 148.0f, t);
+        float by = lerpVal(210.0f + i * 66.0f, 178.0f + i * 68.0f, t);
+        settingsTabButtons[i]->setPosition(bx, by);
+        settingsTabButtons[i]->setSize(btnW, btnH);
+    }
+
+    if (settingsCloseBtn) {
+        settingsCloseBtn->setPosition(panelX + (panelW - 200.0f) / 2.0f, panelY + panelH - 60.0f);
+        settingsCloseBtn->setSize(200.0f, 42.0f);
+    }
+    if (settingsCollapseBtn) {
+        settingsCollapseBtn->setPosition(148.0f, 120.0f + 560.0f - 60.0f);
+        settingsCollapseBtn->setSize(224.0f, 44.0f);
+    }
+
+    // Right Panel Geometry
+    float rightPanelX = lerpVal(1220.0f, 410.0f, t);
+    float rightPanelY = 120.0f;
+    float offX = rightPanelX - 410.0f;
+
+    // Reposition controls inside right panel
+    float sX = 434.0f + offX;
+    float sW = 340.0f;
+    if (sliderMaster) sliderMaster->setPosition(sX, 196.0f);
+    if (settingsAudioButtons.size() >= 2) {
+        settingsAudioButtons[0]->setPosition(sX, 236.0f);
+        settingsAudioButtons[0]->setSize(sW, 36.0f);
+    }
+    if (sliderSfx) sliderSfx->setPosition(sX, 282.0f);
+    if (settingsAudioButtons.size() >= 2) {
+        settingsAudioButtons[1]->setPosition(sX, 322.0f);
+        settingsAudioButtons[1]->setSize(sW, 36.0f);
+    }
+    if (sliderBgm) sliderBgm->setPosition(sX, 368.0f);
+
+    float sbY = 440.0f;
+    float sbW = 62.0f;
+    float sbGap = 7.0f;
+    for (size_t i = 0; i < soundboardButtons.size(); ++i) {
+        soundboardButtons[i]->setPosition(sX + i * (sbW + sbGap), sbY);
+        soundboardButtons[i]->setSize(sbW, 36.0f);
+    }
+
+    // Gameplay buttons
+    float gpCol1X = 434.0f + offX;
+    float gpCol2X = 750.0f + offX;
+    float gpW = 300.0f;
+    float gpH = 40.0f;
+    float gpStep = 50.0f;
+    if (settingsGameplayButtons.size() >= 4) {
+        settingsGameplayButtons[0]->setPosition(gpCol1X, 206.0f);
+        settingsGameplayButtons[0]->setSize(gpW, gpH);
+        settingsGameplayButtons[1]->setPosition(gpCol1X, 206.0f + gpStep);
+        settingsGameplayButtons[1]->setSize(gpW, gpH);
+        settingsGameplayButtons[2]->setPosition(gpCol1X, 206.0f + gpStep * 2.0f);
+        settingsGameplayButtons[2]->setSize(gpW, gpH);
+        settingsGameplayButtons[3]->setPosition(gpCol1X, 206.0f + gpStep * 3.0f);
+        settingsGameplayButtons[3]->setSize(gpW, gpH);
+    }
+    if (settingsGameplayButtons.size() >= 7) {
+        settingsGameplayButtons[4]->setPosition(gpCol2X, 206.0f);
+        settingsGameplayButtons[4]->setSize(gpW, gpH);
+        settingsGameplayButtons[5]->setPosition(gpCol2X, 206.0f + gpStep);
+        settingsGameplayButtons[5]->setSize(gpW, gpH);
+        settingsGameplayButtons[6]->setPosition(gpCol2X, 206.0f + gpStep * 2.0f);
+        settingsGameplayButtons[6]->setSize(gpW, gpH);
+    }
+    if (sliderAtmosphere) {
+        sliderAtmosphere->setPosition(gpCol2X, 206.0f + gpStep * 3.0f + 6.0f);
+    }
+
+    // Language buttons
+    if (settingsLanguageButtons.size() >= 2) {
+        float langCardW = 290.0f;
+        float langCardH = 220.0f;
+        settingsLanguageButtons[0]->setPosition(444.0f + offX, 200.0f);
+        settingsLanguageButtons[0]->setSize(langCardW, langCardH);
+        settingsLanguageButtons[1]->setPosition(756.0f + offX, 200.0f);
+        settingsLanguageButtons[1]->setSize(langCardW, langCardH);
+    }
+
+    // Controls buttons
+    float pW = 94.0f;
+    float pGap = 9.0f;
+    float pX = 434.0f + offX;
+    if (settingsControlButtons.size() >= 10) {
+        settingsControlButtons[7]->setPosition(pX, 196.0f);
+        settingsControlButtons[7]->setSize(pW, 36.0f);
+        settingsControlButtons[8]->setPosition(pX + pW + pGap, 196.0f);
+        settingsControlButtons[8]->setSize(pW, 36.0f);
+        settingsControlButtons[9]->setPosition(pX + (pW + pGap) * 2.0f, 196.0f);
+        settingsControlButtons[9]->setSize(pW, 36.0f);
+
+        float kCol1X = 434.0f + offX;
+        float kCol2X = 750.0f + offX;
+        float kW = 300.0f;
+        float kH = 38.0f;
+        float kStep = 46.0f;
+        for (int a = 0; a < 4; ++a) {
+            settingsControlButtons[a]->setPosition(kCol1X, 258.0f + a * kStep);
+            settingsControlButtons[a]->setSize(kW, kH);
+        }
+        for (int a = 4; a < 7; ++a) {
+            settingsControlButtons[a]->setPosition(kCol2X, 258.0f + (a - 4) * kStep);
+            settingsControlButtons[a]->setSize(kW, kH);
+        }
+    }
+
+    // Bottom action buttons in right panel
+    if (settingsBottomButtons.size() >= 2) {
+        float bY = 120.0f + 560.0f - 58.0f;
+        settingsBottomButtons[0]->setPosition(434.0f + offX, bY);
+        settingsBottomButtons[0]->setSize(200.0f, 44.0f);
+        settingsBottomButtons[1]->setPosition(650.0f + offX, bY);
+        settingsBottomButtons[1]->setSize(200.0f, 44.0f);
+    }
+}
+
 void GameManager::khoiTaoDashboardSettings() {
     settingsTabButtons.clear();
     settingsAudioButtons.clear();
     settingsGraphicsButtons.clear();
     settingsGameplayButtons.clear();
+    settingsLanguageButtons.clear();
     settingsControlButtons.clear();
     settingsBottomButtons.clear();
-
-    // Dashboard geometry: X=160, Y=120, W=880, H=560 in 1200x800
-    // Top Horizontal Jade Tab Bar (Y = 140, H = 42, 4 tabs centered in 880px)
-    float tabW = 190.0f;
-    float tabH = 42.0f;
-    float tabY = 140.0f;
-    float tabGap = 16.0f;
-    float tabStartX = 160.0f + (880.0f - (tabW * 4.0f + tabGap * 3.0f)) / 2.0f; // 196.0f
-
-    settingsTabButtons.push_back(std::make_unique<Button>(tabStartX, tabY, tabW, tabH, Loc::get(LocKey::TAB_AUDIO), font, [this]() {
-        activeSettingsTab = SettingsTab::AUDIO;
-        rebindingAction = KeyAction::COUNT;
-        soundManager.play(SoundType::CLICK);
-    }));
-    settingsTabButtons.push_back(std::make_unique<Button>(tabStartX + (tabW + tabGap), tabY, tabW, tabH, Loc::get(LocKey::TAB_GRAPHICS), font, [this]() {
-        activeSettingsTab = SettingsTab::GRAPHICS;
-        rebindingAction = KeyAction::COUNT;
-        soundManager.play(SoundType::CLICK);
-    }));
-    settingsTabButtons.push_back(std::make_unique<Button>(tabStartX + (tabW + tabGap) * 2.0f, tabY, tabW, tabH, Loc::get(LocKey::TAB_GAMEPLAY), font, [this]() {
-        activeSettingsTab = SettingsTab::GAMEPLAY;
-        rebindingAction = KeyAction::COUNT;
-        soundManager.play(SoundType::CLICK);
-    }));
-    settingsTabButtons.push_back(std::make_unique<Button>(tabStartX + (tabW + tabGap) * 3.0f, tabY, tabW, tabH, Loc::get(LocKey::TAB_CONTROLS), font, [this]() {
-        activeSettingsTab = SettingsTab::CONTROLS;
-        rebindingAction = KeyAction::COUNT;
-        soundManager.play(SoundType::CLICK);
-    }));
-    for (auto& tb : settingsTabButtons) {
-        tb->setCharacterSize(16);
-    }
-
-    // Symmetrical Left Column (X=188..592, interior colX=206, colW=368, Y=202..600)
-    float colX = 206.0f;
-    float colW = 368.0f;
-    float startItemY = 232.0f;
-
-    sliderMaster = std::make_unique<Slider>(colX, startItemY, colW, 20.0f, 0.0f, 100.0f,
-        soundManager.getMasterVolume(), Loc::get(LocKey::SETTING_MASTER_VOL), font,
-        [this](float val) { soundManager.setMasterVolume(val); });
-
-    settingsAudioButtons.clear();
-    settingsAudioButtons.push_back(std::make_unique<Button>(colX, 266.0f, colW, 36.0f, "", font, [this]() {
-        soundManager.setSfxBat(!soundManager.getSfxBat());
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsAudioButtons.back()->setCharacterSize(15);
-
-    sliderSfx = std::make_unique<Slider>(colX, 336.0f, colW, 20.0f, 0.0f, 100.0f,
-        soundManager.getSfxVolume(), Loc::get(LocKey::SETTING_SFX_VOL), font,
-        [this](float val) { soundManager.setSfxVolume(val); });
-
-    settingsAudioButtons.push_back(std::make_unique<Button>(colX, 370.0f, colW, 36.0f, "", font, [this]() {
-        soundManager.setBgmBat(!soundManager.getBgmBat());
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsAudioButtons.back()->setCharacterSize(15);
-
-    sliderBgm = std::make_unique<Slider>(colX, 440.0f, colW, 20.0f, 0.0f, 100.0f,
-        soundManager.getBgmVolume(), Loc::get(LocKey::SETTING_BGM_VOL), font,
-        [this](float val) { soundManager.setBgmVolume(val); });
-
-    // Interactive Soundboard (5 compact jade buttons inside 368px width)
     soundboardButtons.clear();
-    float sbY = 516.0f;
-    float sbW = 68.0f;
-    float sbH = 38.0f;
-    float sbGap = 7.0f;
 
-    soundboardButtons.push_back(std::make_unique<Button>(colX, sbY, sbW, sbH, "Move", font, [this]() {
-        soundManager.play(SoundType::MOVE);
-    }));
-    soundboardButtons.push_back(std::make_unique<Button>(colX + (sbW + sbGap), sbY, sbW, sbH, "Capture", font, [this]() {
-        soundManager.play(SoundType::CAPTURE);
-    }));
-    soundboardButtons.push_back(std::make_unique<Button>(colX + (sbW + sbGap) * 2.0f, sbY, sbW, sbH, "Check", font, [this]() {
-        soundManager.play(SoundType::CHECK);
-    }));
-    soundboardButtons.push_back(std::make_unique<Button>(colX + (sbW + sbGap) * 3.0f, sbY, sbW, sbH, "Win", font, [this]() {
-        soundManager.play(SoundType::VICTORY);
-    }));
-    soundboardButtons.push_back(std::make_unique<Button>(colX + (sbW + sbGap) * 4.0f, sbY, sbW, sbH, "Click", font, [this]() {
+    bool isVi = (Loc::getLanguage() == Language::TIENG_VIET);
+    auto& mAssets = getMenuAssets();
+    sf::Font& f = mAssets.vnFontLoaded ? mAssets.vnFont : font;
+    sf::Font& fBold = mAssets.fontBoldLoaded ? mAssets.fontBold : fontBold;
+
+    // 1. Four Category Tabs: Sound, Gameplay, Language, Controls
+    settingsTabButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 380.0f, 58.0f, isVi ? "ÂM THANH" : "SOUND", fBold, [this]() {
         soundManager.play(SoundType::CLICK);
+        activeSettingsTab = SettingsTab::SOUND;
+        settingsDetailOpen = true;
+        rebindingAction = KeyAction::COUNT;
     }));
-    for (auto& sb : soundboardButtons) {
-        sb->setCharacterSize(13);
+    settingsTabButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 380.0f, 58.0f, isVi ? "LỐI CHƠI" : "GAMEPLAY", fBold, [this]() {
+        soundManager.play(SoundType::CLICK);
+        activeSettingsTab = SettingsTab::GAMEPLAY;
+        settingsDetailOpen = true;
+        rebindingAction = KeyAction::COUNT;
+    }));
+    settingsTabButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 380.0f, 58.0f, isVi ? "NGÔN NGỮ" : "LANGUAGE", fBold, [this]() {
+        soundManager.play(SoundType::CLICK);
+        activeSettingsTab = SettingsTab::LANGUAGE;
+        settingsDetailOpen = true;
+        rebindingAction = KeyAction::COUNT;
+    }));
+    settingsTabButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 380.0f, 58.0f, isVi ? "ĐIỀU KHIỂN" : "CONTROLS", fBold, [this]() {
+        soundManager.play(SoundType::CLICK);
+        activeSettingsTab = SettingsTab::CONTROLS;
+        settingsDetailOpen = true;
+        rebindingAction = KeyAction::COUNT;
+    }));
+
+    for (auto& btn : settingsTabButtons) {
+        btn->setCharacterSize(16);
+        btn->setColors(sf::Color(250, 235, 180), sf::Color(255, 245, 190), sf::Color(255, 250, 210));
     }
 
-    // Graphics Tab Controls
-    settingsGraphicsButtons.clear();
-    float gfxStartY = 216.0f;
-    float gfxStep = 40.0f;
-    float gfxH = 34.0f;
-
-    settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, gfxStartY, colW, gfxH, "", font, [this]() {
-        int t = (static_cast<int>(boardTheme) + 1) % 4;
-        boardTheme = static_cast<BoardTheme>(t);
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, gfxStartY + gfxStep, colW, gfxH, "", font, [this]() {
-        int s = (static_cast<int>(pieceStyle) + 1) % 4;
-        pieceStyle = static_cast<PieceStyle>(s);
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, gfxStartY + gfxStep * 2.0f, colW, gfxH, "", font, [this]() {
-        hienGoiY = !hienGoiY;
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, gfxStartY + gfxStep * 3.0f, colW, gfxH, "", font, [this]() {
-        hienNuocDiCuoi = !hienNuocDiCuoi;
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, gfxStartY + gfxStep * 4.0f, colW, gfxH, "", font, [this]() {
-        hienToaDo = !hienToaDo;
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, gfxStartY + gfxStep * 5.0f, colW, gfxH, "", font, [this]() {
-        fullscreenMode = !fullscreenMode;
-        apDungCheDoManHinh();
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsGraphicsButtons.push_back(std::make_unique<Button>(colX, gfxStartY + gfxStep * 6.0f, colW, gfxH, "", font, [this]() {
-        atmosphere.cycleStyle();
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    for (auto& gb : settingsGraphicsButtons) {
-        gb->setCharacterSize(15);
-    }
-
-    sliderAtmosphere = std::make_unique<Slider>(colX, 534.0f, colW, 20.0f, 0.0f, 100.0f,
-        atmosphere.getDensity(), Loc::get(LocKey::SETTING_ATMOSPHERE_DENSITY), font,
-        [this](float val) { atmosphere.setDensity(val); });
-
-    // Gameplay Tab Controls
-    float gpStartY = 236.0f;
-    float gpItemH = 48.0f;
-    float gpGapY = 68.0f;
-
-    settingsGameplayButtons.push_back(std::make_unique<Button>(colX, gpStartY, colW, gpItemH, "", font, [this]() {
-        Loc::toggleLanguage();
-        capNhatFontTheoNgonNgu();
-        capNhatNhanNut();
-        soundManager.play(SoundType::CLICK);
-    }));
-    settingsGameplayButtons.push_back(std::make_unique<Button>(colX, gpStartY + gpGapY, colW, gpItemH, "", font, [this]() {
-        aiThinkRealistic = !aiThinkRealistic;
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    settingsGameplayButtons.push_back(std::make_unique<Button>(colX, gpStartY + gpGapY * 2.0f, colW, gpItemH, "", font, [this]() {
-        checkAlarmSound = !checkAlarmSound;
-        soundManager.play(SoundType::CLICK);
-        capNhatNhanNut();
-    }));
-    for (auto& pb : settingsGameplayButtons) {
-        pb->setCharacterSize(15);
-    }
-
-    // Controls tab (7 keybinds + 3 presets)
-    float ctrlStartY = 216.0f;
-    float ctrlItemH = 34.0f;
-    float ctrlGapY = 41.0f;
-
-    for (int a = 0; a < 7; ++a) {
-        KeyAction act = static_cast<KeyAction>(a);
-        settingsControlButtons.push_back(std::make_unique<Button>(colX, ctrlStartY + ctrlGapY * a, colW, ctrlItemH, "", font, [this, act]() {
-            rebindingAction = act;
-            capNhatNhanNut();
-            soundManager.play(SoundType::CLICK);
-        }));
-        settingsControlButtons.back()->setCharacterSize(15);
-    }
-
-    float pbtnW = 116.0f;
-    float pbtnGap = 10.0f;
-    float pbtnY = 516.0f;
-    settingsControlButtons.push_back(std::make_unique<Button>(colX, pbtnY, pbtnW, 38.0f, "WASD", font, [this]() {
-        keyConfig.setPreset(KeyPreset::WASD);
-        rebindingAction = KeyAction::COUNT;
-        capNhatNhanNut();
-        soundManager.play(SoundType::CLICK);
-    }));
-    settingsControlButtons.push_back(std::make_unique<Button>(colX + (pbtnW + pbtnGap), pbtnY, pbtnW, 38.0f, "Arrows", font, [this]() {
-        keyConfig.setPreset(KeyPreset::ARROWS);
-        rebindingAction = KeyAction::COUNT;
-        capNhatNhanNut();
-        soundManager.play(SoundType::CLICK);
-    }));
-    settingsControlButtons.push_back(std::make_unique<Button>(colX + (pbtnW + pbtnGap) * 2.0f, pbtnY, pbtnW, 38.0f, "IJKL", font, [this]() {
-        keyConfig.setPreset(KeyPreset::IJKL);
-        rebindingAction = KeyAction::COUNT;
-        capNhatNhanNut();
-        soundManager.play(SoundType::CLICK);
-    }));
-
-    // Bottom action bar inside dashboard (Y = 618, centered across [160..1040])
-    float bY = 618.0f;
-    settingsBottomButtons.push_back(std::make_unique<Button>(240.0f, bY, 220.0f, 46.0f, Loc::get(LocKey::BTN_APPLY_SAVE), font, [this]() {
-        luuCaiDat();
-        soundManager.play(SoundType::VICTORY);
-        hienToast((Loc::getLanguage() == Language::TIENG_VIET) ? "Đã lưu và áp dụng cài đặt!" : "Settings applied & saved!");
-    }));
-
-    settingsBottomButtons.push_back(std::make_unique<Button>(490.0f, bY, 220.0f, 46.0f, Loc::get(LocKey::BTN_RESTORE_DEFAULTS), font, [this]() {
-        khoiPhucCaiDatMacDinh();
-        soundManager.play(SoundType::CLICK);
-        hienToast((Loc::getLanguage() == Language::TIENG_VIET) ? "Đã khôi phục mặc định." : "Restored defaults.");
-    }));
-
-    settingsBottomButtons.push_back(std::make_unique<Button>(740.0f, bY, 220.0f, 46.0f, Loc::get(LocKey::BACK), font, [this]() {
-        rebindingAction = KeyAction::COUNT;
+    // Close button (when centered popup)
+    settingsCloseBtn = std::make_unique<Button>(0.0f, 0.0f, 200.0f, 42.0f, isVi ? "ĐÓNG" : "CLOSE", fBold, [this]() {
         soundManager.play(SoundType::CLICK);
         trangThai = trangThaiTruocSettings;
         if (trangThai == TrangThai::DANG_CHOI) {
             hienMenuPopUp = true;
         }
+    });
+    settingsCloseBtn->setCharacterSize(15);
+    settingsCloseBtn->setColors(sf::Color(240, 220, 180), sf::Color(255, 240, 190), sf::Color(255, 250, 210));
+
+    // Collapse button (when slid to left)
+    settingsCollapseBtn = std::make_unique<Button>(0.0f, 0.0f, 224.0f, 44.0f, isVi ? "◀ THU GỌN" : "◀ BACK", fBold, [this]() {
+        soundManager.play(SoundType::CLICK);
+        settingsDetailOpen = false;
+        rebindingAction = KeyAction::COUNT;
+    });
+    settingsCollapseBtn->setCharacterSize(15);
+    settingsCollapseBtn->setColors(sf::Color(240, 220, 180), sf::Color(255, 240, 190), sf::Color(255, 250, 210));
+
+    // 2. Sound Controls
+    sliderMaster = std::make_unique<Slider>(0.0f, 0.0f, 340.0f, 20.0f, 0.0f, 100.0f,
+        soundManager.getMasterVolume(), Loc::get(LocKey::SETTING_MASTER_VOL), fBold,
+        [this](float val) { soundManager.setMasterVolume(val); });
+
+    settingsAudioButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 340.0f, 36.0f, "", fBold, [this]() {
+        soundManager.setSfxBat(!soundManager.getSfxBat());
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsAudioButtons.back()->setCharacterSize(14);
+
+    sliderSfx = std::make_unique<Slider>(0.0f, 0.0f, 340.0f, 20.0f, 0.0f, 100.0f,
+        soundManager.getSfxVolume(), Loc::get(LocKey::SETTING_SFX_VOL), fBold,
+        [this](float val) { soundManager.setSfxVolume(val); });
+
+    settingsAudioButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 340.0f, 36.0f, "", fBold, [this]() {
+        soundManager.setBgmBat(!soundManager.getBgmBat());
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsAudioButtons.back()->setCharacterSize(14);
+
+    sliderBgm = std::make_unique<Slider>(0.0f, 0.0f, 340.0f, 20.0f, 0.0f, 100.0f,
+        soundManager.getBgmVolume(), Loc::get(LocKey::SETTING_BGM_VOL), fBold,
+        [this](float val) { soundManager.setBgmVolume(val); });
+
+    // Soundboard
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 62.0f, 36.0f, isVi ? "Đi" : "Move", fBold, [this]() { soundManager.play(SoundType::MOVE); }));
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 62.0f, 36.0f, isVi ? "Ăn" : "Capture", fBold, [this]() { soundManager.play(SoundType::CAPTURE); }));
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 62.0f, 36.0f, isVi ? "Chiếu" : "Check", fBold, [this]() { soundManager.play(SoundType::CHECK); }));
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 62.0f, 36.0f, isVi ? "Thắng" : "Win", fBold, [this]() { soundManager.play(SoundType::VICTORY); }));
+    soundboardButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 62.0f, 36.0f, "Click", fBold, [this]() { soundManager.play(SoundType::CLICK); }));
+    for (auto& sb : soundboardButtons) sb->setCharacterSize(12);
+
+    // 3. Gameplay Controls (7 buttons)
+    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 40.0f, "", fBold, [this]() {
+        aiThinkRealistic = !aiThinkRealistic;
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 40.0f, "", fBold, [this]() {
+        checkAlarmSound = !checkAlarmSound;
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 40.0f, "", fBold, [this]() {
+        hienGoiY = !hienGoiY;
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 40.0f, "", fBold, [this]() {
+        hienNuocDiCuoi = !hienNuocDiCuoi;
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 40.0f, "", fBold, [this]() {
+        hienToaDo = !hienToaDo;
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 40.0f, "", fBold, [this]() {
+        fullscreenMode = !fullscreenMode;
+        apDungCheDoManHinh();
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    settingsGameplayButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 40.0f, "", fBold, [this]() {
+        atmosphere.cycleStyle();
+        soundManager.play(SoundType::CLICK);
+        capNhatNhanNut();
+    }));
+    for (auto& gb : settingsGameplayButtons) gb->setCharacterSize(13);
+
+    sliderAtmosphere = std::make_unique<Slider>(0.0f, 0.0f, 300.0f, 20.0f, 0.0f, 100.0f,
+        atmosphere.getDensity(), Loc::get(LocKey::SETTING_ATMOSPHERE_DENSITY), fBold,
+        [this](float val) { atmosphere.setDensity(val); });
+
+    // 4. Language Selection Buttons (2 cards)
+    settingsLanguageButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 290.0f, 220.0f, "", fBold, [this]() {
+        Loc::setLanguage(Language::TIENG_VIET);
+        capNhatFontTheoNgonNgu();
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+        hienToast("Đã chọn ngôn ngữ: Tiếng Việt");
+    }));
+    settingsLanguageButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 290.0f, 220.0f, "", fBold, [this]() {
+        Loc::setLanguage(Language::ENGLISH);
+        capNhatFontTheoNgonNgu();
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+        hienToast("Language set to: English");
     }));
 
+    // 5. Controls Tab (7 action keybinds + 3 presets)
+    for (int a = 0; a < 7; ++a) {
+        KeyAction act = static_cast<KeyAction>(a);
+        settingsControlButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 300.0f, 38.0f, "", fBold, [this, act]() {
+            rebindingAction = act;
+            capNhatNhanNut();
+            soundManager.play(SoundType::CLICK);
+        }));
+        settingsControlButtons.back()->setCharacterSize(13);
+    }
+    // Presets
+    settingsControlButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 94.0f, 36.0f, "WASD", fBold, [this]() {
+        keyConfig.setPreset(KeyPreset::WASD);
+        rebindingAction = KeyAction::COUNT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    }));
+    settingsControlButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 94.0f, 36.0f, "Arrows", fBold, [this]() {
+        keyConfig.setPreset(KeyPreset::ARROWS);
+        rebindingAction = KeyAction::COUNT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    }));
+    settingsControlButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 94.0f, 36.0f, "IJKL", fBold, [this]() {
+        keyConfig.setPreset(KeyPreset::IJKL);
+        rebindingAction = KeyAction::COUNT;
+        capNhatNhanNut();
+        soundManager.play(SoundType::CLICK);
+    }));
+    for (size_t i = 7; i < settingsControlButtons.size(); ++i) {
+        settingsControlButtons[i]->setCharacterSize(13);
+    }
+
+    // 6. Bottom action buttons in right panel
+    settingsBottomButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 200.0f, 44.0f, Loc::get(LocKey::BTN_APPLY_SAVE), fBold, [this]() {
+        luuCaiDat();
+        soundManager.play(SoundType::VICTORY);
+        hienToast((Loc::getLanguage() == Language::TIENG_VIET) ? "Đã lưu cài đặt!" : "Settings saved!");
+    }));
+    settingsBottomButtons.push_back(std::make_unique<Button>(0.0f, 0.0f, 200.0f, 44.0f, Loc::get(LocKey::BTN_RESTORE_DEFAULTS), fBold, [this]() {
+        khoiPhucCaiDatMacDinh();
+        soundManager.play(SoundType::CLICK);
+        hienToast((Loc::getLanguage() == Language::TIENG_VIET) ? "Đã khôi phục mặc định." : "Restored defaults.");
+    }));
+    for (auto& btn : settingsBottomButtons) {
+        btn->setCharacterSize(14);
+        btn->setColors(sf::Color(240, 220, 180), sf::Color(255, 240, 190), sf::Color(255, 250, 210));
+    }
+
     capNhatNhanNut();
+    capNhatViTriNutCaiDat();
 }
 
 void GameManager::khoiTaoNutTrongGame() {
@@ -963,8 +1096,7 @@ void GameManager::khoiTaoNutTrongGame() {
 
     auto btnSettings = std::make_unique<Button>(608.0f, 398.0f, 172.0f, 40.0f, Loc::get(LocKey::MENU_SETTINGS), fBtn, [this]() {
         dongMenuPopUp();
-        trangThaiTruocSettings = TrangThai::DANG_CHOI;
-        trangThai = TrangThai::SETTINGS_MENU;
+        moMenuCaiDat(TrangThai::DANG_CHOI);
         soundManager.play(SoundType::CLICK);
     });
     btnSettings->setCharacterSize(15);
@@ -1441,6 +1573,9 @@ void GameManager::chay() {
         if (victoryParticlesActive) {
             capNhatVictoryParticles(dt);
         }
+        if (trangThai == TrangThai::SETTINGS_MENU) {
+            capNhatCaiDat(dt);
+        }
         
         atmosphere.update(dt);
         ve();
@@ -1475,16 +1610,22 @@ void GameManager::xuLySuKien() {
     else if (trangThai == TrangThai::LOAD_MENU) menuLoad.update(mousePos);
     else if (trangThai == TrangThai::SETTINGS_MENU) {
         for (auto& btn : settingsTabButtons) btn->update(mousePos);
-        for (auto& btn : settingsBottomButtons) btn->update(mousePos);
-        if (activeSettingsTab == SettingsTab::AUDIO) {
-            for (auto& btn : settingsAudioButtons) btn->update(mousePos);
-            for (auto& btn : soundboardButtons) btn->update(mousePos);
-        } else if (activeSettingsTab == SettingsTab::GRAPHICS) {
-            for (auto& btn : settingsGraphicsButtons) btn->update(mousePos);
-        } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
-            for (auto& btn : settingsGameplayButtons) btn->update(mousePos);
-        } else if (activeSettingsTab == SettingsTab::CONTROLS) {
-            for (auto& btn : settingsControlButtons) btn->update(mousePos);
+        if (!settingsDetailOpen || settingsSlideProgress < 0.2f) {
+            if (settingsCloseBtn) settingsCloseBtn->update(mousePos);
+        }
+        if (settingsDetailOpen && settingsSlideProgress > 0.8f) {
+            if (settingsCollapseBtn) settingsCollapseBtn->update(mousePos);
+            for (auto& btn : settingsBottomButtons) btn->update(mousePos);
+            if (activeSettingsTab == SettingsTab::SOUND) {
+                for (auto& btn : settingsAudioButtons) btn->update(mousePos);
+                for (auto& btn : soundboardButtons) btn->update(mousePos);
+            } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
+                for (auto& btn : settingsGameplayButtons) btn->update(mousePos);
+            } else if (activeSettingsTab == SettingsTab::LANGUAGE) {
+                for (auto& btn : settingsLanguageButtons) btn->update(mousePos);
+            } else if (activeSettingsTab == SettingsTab::CONTROLS) {
+                for (auto& btn : settingsControlButtons) btn->update(mousePos);
+            }
         }
     }
     else if (trangThai == TrangThai::INTRODUCTION_MENU) menuIntro.update(mousePos);
@@ -1516,12 +1657,14 @@ void GameManager::xuLySuKien() {
             capNhatNhanNut();
         }
         else if (trangThai == TrangThai::SETTINGS_MENU) {
-            if (activeSettingsTab == SettingsTab::AUDIO) {
-                if (sliderMaster) sliderMaster->handleEvent(event, mousePos);
-                if (sliderSfx) sliderSfx->handleEvent(event, mousePos);
-                if (sliderBgm) sliderBgm->handleEvent(event, mousePos);
-            } else if (activeSettingsTab == SettingsTab::GRAPHICS) {
-                if (sliderAtmosphere) sliderAtmosphere->handleEvent(event, mousePos);
+            if (settingsDetailOpen && settingsSlideProgress > 0.8f) {
+                if (activeSettingsTab == SettingsTab::SOUND) {
+                    if (sliderMaster) sliderMaster->handleEvent(event, mousePos);
+                    if (sliderSfx) sliderSfx->handleEvent(event, mousePos);
+                    if (sliderBgm) sliderBgm->handleEvent(event, mousePos);
+                } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
+                    if (sliderAtmosphere) sliderAtmosphere->handleEvent(event, mousePos);
+                }
             }
         }
         
@@ -1548,16 +1691,22 @@ void GameManager::xuLySuKien() {
             else if (trangThai == TrangThai::LOAD_MENU) menuLoad.update(mousePos);
             else if (trangThai == TrangThai::SETTINGS_MENU) {
                 for (auto& btn : settingsTabButtons) btn->update(mousePos);
-                for (auto& btn : settingsBottomButtons) btn->update(mousePos);
-                if (activeSettingsTab == SettingsTab::AUDIO) {
-                    for (auto& btn : settingsAudioButtons) btn->update(mousePos);
-                    for (auto& btn : soundboardButtons) btn->update(mousePos);
-                } else if (activeSettingsTab == SettingsTab::GRAPHICS) {
-                    for (auto& btn : settingsGraphicsButtons) btn->update(mousePos);
-                } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
-                    for (auto& btn : settingsGameplayButtons) btn->update(mousePos);
-                } else if (activeSettingsTab == SettingsTab::CONTROLS) {
-                    for (auto& btn : settingsControlButtons) btn->update(mousePos);
+                if (!settingsDetailOpen || settingsSlideProgress < 0.2f) {
+                    if (settingsCloseBtn) settingsCloseBtn->update(mousePos);
+                }
+                if (settingsDetailOpen && settingsSlideProgress > 0.8f) {
+                    if (settingsCollapseBtn) settingsCollapseBtn->update(mousePos);
+                    for (auto& btn : settingsBottomButtons) btn->update(mousePos);
+                    if (activeSettingsTab == SettingsTab::SOUND) {
+                        for (auto& btn : settingsAudioButtons) btn->update(mousePos);
+                        for (auto& btn : soundboardButtons) btn->update(mousePos);
+                    } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
+                        for (auto& btn : settingsGameplayButtons) btn->update(mousePos);
+                    } else if (activeSettingsTab == SettingsTab::LANGUAGE) {
+                        for (auto& btn : settingsLanguageButtons) btn->update(mousePos);
+                    } else if (activeSettingsTab == SettingsTab::CONTROLS) {
+                        for (auto& btn : settingsControlButtons) btn->update(mousePos);
+                    }
                 }
             }
             else if (trangThai == TrangThai::INTRODUCTION_MENU) menuIntro.update(mousePos);
@@ -1671,17 +1820,49 @@ void GameManager::xuLyClickChuot(const sf::Vector2i& viTri) {
         menuLoad.handleClick(viTri);
     }
     else if (trangThai == TrangThai::SETTINGS_MENU) {
-        for (auto& btn : settingsTabButtons) btn->handleClick(viTri);
-        for (auto& btn : settingsBottomButtons) btn->handleClick(viTri);
-        if (activeSettingsTab == SettingsTab::AUDIO) {
-            for (auto& btn : settingsAudioButtons) btn->handleClick(viTri);
-            for (auto& btn : soundboardButtons) btn->handleClick(viTri);
-        } else if (activeSettingsTab == SettingsTab::GRAPHICS) {
-            for (auto& btn : settingsGraphicsButtons) btn->handleClick(viTri);
-        } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
-            for (auto& btn : settingsGameplayButtons) btn->handleClick(viTri);
-        } else if (activeSettingsTab == SettingsTab::CONTROLS) {
-            for (auto& btn : settingsControlButtons) btn->handleClick(viTri);
+        for (auto& btn : settingsTabButtons) {
+            if (btn->contains(viTri)) {
+                btn->handleClick(viTri);
+                return;
+            }
+        }
+        if (!settingsDetailOpen || settingsSlideProgress < 0.2f) {
+            if (settingsCloseBtn && settingsCloseBtn->contains(viTri)) {
+                settingsCloseBtn->handleClick(viTri);
+                return;
+            }
+        }
+        if (settingsDetailOpen && settingsSlideProgress > 0.8f) {
+            if (settingsCollapseBtn && settingsCollapseBtn->contains(viTri)) {
+                settingsCollapseBtn->handleClick(viTri);
+                return;
+            }
+            for (auto& btn : settingsBottomButtons) {
+                if (btn->contains(viTri)) {
+                    btn->handleClick(viTri);
+                    return;
+                }
+            }
+            if (activeSettingsTab == SettingsTab::SOUND) {
+                for (auto& btn : settingsAudioButtons) {
+                    if (btn->contains(viTri)) { btn->handleClick(viTri); return; }
+                }
+                for (auto& btn : soundboardButtons) {
+                    if (btn->contains(viTri)) { btn->handleClick(viTri); return; }
+                }
+            } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
+                for (auto& btn : settingsGameplayButtons) {
+                    if (btn->contains(viTri)) { btn->handleClick(viTri); return; }
+                }
+            } else if (activeSettingsTab == SettingsTab::LANGUAGE) {
+                for (auto& btn : settingsLanguageButtons) {
+                    if (btn->contains(viTri)) { btn->handleClick(viTri); return; }
+                }
+            } else if (activeSettingsTab == SettingsTab::CONTROLS) {
+                for (auto& btn : settingsControlButtons) {
+                    if (btn->contains(viTri)) { btn->handleClick(viTri); return; }
+                }
+            }
         }
     }
     else if (trangThai == TrangThai::INTRODUCTION_MENU) {
@@ -1807,8 +1988,7 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         if (titleSubMenu == TitleSubMenu::MAIN_START) {
             if (key == sf::Keyboard::S) {
                 soundManager.play(SoundType::CLICK);
-                trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
-                trangThai = TrangThai::SETTINGS_MENU;
+                moMenuCaiDat(TrangThai::TITLE_SCREEN);
                 return;
             }
             if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
@@ -2079,9 +2259,14 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         }
         if (trangThai == TrangThai::SETTINGS_MENU) {
             rebindingAction = KeyAction::COUNT;
-            trangThai = trangThaiTruocSettings;
-            if (trangThai == TrangThai::DANG_CHOI) {
-                hienMenuPopUp = true;
+            if (settingsDetailOpen) {
+                settingsDetailOpen = false;
+                soundManager.play(SoundType::CLICK);
+            } else {
+                trangThai = trangThaiTruocSettings;
+                if (trangThai == TrangThai::DANG_CHOI) {
+                    hienMenuPopUp = true;
+                }
             }
             return;
         }
@@ -5521,359 +5706,438 @@ void GameManager::veLoadMenu() {
 
 void GameManager::veSettingsMenu() {
     bool tiengViet = (Loc::getLanguage() == Language::TIENG_VIET);
+    auto& mAssets = getMenuAssets();
+    sf::Font& fTitle = tiengViet ? fontVnBold : fontEnBold;
+    sf::Font& f = mAssets.vnFontLoaded ? mAssets.vnFont : font;
+    sf::Font& fBold = mAssets.fontBoldLoaded ? mAssets.fontBold : fontBold;
 
-    // 1. Subtle Dim Backdrop + Royal Scroll Banner (1200x800)
-    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 175));
+    // 1. Subtle Dim Backdrop
+    FantasyUI::get().drawFullDimOverlay(window, sf::Color(10, 8, 12, 190));
 
-    auto& am = AssetManager::get();
-    const sf::Texture& bannerTex = am.texture(TextureId::TITLE_SCROLL_BANNER);
-    if (bannerTex.getSize().x > 0) {
-        sf::Sprite bannerSprite(bannerTex);
-        float bw = static_cast<float>(bannerTex.getSize().x);
-        float bh = static_cast<float>(bannerTex.getSize().y);
-        bannerSprite.setOrigin(bw / 2.0f, bh / 2.0f);
-        float bScale = 0.86f;
-        bannerSprite.setScale(bScale, bScale);
-        bannerSprite.setPosition(600.0f, 62.0f);
-        window.draw(bannerSprite);
+    // Smoothstep transition progress
+    float t = settingsSlideProgress * settingsSlideProgress * (3.0f - 2.0f * settingsSlideProgress);
 
+    // 2. Left / Center Panel Geometry
+    float panelX = lerpVal(370.0f, 130.0f, t);
+    float panelY = lerpVal(140.0f, 120.0f, t);
+    float panelW = lerpVal(460.0f, 260.0f, t);
+    float panelH = lerpVal(520.0f, 560.0f, t);
+
+    // Draw Left/Center Panel
+    FantasyUI::get().drawPanel(window, sf::FloatRect(panelX, panelY, panelW, panelH), OrientalPanelStyle::EBONY_WOOD);
+
+    sf::RectangleShape leftInner(sf::Vector2f(panelW - 16.0f, panelH - 16.0f));
+    leftInner.setPosition(panelX + 8.0f, panelY + 8.0f);
+    leftInner.setFillColor(sf::Color(22, 16, 12, 235));
+    leftInner.setOutlineThickness(1.0f);
+    leftInner.setOutlineColor(sf::Color(165, 125, 60, 160));
+    window.draw(leftInner);
+    ve4GocLuaChon(window, sf::Vector2f(panelX + 8.0f, panelY + 8.0f), sf::Vector2f(panelW - 16.0f, panelH - 16.0f), 1.0f, 1.0f);
+
+    // Title / Header in Left/Center panel
+    if (t < 0.5f) {
         sf::Text titleText;
-        titleText.setFont(tiengViet ? fontVnBold : fontEnBold);
-        titleText.setString(toUtf8(tiengViet ? "Cài Đặt Hệ Thống" : "System Settings"));
-        titleText.setCharacterSize(tiengViet ? 25 : 23);
+        titleText.setFont(fTitle);
+        titleText.setString(toUtf8(tiengViet ? "CÀI ĐẶT HỆ THỐNG" : "SYSTEM SETTINGS"));
+        titleText.setCharacterSize(22);
         titleText.setStyle(sf::Text::Bold);
+        titleText.setFillColor(sf::Color(255, 225, 130));
         sf::FloatRect tb = titleText.getLocalBounds();
         titleText.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-
-        // Lacquer drop shadow
-        titleText.setFillColor(sf::Color(65, 16, 10, 200));
-        titleText.setOutlineThickness(1.8f);
-        titleText.setOutlineColor(sf::Color(65, 16, 10, 200));
-        titleText.setPosition(601.0f, 63.0f);
+        titleText.setPosition(panelX + panelW / 2.0f, panelY + 44.0f);
         window.draw(titleText);
 
-        // Crimson with antique gold outline
-        titleText.setFillColor(sf::Color(156, 24, 18));
-        titleText.setOutlineThickness(2.2f);
-        titleText.setOutlineColor(sf::Color(245, 215, 120));
-        titleText.setPosition(600.0f, 62.0f);
-        window.draw(titleText);
+        sf::Text subText;
+        subText.setFont(fBold);
+        subText.setString(toUtf8(tiengViet ? "❖  CHỌN MỤC THIẾT LẬP  ❖" : "❖  SELECT CATEGORY  ❖"));
+        subText.setCharacterSize(12);
+        subText.setFillColor(sf::Color(200, 165, 100));
+        sf::FloatRect stb = subText.getLocalBounds();
+        subText.setOrigin(std::round(stb.left + stb.width / 2.0f), std::round(stb.top + stb.height / 2.0f));
+        subText.setPosition(panelX + panelW / 2.0f, panelY + 70.0f);
+        window.draw(subText);
+
+        sf::RectangleShape sep(sf::Vector2f(panelW - 60.0f, 1.5f));
+        sep.setPosition(panelX + 30.0f, panelY + 86.0f);
+        sep.setFillColor(sf::Color(165, 125, 60, 150));
+        window.draw(sep);
+    } else {
+        sf::Text catTitle;
+        catTitle.setFont(fTitle);
+        catTitle.setString(toUtf8(tiengViet ? "THIẾT LẬP" : "SETTINGS"));
+        catTitle.setCharacterSize(19);
+        catTitle.setStyle(sf::Text::Bold);
+        catTitle.setFillColor(sf::Color(255, 225, 130));
+        sf::FloatRect cb = catTitle.getLocalBounds();
+        catTitle.setOrigin(std::round(cb.left + cb.width / 2.0f), std::round(cb.top + cb.height / 2.0f));
+        catTitle.setPosition(panelX + panelW / 2.0f, panelY + 36.0f);
+        window.draw(catTitle);
+
+        sf::RectangleShape sep(sf::Vector2f(panelW - 40.0f, 1.5f));
+        sep.setPosition(panelX + 20.0f, panelY + 54.0f);
+        sep.setFillColor(sf::Color(165, 125, 60, 150));
+        window.draw(sep);
     }
 
-    // 2. Unified Oriental Ebony Wood Dashboard Frame (880x564 at 160, 118)
-    FantasyUI::get().drawPanel(window, sf::FloatRect(160.0f, 118.0f, 880.0f, 564.0f), OrientalPanelStyle::EBONY_WOOD);
-
-    // 3. Top Horizontal Jade-Plaque Navigation Tabs (aligned with khoiTaoDashboardSettings)
-    for (size_t i = 0; i < settingsTabButtons.size(); ++i) {
+    // Draw the 4 Category Buttons
+    for (size_t i = 0; i < settingsTabButtons.size() && i < 4; ++i) {
         bool isActive = (static_cast<int>(activeSettingsTab) == static_cast<int>(i));
-        settingsTabButtons[i]->setSelected(isActive);
-        settingsTabButtons[i]->setColors(
-            isActive ? sf::Color(255, 248, 175) : sf::Color(255, 230, 140),
-            sf::Color(255, 248, 175),
-            sf::Color(255, 250, 190)
-        );
+        if (t > 0.4f) {
+            settingsTabButtons[i]->setSelected(isActive);
+            settingsTabButtons[i]->setColors(
+                isActive ? sf::Color(255, 248, 175) : sf::Color(235, 215, 160),
+                sf::Color(255, 248, 175),
+                sf::Color(255, 250, 190)
+            );
+        } else {
+            settingsTabButtons[i]->setSelected(false);
+            settingsTabButtons[i]->setColors(
+                sf::Color(250, 235, 180),
+                sf::Color(255, 245, 190),
+                sf::Color(255, 250, 210)
+            );
+        }
         settingsTabButtons[i]->draw(window);
-        if (isActive) {
-            ve4GocLuaChon(window, settingsTabButtons[i]->getPosition(), settingsTabButtons[i]->getSize(), 1.5f, 1.5f);
+
+        if (t > 0.4f && isActive) {
+            ve4GocLuaChon(window, settingsTabButtons[i]->getPosition(), settingsTabButtons[i]->getSize(), 1.2f, 1.2f);
+            sf::Text arrow;
+            arrow.setFont(fBold);
+            arrow.setString(toUtf8("▶"));
+            arrow.setCharacterSize(16);
+            arrow.setFillColor(sf::Color(255, 215, 110));
+            sf::Vector2f pos = settingsTabButtons[i]->getPosition();
+            sf::Vector2f sz = settingsTabButtons[i]->getSize();
+            arrow.setPosition(pos.x + sz.x - 20.0f, pos.y + 19.0f);
+            window.draw(arrow);
         }
     }
 
-    // 4. Symmetrical Inner Split Columns: Left Dark Ebony Controls & Right Clean Aged Xuan Paper
-    FantasyUI::get().drawPanel(window, sf::FloatRect(188.0f, 198.0f, 404.0f, 402.0f), OrientalPanelStyle::EBONY_WOOD);
-    sf::RectangleShape leftInset(sf::Vector2f(388.0f, 386.0f));
-    leftInset.setPosition(196.0f, 206.0f);
-    leftInset.setFillColor(sf::Color(24, 16, 12, 195));
-    leftInset.setOutlineThickness(1.0f);
-    leftInset.setOutlineColor(sf::Color(150, 112, 54, 145));
-    window.draw(leftInset);
+    // Close button (when centered popup)
+    if (t < 0.3f && settingsCloseBtn) {
+        settingsCloseBtn->draw(window);
+    }
 
-    FantasyUI::get().drawPanel(window, sf::FloatRect(608.0f, 198.0f, 404.0f, 402.0f), OrientalPanelStyle::PARCHMENT_SCROLL);
+    // Collapse button (when slid to left)
+    if (t > 0.7f && settingsCollapseBtn) {
+        settingsCollapseBtn->draw(window);
+    }
 
-    auto drawXuanHeader = [&](const std::string& headerText) {
-        sf::Text sh;
-        sh.setFont(fontBold);
-        sh.setString(toUtf8(headerText));
-        sh.setCharacterSize(20);
-        sh.setStyle(sf::Text::Bold);
-        sh.setFillColor(sf::Color(0, 0, 0, 100));
-        sf::FloatRect b = sh.getLocalBounds();
-        sh.setOrigin(std::round(b.left + b.width / 2.0f), std::round(b.top + b.height / 2.0f));
-        sh.setPosition(811.0f, 225.0f);
-        window.draw(sh);
+    // 3. Right Panel (Phần Tùy Chỉnh)
+    if (t > 0.05f) {
+        float rightPanelX = lerpVal(1220.0f, 410.0f, t);
+        float rightPanelY = 120.0f;
+        float rightW = 670.0f;
+        float rightH = 560.0f;
+        float offX = rightPanelX - 410.0f;
 
-        sf::Text tx = sh;
-        tx.setFillColor(sf::Color(175, 25, 20));
-        tx.setPosition(810.0f, 224.0f);
-        window.draw(tx);
+        FantasyUI::get().drawPanel(window, sf::FloatRect(rightPanelX, rightPanelY, rightW, rightH), OrientalPanelStyle::EBONY_WOOD);
 
-        sf::RectangleShape div(sf::Vector2f(336.0f, 2.0f));
-        div.setPosition(642.0f, 246.0f);
-        div.setFillColor(sf::Color(135, 92, 42));
-        window.draw(div);
-    };
+        sf::RectangleShape rightInner(sf::Vector2f(rightW - 16.0f, rightH - 16.0f));
+        rightInner.setPosition(rightPanelX + 8.0f, rightPanelY + 8.0f);
+        rightInner.setFillColor(sf::Color(20, 15, 11, 235));
+        rightInner.setOutlineThickness(1.0f);
+        rightInner.setOutlineColor(sf::Color(165, 125, 60, 160));
+        window.draw(rightInner);
+        ve4GocLuaChon(window, sf::Vector2f(rightPanelX + 8.0f, rightPanelY + 8.0f), sf::Vector2f(rightW - 16.0f, rightH - 16.0f), 1.2f, 1.2f);
 
-    const sf::Color inkDark(35, 18, 10);
+        // Header for Active Category
+        std::string headText;
+        if (activeSettingsTab == SettingsTab::SOUND) headText = tiengViet ? "HỆ THỐNG ÂM THANH" : "AUDIO SYSTEM SETTINGS";
+        else if (activeSettingsTab == SettingsTab::GAMEPLAY) headText = tiengViet ? "LỐI CHƠI & HIỂN THỊ" : "GAMEPLAY & DISPLAY SETTINGS";
+        else if (activeSettingsTab == SettingsTab::LANGUAGE) headText = tiengViet ? "TÙY CHỌN NGÔN NGỮ" : "LANGUAGE SETTINGS";
+        else if (activeSettingsTab == SettingsTab::CONTROLS) headText = tiengViet ? "THIẾT LẬP ĐIỀU KHIỂN" : "CONTROLS & KEYBOARD";
 
-    // 5. Tab Specific Content
-    if (activeSettingsTab == SettingsTab::AUDIO) {
-        if (sliderMaster) sliderMaster->draw(window);
-        if (settingsAudioButtons.size() >= 2) settingsAudioButtons[0]->draw(window);
-        if (sliderSfx) sliderSfx->draw(window);
-        if (settingsAudioButtons.size() >= 2) settingsAudioButtons[1]->draw(window);
-        if (sliderBgm) sliderBgm->draw(window);
+        sf::Text ht;
+        ht.setFont(fTitle);
+        ht.setString(toUtf8(headText));
+        ht.setCharacterSize(20);
+        ht.setStyle(sf::Text::Bold);
+        ht.setFillColor(sf::Color(255, 225, 130));
+        sf::FloatRect htb = ht.getLocalBounds();
+        ht.setOrigin(std::round(htb.left + htb.width / 2.0f), std::round(htb.top + htb.height / 2.0f));
+        ht.setPosition(rightPanelX + rightW / 2.0f, rightPanelY + 36.0f);
+        window.draw(ht);
 
-        sf::Text sbTitle;
-        sbTitle.setFont(fontBold);
-        sbTitle.setCharacterSize(14);
-        sbTitle.setStyle(sf::Text::Bold);
-        sbTitle.setString(toUtf8(tiengViet ? "THỬ NGHIỆM ÂM THANH:" : "SOUNDBOARD TEST:"));
-        sbTitle.setFillColor(sf::Color(235, 198, 118));
-        sbTitle.setPosition(206.0f, 496.0f);
-        window.draw(sbTitle);
+        sf::RectangleShape hdiv(sf::Vector2f(rightW - 50.0f, 1.5f));
+        hdiv.setPosition(rightPanelX + 25.0f, rightPanelY + 54.0f);
+        hdiv.setFillColor(sf::Color(185, 140, 70, 160));
+        window.draw(hdiv);
 
-        for (auto& btn : soundboardButtons) btn->draw(window);
+        // Draw Content based on activeSettingsTab
+        if (activeSettingsTab == SettingsTab::SOUND) {
+            if (sliderMaster) sliderMaster->draw(window);
+            if (settingsAudioButtons.size() >= 1) settingsAudioButtons[0]->draw(window);
+            if (sliderSfx) sliderSfx->draw(window);
+            if (settingsAudioButtons.size() >= 2) settingsAudioButtons[1]->draw(window);
+            if (sliderBgm) sliderBgm->draw(window);
 
-        drawXuanHeader(tiengViet ? "HỆ THỐNG ÂM THANH" : "AUDIO SYSTEM PREVIEW");
+            float sX = 434.0f + offX;
+            sf::Text sbTitle;
+            sbTitle.setFont(fBold);
+            sbTitle.setCharacterSize(13);
+            sbTitle.setStyle(sf::Text::Bold);
+            sbTitle.setString(toUtf8(tiengViet ? "THỬ NGHIỆM ÂM THANH:" : "SOUNDBOARD TEST:"));
+            sbTitle.setFillColor(sf::Color(235, 198, 118));
+            sbTitle.setPosition(sX, 416.0f);
+            window.draw(sbTitle);
 
-        std::string audioDetails = tiengViet
-            ? ("- ÂM LƯỢNG TỔNG: " + std::to_string(static_cast<int>(soundManager.getMasterVolume())) + "%\n"
-               "- HIỆU ỨNG (SFX): " + std::string(soundManager.getSfxBat() ? "BẬT" : "TẮT") + " (" + std::to_string(static_cast<int>(soundManager.getSfxVolume())) + "%)\n"
-               "- NHẠC NỀN (BGM): " + std::string(soundManager.getBgmBat() ? "ĐANG PHÁT" : "TẮT") + " (" + std::to_string(static_cast<int>(soundManager.getBgmVolume())) + "%)\n\n"
-               "Âm thanh quân cờ gỗ & nhạc cổ phong\n"
-               "tùy chỉnh tức thì theo thanh trượt.\n\n"
-               "Nhấn các nút bên trái để nghe thử!")
-            : ("- MASTER VOLUME: " + std::to_string(static_cast<int>(soundManager.getMasterVolume())) + "%\n"
-               "- SFX SYSTEM: " + std::string(soundManager.getSfxBat() ? "ONLINE" : "MUTED") + " (" + std::to_string(static_cast<int>(soundManager.getSfxVolume())) + "%)\n"
-               "- BGM AMBIENT: " + std::string(soundManager.getBgmBat() ? "PLAYING" : "MUTED") + " (" + std::to_string(static_cast<int>(soundManager.getBgmVolume())) + "%)\n\n"
-               "High-fidelity wooden piece impacts &\n"
-               "Guzheng ambient audio with live sliders.\n\n"
-               "Click soundboard buttons on the left to test!");
+            for (auto& btn : soundboardButtons) btn->draw(window);
 
-        sf::Text audioDesc;
-        audioDesc.setFont(fontBold);
-        audioDesc.setCharacterSize(16);
-        audioDesc.setStyle(sf::Text::Bold);
-        audioDesc.setLineSpacing(1.22f);
-        audioDesc.setString(toUtf8(audioDetails));
-        audioDesc.setFillColor(inkDark);
-        audioDesc.setPosition(630.0f, 266.0f);
-        window.draw(audioDesc);
+            // Right Visualizer & Status Card inside right panel
+            float boxX = rightPanelX + 400.0f;
+            float boxY = rightPanelY + 74.0f;
+            float boxW = 246.0f;
+            float boxH = 404.0f;
 
-        // Antique lacquered equalizer visual bars inside Xuan paper footer
-        float barStartX = 644.0f;
-        float barY = 556.0f;
-        for (int b = 0; b < 10; ++b) {
-            float bh = 16.0f + (b % 4) * 11.0f;
-            sf::RectangleShape eqBar(sf::Vector2f(22.0f, bh));
-            eqBar.setPosition(barStartX + b * 34.0f, barY - bh);
-            bool lit = (b < static_cast<int>(soundManager.getMasterVolume() / 10.0f));
-            eqBar.setFillColor(lit ? sf::Color(175, 42, 30) : sf::Color(195, 178, 148));
-            eqBar.setOutlineThickness(1.0f);
-            eqBar.setOutlineColor(sf::Color(65, 38, 20));
-            window.draw(eqBar);
-        }
-    } else if (activeSettingsTab == SettingsTab::GRAPHICS) {
-        for (auto& btn : settingsGraphicsButtons) btn->draw(window);
-        if (sliderAtmosphere) sliderAtmosphere->draw(window);
+            sf::RectangleShape infoBox(sf::Vector2f(boxW, boxH));
+            infoBox.setPosition(boxX, boxY);
+            infoBox.setFillColor(sf::Color(16, 12, 9, 210));
+            infoBox.setOutlineThickness(1.0f);
+            infoBox.setOutlineColor(sf::Color(150, 115, 60, 140));
+            window.draw(infoBox);
+            ve4GocLuaChon(window, sf::Vector2f(boxX, boxY), sf::Vector2f(boxW, boxH), 1.0f, 1.0f);
 
-        drawXuanHeader(tiengViet ? "XEM TRƯỚC GIAO DIỆN" : "LIVE THEME PREVIEW");
+            sf::Text ibHead;
+            ibHead.setFont(fBold);
+            ibHead.setString(toUtf8(tiengViet ? "TRẠNG THÁI ÂM THANH" : "AUDIO MONITOR"));
+            ibHead.setCharacterSize(14);
+            ibHead.setStyle(sf::Text::Bold);
+            ibHead.setFillColor(sf::Color(255, 220, 130));
+            sf::FloatRect ibb = ibHead.getLocalBounds();
+            ibHead.setOrigin(std::round(ibb.left + ibb.width / 2.0f), std::round(ibb.top + ibb.height / 2.0f));
+            ibHead.setPosition(boxX + boxW / 2.0f, boxY + 24.0f);
+            window.draw(ibHead);
 
-        // Mini Preview Board using Task 4 crafted palette
-        float prevW = 228.0f;
-        float prevH = 118.0f;
-        float prevX = 696.0f;
-        float prevY = 264.0f;
+            std::string audioDetails = tiengViet
+                ? ("• Tổng: " + std::to_string(static_cast<int>(soundManager.getMasterVolume())) + "%\n"
+                   "• SFX: " + std::string(soundManager.getSfxBat() ? "BẬT" : "TẮT") + " (" + std::to_string(static_cast<int>(soundManager.getSfxVolume())) + "%)\n"
+                   "• Nhạc: " + std::string(soundManager.getBgmBat() ? "BẬT" : "TẮT") + " (" + std::to_string(static_cast<int>(soundManager.getBgmVolume())) + "%)\n\n"
+                   "Âm thanh cờ gỗ & nhạc cổ phong\n"
+                   "thay đổi trực tiếp theo thanh trượt.\n\n"
+                   "Nhấn nút bên dưới để nghe thử!")
+                : ("• Master: " + std::to_string(static_cast<int>(soundManager.getMasterVolume())) + "%\n"
+                   "• SFX: " + std::string(soundManager.getSfxBat() ? "ON" : "OFF") + " (" + std::to_string(static_cast<int>(soundManager.getSfxVolume())) + "%)\n"
+                   "• BGM: " + std::string(soundManager.getBgmBat() ? "ON" : "OFF") + " (" + std::to_string(static_cast<int>(soundManager.getBgmVolume())) + "%)\n\n"
+                   "High-fidelity acoustic audio &\n"
+                   "traditional ambient Guzheng BGM.\n\n"
+                   "Click test buttons to verify!");
 
-        sf::Color prevBg(220, 185, 135), prevLine(70, 40, 20);
-        if (boardTheme == BoardTheme::IMPERIAL_JADE) { prevBg = sf::Color(168, 194, 162); prevLine = sf::Color(35, 58, 42); }
-        else if (boardTheme == BoardTheme::MIDNIGHT_INK) { prevBg = sf::Color(34, 40, 52); prevLine = sf::Color(125, 150, 182); }
-        else if (boardTheme == BoardTheme::WARM_BAMBOO) { prevBg = sf::Color(210, 175, 125); prevLine = sf::Color(68, 38, 18); }
+            sf::Text ad;
+            ad.setFont(f);
+            ad.setCharacterSize(13);
+            ad.setLineSpacing(1.25f);
+            ad.setString(toUtf8(audioDetails));
+            ad.setFillColor(sf::Color(220, 205, 175));
+            ad.setPosition(boxX + 16.0f, boxY + 54.0f);
+            window.draw(ad);
 
-        sf::RectangleShape prevBoard(sf::Vector2f(prevW, prevH));
-        prevBoard.setPosition(prevX, prevY);
-        prevBoard.setFillColor(prevBg);
-        prevBoard.setOutlineThickness(2.5f);
-        prevBoard.setOutlineColor(sf::Color(45, 25, 15));
-        window.draw(prevBoard);
+            // Equalizer Bars
+            float eqStartX = boxX + 22.0f;
+            float eqBaseY = boxY + boxH - 24.0f;
+            for (int b = 0; b < 7; ++b) {
+                float bh = 14.0f + (b % 4) * 9.0f;
+                sf::RectangleShape bar(sf::Vector2f(22.0f, bh));
+                bar.setPosition(eqStartX + b * 29.0f, eqBaseY - bh);
+                bool lit = (b < static_cast<int>(soundManager.getMasterVolume() / 15.0f));
+                bar.setFillColor(lit ? sf::Color(225, 60, 45) : sf::Color(80, 65, 50));
+                bar.setOutlineThickness(1.0f);
+                bar.setOutlineColor(sf::Color(160, 115, 60));
+                window.draw(bar);
+            }
 
-        sf::RectangleShape hCross(sf::Vector2f(prevW - 16.0f, 2.0f));
-        hCross.setPosition(prevX + 8.0f, prevY + prevH / 2.0f - 1.0f);
-        hCross.setFillColor(prevLine);
-        window.draw(hCross);
-        sf::RectangleShape vCross(sf::Vector2f(2.0f, prevH - 16.0f));
-        vCross.setPosition(prevX + prevW / 2.0f - 1.0f, prevY + 8.0f);
-        vCross.setFillColor(prevLine);
-        window.draw(vCross);
+        } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
+            for (auto& btn : settingsGameplayButtons) btn->draw(window);
+            if (sliderAtmosphere) sliderAtmosphere->draw(window);
 
-        auto drawPreviewPiece = [this](float x, float y, const std::string& name, Mau m) {
-            float r = 23.0f;
-            float px = std::round(x), py = std::round(y);
-            const sf::Texture* tex = (pieceStyle == PieceStyle::REALISTIC_WOOD) ? layTextureQuan(name, m) : nullptr;
+            float gpCol1X = 434.0f + offX;
+            float gpCol2X = 750.0f + offX;
 
-            sf::CircleShape shadow(r);
-            shadow.setOrigin(r, r);
-            shadow.setPosition(px + 2.0f, py + 2.5f);
-            shadow.setFillColor(sf::Color(10, 6, 4, 115));
-            window.draw(shadow);
+            sf::Text col1Head;
+            col1Head.setFont(fBold);
+            col1Head.setString(toUtf8(tiengViet ? "QUY TẮC & ĐỐI THỦ AI" : "RULES & AI BEHAVIOR"));
+            col1Head.setCharacterSize(13);
+            col1Head.setFillColor(sf::Color(255, 215, 110));
+            col1Head.setPosition(gpCol1X, 176.0f);
+            window.draw(col1Head);
 
-            if (tex != nullptr) {
-                sf::CircleShape rim(r + 1.0f);
-                rim.setOrigin(r + 1.0f, r + 1.0f);
-                rim.setPosition(px, py);
-                rim.setFillColor(sf::Color(26, 14, 8));
-                window.draw(rim);
+            sf::Text col2Head;
+            col2Head.setFont(fBold);
+            col2Head.setString(toUtf8(tiengViet ? "HIỂN THỊ & HIỆU ỨNG" : "DISPLAY & VISUALS"));
+            col2Head.setCharacterSize(13);
+            col2Head.setFillColor(sf::Color(255, 215, 110));
+            col2Head.setPosition(gpCol2X, 176.0f);
+            window.draw(col2Head);
 
-                sf::Sprite sprite(*tex);
-                sf::Vector2u sz = tex->getSize();
-                sprite.setOrigin(sz.x / 2.0f, sz.y / 2.0f);
-                float sc = (r * 2.0f) / static_cast<float>(sz.x);
-                sprite.setScale(sc, sc);
-                sprite.setPosition(px, py);
-                window.draw(sprite);
-            } else {
-                bool isRed = (m == Mau::DO);
-                sf::CircleShape outer(r + 2.0f);
-                outer.setOrigin(r + 2.0f, r + 2.0f);
-                outer.setPosition(px, py);
-                outer.setFillColor(isRed ? sf::Color(135, 26, 18) : sf::Color(24, 30, 40));
-                outer.setOutlineThickness(1.0f);
-                outer.setOutlineColor(sf::Color(26, 14, 8));
-                window.draw(outer);
+            sf::Text note;
+            note.setFont(f);
+            note.setString(toUtf8(tiengViet
+                ? "• Mọi tùy chọn trên sẽ tự động áp dụng ngay vào ván cờ và lưu lại vào hệ thống."
+                : "• All gameplay options take effect immediately and are saved to your profile."));
+            note.setCharacterSize(12);
+            note.setFillColor(sf::Color(200, 180, 140));
+            note.setPosition(gpCol1X, 420.0f);
+            window.draw(note);
 
-                sf::CircleShape body(r);
-                body.setOrigin(r, r);
-                body.setPosition(px, py);
-                body.setFillColor(isRed ? sf::Color(248, 236, 216) : sf::Color(232, 240, 236));
-                body.setOutlineThickness(1.5f);
-                body.setOutlineColor(isRed ? sf::Color(180, 40, 30) : sf::Color(40, 50, 65));
-                window.draw(body);
+        } else if (activeSettingsTab == SettingsTab::LANGUAGE) {
+            float card1X = 444.0f + offX;
+            float card2X = 756.0f + offX;
+            float cardY = 200.0f;
+            float cardW = 290.0f;
+            float cardH = 220.0f;
 
-                std::string label = layKyHieuQuanTheoStyle(name, m);
+            auto drawLangCardDecor = [&](float cx, bool isCurrent, const std::string& title, const std::string& sub, const std::string& desc1, const std::string& desc2, const std::string& status) {
+                sf::RectangleShape cardBg(sf::Vector2f(cardW, cardH));
+                cardBg.setPosition(cx, cardY);
+                cardBg.setFillColor(isCurrent ? sf::Color(32, 24, 16, 240) : sf::Color(18, 14, 10, 220));
+                cardBg.setOutlineThickness(isCurrent ? 2.2f : 1.2f);
+                cardBg.setOutlineColor(isCurrent ? sf::Color(255, 215, 100) : sf::Color(150, 115, 60, 160));
+                window.draw(cardBg);
+
+                ve4GocLuaChon(window, sf::Vector2f(cx, cardY), sf::Vector2f(cardW, cardH), 1.2f, 1.2f);
+
                 sf::Text t;
-                t.setFont(fontBold);
-                t.setString(toUtf8(label));
-                t.setCharacterSize((label.size() > 2) ? 14 : 17);
+                t.setFont(fTitle);
+                t.setString(toUtf8(title));
+                t.setCharacterSize(20);
                 t.setStyle(sf::Text::Bold);
-                t.setFillColor(isRed ? sf::Color(180, 25, 20) : sf::Color(20, 25, 35));
+                t.setFillColor(isCurrent ? sf::Color(255, 235, 130) : sf::Color(240, 220, 170));
                 sf::FloatRect tb = t.getLocalBounds();
                 t.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
-                t.setPosition(px, py - 1.0f);
+                t.setPosition(cx + cardW / 2.0f, cardY + 36.0f);
                 window.draw(t);
+
+                sf::Text st;
+                st.setFont(fBold);
+                st.setString(toUtf8(sub));
+                st.setCharacterSize(12);
+                st.setFillColor(sf::Color(215, 175, 95));
+                sf::FloatRect stb = st.getLocalBounds();
+                st.setOrigin(std::round(stb.left + stb.width / 2.0f), std::round(stb.top + stb.height / 2.0f));
+                st.setPosition(cx + cardW / 2.0f, cardY + 62.0f);
+                window.draw(st);
+
+                sf::RectangleShape div(sf::Vector2f(cardW - 40.0f, 1.0f));
+                div.setPosition(cx + 20.0f, cardY + 80.0f);
+                div.setFillColor(sf::Color(165, 125, 60, 160));
+                window.draw(div);
+
+                sf::Text d;
+                d.setFont(f);
+                d.setString(toUtf8(desc1 + "\n" + desc2));
+                d.setCharacterSize(12);
+                d.setLineSpacing(1.22f);
+                d.setFillColor(sf::Color(215, 200, 165));
+                d.setPosition(cx + 20.0f, cardY + 96.0f);
+                window.draw(d);
+
+                sf::RectangleShape badge(sf::Vector2f(cardW - 40.0f, 32.0f));
+                badge.setPosition(cx + 20.0f, cardY + cardH - 46.0f);
+                badge.setFillColor(isCurrent ? sf::Color(30, 85, 45, 240) : sf::Color(55, 38, 22, 220));
+                badge.setOutlineThickness(1.2f);
+                badge.setOutlineColor(isCurrent ? sf::Color(90, 220, 130) : sf::Color(175, 135, 70));
+                window.draw(badge);
+
+                sf::Text statText;
+                statText.setFont(fBold);
+                statText.setString(toUtf8(status));
+                statText.setCharacterSize(13);
+                statText.setStyle(sf::Text::Bold);
+                statText.setFillColor(isCurrent ? sf::Color(190, 255, 200) : sf::Color(240, 220, 175));
+                sf::FloatRect bgb = statText.getLocalBounds();
+                statText.setOrigin(std::round(bgb.left + bgb.width / 2.0f), std::round(bgb.top + bgb.height / 2.0f));
+                statText.setPosition(cx + cardW / 2.0f, cardY + cardH - 30.0f);
+                window.draw(statText);
+            };
+
+            drawLangCardDecor(card1X, tiengViet,
+                "TIẾNG VIỆT", "Cờ Tướng Thuần Việt",
+                "• Giao diện chữ tiếng Việt chuẩn xác.",
+                "• Quân: Tướng, Sĩ, Tượng, Xe, Pháo, Mã, Tốt.",
+                tiengViet ? "✓ ĐANG SỬ DỤNG" : "NHẤN ĐỂ CHỌN");
+
+            drawLangCardDecor(card2X, !tiengViet,
+                "ENGLISH", "International Xiangqi",
+                "• International English user interface.",
+                "• Pieces: King, Advisor, Elephant, Rook, etc.",
+                !tiengViet ? "✓ CURRENTLY ACTIVE" : "CLICK TO SELECT");
+
+            sf::Text langHint;
+            langHint.setFont(f);
+            langHint.setString(toUtf8(tiengViet
+                ? "💡 Nhấn vào thẻ ngôn ngữ tương ứng để thay đổi giao diện tức thì."
+                : "💡 Click either card to switch the interface language immediately."));
+            langHint.setCharacterSize(13);
+            langHint.setFillColor(sf::Color(225, 200, 140));
+            sf::FloatRect lhb = langHint.getLocalBounds();
+            langHint.setOrigin(std::round(lhb.left + lhb.width / 2.0f), std::round(lhb.top + lhb.height / 2.0f));
+            langHint.setPosition(rightPanelX + rightW / 2.0f, cardY + cardH + 34.0f);
+            window.draw(langHint);
+
+        } else if (activeSettingsTab == SettingsTab::CONTROLS) {
+            float kCol1X = 434.0f + offX;
+
+            sf::Text preTitle;
+            preTitle.setFont(fBold);
+            preTitle.setString(toUtf8(tiengViet ? "BỘ PHÍM SẴN CÓ:" : "QUICK PRESETS:"));
+            preTitle.setCharacterSize(13);
+            preTitle.setFillColor(sf::Color(255, 215, 110));
+            preTitle.setPosition(kCol1X, 172.0f);
+            window.draw(preTitle);
+
+            sf::Text actTitle;
+            actTitle.setFont(fBold);
+            actTitle.setString(toUtf8(tiengViet ? "TÙY BIẾN PHÍM BẤM (Nhấp vào để đổi):" : "CUSTOM KEY BINDINGS (Click to rebind):"));
+            actTitle.setCharacterSize(13);
+            actTitle.setFillColor(sf::Color(255, 215, 110));
+            actTitle.setPosition(kCol1X, 236.0f);
+            window.draw(actTitle);
+
+            for (auto& btn : settingsControlButtons) btn->draw(window);
+
+            if (rebindingAction != KeyAction::COUNT) {
+                sf::RectangleShape listenBox(sf::Vector2f(rightW - 60.0f, 44.0f));
+                listenBox.setPosition(rightPanelX + 30.0f, 446.0f);
+                listenBox.setFillColor(sf::Color(165, 25, 20, 240));
+                listenBox.setOutlineThickness(1.5f);
+                listenBox.setOutlineColor(sf::Color(255, 215, 110));
+                window.draw(listenBox);
+
+                sf::Text listenT;
+                listenT.setFont(fBold);
+                listenT.setString(toUtf8(tiengViet ? ">>> ĐANG CHỜ NHẤN PHÍM MỚI (Nhấn ESC để hủy) <<<" : ">>> LISTENING FOR NEW KEY (Press ESC to cancel) <<<"));
+                listenT.setCharacterSize(14);
+                listenT.setStyle(sf::Text::Bold);
+                listenT.setFillColor(sf::Color(255, 245, 190));
+                sf::FloatRect ltb = listenT.getLocalBounds();
+                listenT.setOrigin(std::round(ltb.left + ltb.width / 2.0f), std::round(ltb.top + ltb.height / 2.0f));
+                listenT.setPosition(rightPanelX + rightW / 2.0f, 468.0f);
+                window.draw(listenT);
+            } else {
+                sf::Text mouseHint;
+                mouseHint.setFont(f);
+                mouseHint.setString(toUtf8(tiengViet
+                    ? "• Thao tác chuột: Luôn hỗ trợ nhấp trực tiếp vào ô cờ & quân cờ để chọn và di chuyển."
+                    : "• Mouse control: Direct clicking on pieces and squares is always active."));
+                mouseHint.setCharacterSize(12);
+                mouseHint.setFillColor(sf::Color(210, 190, 150));
+                mouseHint.setPosition(kCol1X, 452.0f);
+                window.draw(mouseHint);
             }
-        };
-
-        drawPreviewPiece(prevX + 64.0f, prevY + prevH / 2.0f, "Xe", Mau::DO);
-        drawPreviewPiece(prevX + 164.0f, prevY + prevH / 2.0f, "Ma", Mau::DEN);
-
-        std::string gfxDetails = tiengViet
-            ? ("- Gợi ý nước đi: " + std::string(hienGoiY ? "BẬT" : "TẮT") + "\n"
-               "- Đánh dấu nước cuối: " + std::string(hienNuocDiCuoi ? "BẬT" : "TẮT") + "\n"
-               "- Tọa độ bàn cờ: " + std::string(hienToaDo ? "HIỆN (1-9, A-J)" : "ẨN") + "\n"
-               "- Chế độ màn hình: " + std::string(fullscreenMode ? "TOÀN MÀN HÌNH" : "CỬA SỔ"))
-            : ("- Move Hints: " + std::string(hienGoiY ? "ENABLED" : "DISABLED") + "\n"
-               "- Last Move Highlight: " + std::string(hienNuocDiCuoi ? "ENABLED" : "DISABLED") + "\n"
-               "- Board Coordinates: " + std::string(hienToaDo ? "1-9, A-J ON" : "HIDDEN") + "\n"
-               "- Display Mode: " + std::string(fullscreenMode ? "FULLSCREEN" : "WINDOWED"));
-
-        sf::Text prevDesc;
-        prevDesc.setFont(fontBold);
-        prevDesc.setCharacterSize(16);
-        prevDesc.setStyle(sf::Text::Bold);
-        prevDesc.setLineSpacing(1.28f);
-        prevDesc.setString(toUtf8(gfxDetails));
-        prevDesc.setFillColor(inkDark);
-        prevDesc.setPosition(632.0f, 412.0f);
-        window.draw(prevDesc);
-    } else if (activeSettingsTab == SettingsTab::GAMEPLAY) {
-        for (auto& btn : settingsGameplayButtons) btn->draw(window);
-
-        drawXuanHeader(tiengViet ? "LUẬT CHƠI & AI ENGINE" : "GAMEPLAY & AI ENGINE");
-
-        std::string gameDetails = tiengViet
-            ? ("- THUẬT TOÁN AI: Minimax & Alpha-Beta\n"
-               "  Tích hợp bảng điểm vị trí & sắp xếp nước đi.\n\n"
-               "- NHỊP ĐỘ SUY NGHĨ: " + std::string(aiThinkRealistic ? "450ms (Tự nhiên)" : "Tức thì") + "\n\n"
-               "- CẢNH BÁO CHIẾU TƯỚNG: " + std::string(checkAlarmSound ? "Âm thanh & Nhấp nháy" : "Yên lặng") + "\n\n"
-               "- NGÔN NGỮ: Tiếng Việt\n\n"
-               "Mọi thay đổi áp dụng ngay vào ván đấu.")
-            : ("- AI ENGINE: Minimax with Alpha-Beta\n"
-               "  Integrated Piece-Square Tables & Move Ordering.\n\n"
-               "- THINK PACING: " + std::string(aiThinkRealistic ? "450ms (Natural)" : "Instant") + "\n\n"
-               "- CHECK ALARM: " + std::string(checkAlarmSound ? "Audio & Visual Flash" : "Silent") + "\n\n"
-               "- LANGUAGE: English\n\n"
-               "All changes apply seamlessly in-game.");
-
-        sf::Text gameDesc;
-        gameDesc.setFont(fontBold);
-        gameDesc.setCharacterSize(16);
-        gameDesc.setStyle(sf::Text::Bold);
-        gameDesc.setLineSpacing(1.22f);
-        gameDesc.setString(toUtf8(gameDetails));
-        gameDesc.setFillColor(inkDark);
-        gameDesc.setPosition(630.0f, 266.0f);
-        window.draw(gameDesc);
-    } else if (activeSettingsTab == SettingsTab::CONTROLS) {
-        for (auto& btn : settingsControlButtons) btn->draw(window);
-
-        drawXuanHeader(tiengViet ? "HƯỚNG DẪN ĐỔI PHÍM" : "KEY REBINDING GUIDE");
-
-        std::string ctrlDetails = tiengViet
-            ? ("1. Nhấn vào hành động muốn đổi bên trái.\n"
-               "2. Khi hiện '[ Press any key... ]',\n"
-               "   hãy nhấn phím bất kỳ để gán mới.\n"
-               "3. Nhấn [Esc] để hủy giữ nguyên.\n\n"
-               "BỘ PHÍM HIỆN TẠI: " + keyConfig.getPresetName() + "\n\n"
-               "ĐIỀU KHIỂN CHUỘT:\n"
-               "Luôn hỗ trợ click trực tiếp trên bàn cờ.")
-            : ("1. Click on any action on the left.\n"
-               "2. When it shows '[ Press any key... ]',\n"
-               "   press ANY keyboard key to bind.\n"
-               "3. Press [Esc] to cancel without changes.\n\n"
-               "CURRENT PRESET: " + keyConfig.getPresetName() + "\n\n"
-               "MOUSE NAVIGATION:\n"
-               "Direct clicking on board squares is\n"
-               "always supported simultaneously.");
-
-        sf::Text ctrlDesc;
-        ctrlDesc.setFont(fontBold);
-        ctrlDesc.setCharacterSize(16);
-        ctrlDesc.setStyle(sf::Text::Bold);
-        ctrlDesc.setLineSpacing(1.22f);
-        ctrlDesc.setString(toUtf8(ctrlDetails));
-        ctrlDesc.setFillColor(inkDark);
-        ctrlDesc.setPosition(630.0f, 266.0f);
-        window.draw(ctrlDesc);
-
-        if (rebindingAction != KeyAction::COUNT) {
-            sf::RectangleShape listeningBox(sf::Vector2f(364.0f, 48.0f));
-            listeningBox.setPosition(628.0f, 524.0f);
-            listeningBox.setFillColor(sf::Color(175, 25, 20));
-            listeningBox.setOutlineThickness(2.0f);
-            listeningBox.setOutlineColor(sf::Color(235, 195, 115));
-            window.draw(listeningBox);
-
-            sf::Text listenT;
-            listenT.setFont(fontBold);
-            listenT.setCharacterSize(16);
-            listenT.setStyle(sf::Text::Bold);
-            listenT.setString(toUtf8(tiengViet ? ">>> ĐANG CHỜ NHẤN PHÍM <<<" : ">>> LISTENING FOR KEYPRESS <<<"));
-            listenT.setFillColor(sf::Color(255, 240, 190));
-            sf::FloatRect ltb = listenT.getLocalBounds();
-            listenT.setOrigin(std::round(ltb.left + ltb.width / 2.0f), std::round(ltb.top + ltb.height / 2.0f));
-            listenT.setPosition(810.0f, 548.0f);
-            window.draw(listenT);
         }
-    }
 
-    // 6. Bottom Dashboard Action Bar (X=240, 490, 740, Y=618, W=220, H=46)
-    for (auto& btn : settingsBottomButtons) {
-        btn->setColors(sf::Color(255, 230, 140), sf::Color(255, 248, 175), sf::Color(255, 250, 190));
-        btn->draw(window);
+        // Draw Bottom Action Buttons inside Right Panel
+        for (auto& btn : settingsBottomButtons) {
+            btn->draw(window);
+        }
     }
 }
 
 void GameManager::veKeybindingMenu() {
     activeSettingsTab = SettingsTab::CONTROLS;
+    settingsDetailOpen = true;
+    settingsSlideProgress = 1.0f;
+    capNhatViTriNutCaiDat();
     veSettingsMenu();
 }
 
@@ -6945,8 +7209,7 @@ void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
     // 1. Bottom Corner Action Buttons
     if (titleSettingsRect.contains(x, y)) {
         soundManager.play(SoundType::CLICK);
-        trangThaiTruocSettings = TrangThai::TITLE_SCREEN;
-        trangThai = TrangThai::SETTINGS_MENU;
+        moMenuCaiDat(TrangThai::TITLE_SCREEN);
         return;
     }
 
