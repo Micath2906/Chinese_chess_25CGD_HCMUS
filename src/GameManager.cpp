@@ -89,6 +89,8 @@ GameManager::GameManager()
       viTriNuocDiSai(-1, -1),
       thoiGianNuocDiSai(0.0f),
       lyDoNuocDiSai(""),
+      viTriQuanRung(-1, -1),
+      thoiGianRungQuan(0.0f),
       hienMenuPopUp(false),
       trangThaiTruocSettings(TrangThai::MENU_CHINH),
       trangThaiTruocLoad(TrangThai::MENU_CHINH) {
@@ -1445,6 +1447,8 @@ void GameManager::batDauTroChoiMoi(CheDoChoi cheDo) {
     defeatParticlesActive = false;
     defeatParticles.clear();
     screenShakeTimer = 0.0f;
+    viTriQuanRung = sf::Vector2i(-1, -1);
+    thoiGianRungQuan = 0.0f;
     khoiTaoNutTrongGame();
     
     thoiGianConDo = thoiGianVanDau;
@@ -1647,6 +1651,10 @@ void GameManager::chay() {
         }
         if (thoiGianNuocDiSai > 0.0f) {
             thoiGianNuocDiSai -= dt;
+        }
+        if (thoiGianRungQuan > 0.0f) {
+            thoiGianRungQuan -= dt;
+            if (thoiGianRungQuan < 0.0f) thoiGianRungQuan = 0.0f;
         }
         if (trangThai == TrangThai::RANDOM_LUOT) {
             capNhatRandomRoll(dt);
@@ -2574,10 +2582,12 @@ void GameManager::chonQuan(int hang, int cot) {
             tinhCacNuocDiHopLe();
         } else {
             viTriNuocDiSai = sf::Vector2i(hang, cot);
-            thoiGianNuocDiSai = 1.6f;
+            thoiGianNuocDiSai = 1.2f;
             lyDoNuocDiSai = (Loc::getLanguage() == Language::TIENG_VIET)
-                ? "Không thể chọn quân cờ của đối phương!"
+                ? "Không thể chọn quân của đối phương!"
                 : "Cannot select opponent's piece!";
+            viTriQuanRung = sf::Vector2i(hang, cot);
+            thoiGianRungQuan = 0.35f;
             soundManager.play(SoundType::WRONG);
         }
     }
@@ -2663,17 +2673,25 @@ void GameManager::diChuyenQuan(int hang, int cot) {
             }
         } else {
             viTriNuocDiSai = sf::Vector2i(hang, cot);
-            thoiGianNuocDiSai = 2.0f;
+            thoiGianNuocDiSai = 1.3f;
             lyDoNuocDiSai = (Loc::getLanguage() == Language::TIENG_VIET)
                 ? "Nước đi không hợp lệ!"
                 : "Illegal move!";
+            if (quanDangChon) {
+                viTriQuanRung = sf::Vector2i(quanDangChon->getHang(), quanDangChon->getCot());
+                thoiGianRungQuan = 0.35f;
+            }
             soundManager.play(SoundType::WRONG);
         }
     } else {
         std::string lyDo = xacDinhLyDoNuocDiSai(quanDangChon, hang, cot);
         viTriNuocDiSai = sf::Vector2i(hang, cot);
-        thoiGianNuocDiSai = 2.0f;
+        thoiGianNuocDiSai = 1.3f;
         lyDoNuocDiSai = lyDo;
+        if (quanDangChon) {
+            viTriQuanRung = sf::Vector2i(quanDangChon->getHang(), quanDangChon->getCot());
+            thoiGianRungQuan = 0.35f;
+        }
         soundManager.play(SoundType::WRONG);
     }
 }
@@ -3287,6 +3305,10 @@ void GameManager::veHighlights() {
     // Move hints
     if (quanDangChon) {
         sf::Vector2f pos = chuyenDoiToaDoBanCoThanhManHinh(quanDangChon->getHang(), quanDangChon->getCot());
+        if (thoiGianRungQuan > 0.0f && viTriQuanRung.x == quanDangChon->getHang() && viTriQuanRung.y == quanDangChon->getCot()) {
+            float shakeOffset = std::sin(thoiGianRungQuan * 48.0f) * 7.0f * (thoiGianRungQuan / 0.35f);
+            pos.x += shakeOffset;
+        }
         sf::CircleShape selCircle(30.0f);
         selCircle.setOrigin(30.0f, 30.0f);
         selCircle.setPosition(pos);
@@ -3480,9 +3502,6 @@ void GameManager::veHighlights() {
                 window.draw(atkRing);
 
                 ve4GocLuaChon(window, sf::Vector2f(atkPos.x - 30.0f, atkPos.y - 30.0f), sf::Vector2f(60.0f, 60.0f), 1.0f, 1.1f);
-
-                // Laser trajectory from attacker to King
-                veTiaChieu(atkPos, kPos, false);
             }
 
             // Check if king has no legal escape moves
@@ -3605,9 +3624,6 @@ void GameManager::veHighlights() {
                 // Gold 4 corner brackets
                 ve4GocLuaChon(window, sf::Vector2f(atkPos.x - 32.0f, atkPos.y - 32.0f), sf::Vector2f(64.0f, 64.0f), 2.0f, 1.4f);
 
-                // Laser trajectory pointing straight at defeated General!
-                veTiaChieu(atkPos, kPos, true);
-
                 // Badge on checking piece
                 bool placeAboveAtk = (qAtk->getHang() > 4);
                 veHuyHieuQuan(atkPos, tiengViet ? "CHIẾU BÍ" : "CHECKMATE",
@@ -3624,6 +3640,10 @@ void GameManager::veCacQuanCo() {
     for (const auto& q : banCo.getCacQuan()) {
         if (!q || q->getDaBiAn()) continue;
         sf::Vector2f rawPos = chuyenDoiToaDoBanCoThanhManHinh(q->getHang(), q->getCot());
+        if (thoiGianRungQuan > 0.0f && viTriQuanRung.x == q->getHang() && viTriQuanRung.y == q->getCot()) {
+            float shakeOffset = std::sin(thoiGianRungQuan * 48.0f) * 7.0f * (thoiGianRungQuan / 0.35f);
+            rawPos.x += shakeOffset;
+        }
         sf::Vector2f pos(std::round(rawPos.x), std::round(rawPos.y));
 
         const sf::Texture* tex = nullptr;
@@ -3782,25 +3802,22 @@ void GameManager::veThanhThongBao() {
             window.draw(t);
         }
     } else if (checkAlert) {
-        bool tuongCoNuocChay = false;
-        for (const auto& q : banCo.getCacQuan()) {
-            if (q && !q->getDaBiAn() && q->getMau() == banCo.getLuotChoi() && q->laTuong()) {
-                int hk = q->getHang();
-                int ck = q->getCot();
-                for (int r = 0; r < BanCo::getSOHANG(); ++r) {
-                    for (int c = 0; c < BanCo::getSOCOT(); ++c) {
-                        if (banCo.kiemTraNuocDiHopLe(hk, ck, r, c)) {
-                            tuongCoNuocChay = true;
-                            break;
-                        }
-                    }
-                    if (tuongCoNuocChay) break;
-                }
-                break;
-            }
+        std::string sideStr;
+        if (banCo.getLuotChoi() == Mau::DO) {
+            sideStr = tiengViet ? "BÊN ĐỎ ĐANG BỊ CHIẾU TƯỚNG!" : "RED KING IS UNDER CHECK!";
+        } else {
+            sideStr = tiengViet ? "BÊN ĐEN ĐANG BỊ CHIẾU TƯỚNG!" : "BLACK KING IS UNDER CHECK!";
         }
 
-        float bannerW = tuongCoNuocChay ? 480.0f : 580.0f;
+        sf::Text t;
+        t.setFont(fontBold);
+        t.setCharacterSize(15);
+        t.setStyle(sf::Text::Bold);
+        t.setString(toUtf8("[!]  " + sideStr + "  [!]"));
+        t.setFillColor(sf::Color(255, 245, 120));
+        sf::FloatRect tb = t.getLocalBounds();
+
+        float bannerW = std::max(480.0f, tb.width + 60.0f);
         float bannerX = (1200.0f - bannerW) / 2.0f;
 
         sf::RectangleShape banner(sf::Vector2f(bannerW, bh));
@@ -3812,27 +3829,6 @@ void GameManager::veThanhThongBao() {
 
         ve4GocLuaChon(window, sf::Vector2f(bannerX, by), sf::Vector2f(bannerW, bh), 2.0f, 1.5f);
 
-        sf::Text t;
-        t.setFont(fontBold);
-        t.setCharacterSize(tuongCoNuocChay ? 16 : 14);
-        t.setStyle(sf::Text::Bold);
-
-        std::string sideStr;
-        if (!tuongCoNuocChay) {
-            if (banCo.getLuotChoi() == Mau::DO) {
-                sideStr = tiengViet ? "TƯỚNG ĐỎ HẾT ĐƯỜNG! HÃY DÙNG QUÂN KHÁC HÓA GIẢI!"
-                                   : "RED KING TRAPPED! USE ANOTHER PIECE TO BLOCK!";
-            } else {
-                sideStr = tiengViet ? "TƯỚNG ĐEN HẾT ĐƯỜNG! HÃY DÙNG QUÂN KHÁC HÓA GIẢI!"
-                                   : "BLACK KING TRAPPED! USE ANOTHER PIECE TO BLOCK!";
-            }
-        } else {
-            sideStr = (banCo.getLuotChoi() == Mau::DO) ? (tiengViet ? "BÊN ĐỎ ĐANG BỊ CHIẾU TƯỚNG!" : "RED KING IS UNDER CHECK!")
-                                                      : (tiengViet ? "BÊN ĐEN ĐANG BỊ CHIẾU TƯỚNG!" : "BLACK KING IS UNDER CHECK!");
-        }
-        t.setString(toUtf8("[!]  " + sideStr + "  [!]"));
-        t.setFillColor(sf::Color(255, 245, 120));
-        sf::FloatRect tb = t.getLocalBounds();
         t.setOrigin(std::round(tb.left + tb.width / 2.0f), std::round(tb.top + tb.height / 2.0f));
         t.setPosition(std::round(1200.0f / 2.0f), std::round(by + bh / 2.0f));
         window.draw(t);
@@ -7141,11 +7137,11 @@ std::string GameManager::xacDinhLyDoNuocDiSai(std::shared_ptr<QuanCo> quan, int 
 
     // 2. Kiểm tra nước đi không bảo vệ được Tướng hoặc lộ mặt Tướng
     if (banCo.kiemTraChieuTuong() || banCo.kiemTraChieu(quan->getMau())) {
-        return vi ? "TƯỚNG ĐANG BỊ CHIẾU! Phải đi nước hóa giải thế chiếu." 
-                  : "KING UNDER CHECK! You must protect the King.";
+        return vi ? "Tướng đang bị chiếu! Cần giải chiếu." 
+                  : "King is under check! Protect the King.";
     }
-    return vi ? "NƯỚC ĐI PHẠM QUY: Làm lộ mặt Tướng hoặc khiến Tướng bị chiếu!" 
-              : "ILLEGAL MOVE: Exposes King to check or flying generals!";
+    return vi ? "Làm lộ mặt Tướng hoặc khiến Tướng bị chiếu!" 
+              : "Exposes King to check or flying generals!";
 }
 
 void GameManager::veAvatarPortrait(sf::Vector2f center, float radius, int charIndex, Mau mau, bool activeGlow) {
@@ -7772,36 +7768,34 @@ void GameManager::vePopupXinHoa() {
 }
 
 void GameManager::vePopupNuocDiSai() {
-    float alphaRatio = (thoiGianNuocDiSai < 0.4f) ? (thoiGianNuocDiSai / 0.4f) : 1.0f;
+    float alphaRatio = (thoiGianNuocDiSai < 0.35f) ? (thoiGianNuocDiSai / 0.35f) : 1.0f;
     if (alphaRatio < 0.0f) alphaRatio = 0.0f;
     sf::Uint8 alpha = static_cast<sf::Uint8>(255.0f * alphaRatio);
     if (alpha == 0) return;
-
-    FantasyUI::get().drawFullDimOverlay(window, sf::Color(0, 0, 0, static_cast<sf::Uint8>(110 * alphaRatio)));
-
-    const float dw = 480.0f;
-    const float dh = 210.0f;
-    const float dx = (1200.0f - dw) / 2.0f;
-    const float dy = (800.0f - dh) / 2.0f;
 
     bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
     sf::Font& fTitle = getMenuFont(vi, true);
     sf::Font& fBody = getMenuFont(vi, true);
 
-    // Modal background with pulse border
+    const float dw = 520.0f;
+    const float dh = 86.0f;
+    const float dx = (1200.0f - dw) / 2.0f;
+    const float dy = 160.0f;
+
+    // Elegant compact floating oriental panel with pulsing crimson-gold border (no full screen dimming)
     float pulse = 0.5f + 0.5f * std::sin(bannerPulseClock.getElapsedTime().asSeconds() * 10.0f);
     sf::Color borderColor(255, 60, 50, static_cast<sf::Uint8>(alpha * (0.8f + 0.2f * pulse)));
     FantasyUI::get().drawPanel(window, sf::FloatRect(dx, dy, dw, dh), FantasyPanelStyle::ORNATE_WOOD, borderColor);
 
     // Ribbon Title
     std::string titleStr = vi ? "[ ! ] NƯỚC ĐI KHÔNG HỢP LỆ [ ! ]" : "[ ! ] ILLEGAL MOVE [ ! ]";
-    FantasyUI::get().drawRibbonTitle(window, dx + dw / 2.0f, dy + 16.0f, 360.0f, 40.0f,
-                                     titleStr, fTitle, 16, sf::Color(255, 230, 200, alpha), borderColor);
+    FantasyUI::get().drawRibbonTitle(window, dx + dw / 2.0f, dy + 14.0f, 320.0f, 32.0f,
+                                     titleStr, fTitle, 14, sf::Color(255, 230, 200, alpha), borderColor);
 
-    // Warning message
+    // Warning message (concise, centered, never overflows)
     sf::Text tReason;
     tReason.setFont(fBody);
-    tReason.setCharacterSize(18);
+    tReason.setCharacterSize(14);
     tReason.setStyle(sf::Text::Bold);
     tReason.setString(toUtf8(lyDoNuocDiSai));
     tReason.setFillColor(sf::Color(255, 240, 180, alpha));
@@ -7809,20 +7803,8 @@ void GameManager::vePopupNuocDiSai() {
     tReason.setOutlineColor(sf::Color(20, 12, 8, alpha));
     sf::FloatRect rb = tReason.getLocalBounds();
     tReason.setOrigin(std::round(rb.left + rb.width / 2.0f), std::round(rb.top + rb.height / 2.0f));
-    tReason.setPosition(dx + dw / 2.0f, dy + 95.0f);
+    tReason.setPosition(dx + dw / 2.0f, dy + 58.0f);
     window.draw(tReason);
-
-    // Dismiss hint
-    sf::Text tHint;
-    tHint.setFont(fBody);
-    tHint.setCharacterSize(14);
-    tHint.setStyle(sf::Text::Bold);
-    tHint.setString(toUtf8(vi ? "(Nhấp chuột bất kỳ đâu để tiếp tục)" : "(Click anywhere to dismiss)"));
-    tHint.setFillColor(sf::Color(225, 205, 160, static_cast<sf::Uint8>(alpha * 0.95f)));
-    sf::FloatRect hb = tHint.getLocalBounds();
-    tHint.setOrigin(std::round(hb.left + hb.width / 2.0f), std::round(hb.top + hb.height / 2.0f));
-    tHint.setPosition(dx + dw / 2.0f, dy + dh - 26.0f);
-    window.draw(tHint);
 }
 
 void GameManager::khoiTaoVictoryParticles() {

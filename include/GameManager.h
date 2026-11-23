@@ -271,10 +271,12 @@ private:
     std::unique_ptr<Button> btnReroll;
     std::unique_ptr<Button> btnBackFromRoll;
 
-    // Invalid move feedback
+    // Invalid move feedback & piece shaking animation
     sf::Vector2i viTriNuocDiSai;
     float thoiGianNuocDiSai;
     std::string lyDoNuocDiSai;
+    sf::Vector2i viTriQuanRung;
+    float thoiGianRungQuan;
 
     // Pulse animation clock
     sf::Clock bannerPulseClock;
