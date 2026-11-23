@@ -16,6 +16,7 @@
 #include "TurnOrderRandomizer.h"
 
 enum class TrangThai {
+    TITLE_SCREEN,
     MENU_CHINH,
     PLAY_SUBMENU,
     PVP_SETUP,
@@ -242,6 +243,16 @@ private:
     // Pulse animation clock
     sf::Clock bannerPulseClock;
 
+    // Title Screen UI state
+    bool titleBtnStartHovered = false;
+    bool titleBtnSettingsHovered = false;
+    bool titleBtnSoundHovered = false;
+    bool titleBtnInfoHovered = false;
+    sf::FloatRect titleStartRect;
+    sf::FloatRect titleSettingsRect;
+    sf::FloatRect titleSoundRect;
+    sf::FloatRect titleInfoRect;
+
 public:
     GameManager();
     
@@ -349,6 +360,9 @@ private:
     void veToast();
     
     // Screens
+    void veTitleScreen();
+    void xuLyClickTitleScreen(const sf::Vector2i& viTri);
+    void capNhatHoverTitleScreen(const sf::Vector2i& viTri);
     void veMenuChinh();
     void vePlaySubmenu();
     void veLoadMenu();

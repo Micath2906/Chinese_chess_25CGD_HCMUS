@@ -16,6 +16,15 @@ enum class TextureId {
     BOARD,
     ORIENTAL_SHEET,
 
+    // Title Screen Assets
+    TITLE_BACKGROUND,
+    TITLE_SCROLL_BANNER,
+    TITLE_BTN_FRAME,
+    TITLE_TEXT_VN,
+    TITLE_TEXT_EN,
+    TITLE_BTN_TEXT_VN,
+    TITLE_BTN_TEXT_EN,
+
     // Pieces - Red (Quân Đỏ)
     PIECE_R_TUONG,
     PIECE_R_SI,
@@ -128,6 +137,15 @@ constexpr std::array<TextureAssetDef, static_cast<size_t>(TextureId::COUNT)> TEX
     { TextureId::BACKGROUND_PAVILION, "textures/backgrounds/xiangqi_background_pavilion.png", TextureLoadPolicy::SMOOTH },
     { TextureId::BOARD,               "textures/board/board.png",                              TextureLoadPolicy::SMOOTH },
     { TextureId::ORIENTAL_SHEET,      "textures/ui/xiangqi_oriental_sheet.png",                TextureLoadPolicy::PIXEL_ART },
+
+    // Title Screen Assets
+    { TextureId::TITLE_BACKGROUND,    "textures/backgrounds/title_background.jpg",             TextureLoadPolicy::SMOOTH },
+    { TextureId::TITLE_SCROLL_BANNER, "textures/ui/title_scroll_banner.png",                   TextureLoadPolicy::SMOOTH },
+    { TextureId::TITLE_BTN_FRAME,     "textures/ui/title_btn_frame.png",                       TextureLoadPolicy::SMOOTH },
+    { TextureId::TITLE_TEXT_VN,       "textures/ui/title_text_vn.png",                         TextureLoadPolicy::SMOOTH },
+    { TextureId::TITLE_TEXT_EN,       "textures/ui/title_text_en.png",                         TextureLoadPolicy::SMOOTH },
+    { TextureId::TITLE_BTN_TEXT_VN,   "textures/ui/title_btn_text_vn.png",                     TextureLoadPolicy::SMOOTH },
+    { TextureId::TITLE_BTN_TEXT_EN,   "textures/ui/title_btn_text_en.png",                     TextureLoadPolicy::SMOOTH },
 
     // Red pieces
     { TextureId::PIECE_R_TUONG,       "textures/pieces/r_tuong.png",                           TextureLoadPolicy::MASK_WHITE_SMOOTH },

@@ -25,7 +25,7 @@ static std::string layThoiGianHienTai() {
 
 GameManager::GameManager() 
     : window(sf::VideoMode(1200, 800), "Co Tuong - Chinese Chess (HCMUS OOP)", sf::Style::Default),
-      trangThai(TrangThai::MENU_CHINH),
+      trangThai(TrangThai::TITLE_SCREEN),
       cheDoChoi(CheDoChoi::HAI_NGUOI),
       rebindingAction(KeyAction::COUNT),
       activeSettingsTab(SettingsTab::AUDIO),
@@ -1451,7 +1451,8 @@ void GameManager::xuLySuKien() {
     sf::Vector2i mousePos(static_cast<int>(std::round(worldCoords.x)), static_cast<int>(std::round(worldCoords.y)));
     
     // Update button hovers
-    if (trangThai == TrangThai::MENU_CHINH) menuChinh.update(mousePos);
+    if (trangThai == TrangThai::TITLE_SCREEN) capNhatHoverTitleScreen(mousePos);
+    else if (trangThai == TrangThai::MENU_CHINH) menuChinh.update(mousePos);
     else if (trangThai == TrangThai::PLAY_SUBMENU) menuPlaySub.update(mousePos);
     else if (trangThai == TrangThai::PVP_SETUP || trangThai == TrangThai::PVAI_SETUP) {
         for (auto& btn : playSetupButtons) btn->update(mousePos);
@@ -1524,7 +1525,8 @@ void GameManager::xuLySuKien() {
         if (event.type == sf::Event::MouseMoved) {
             sf::Vector2f mc = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
             mousePos = sf::Vector2i(static_cast<int>(std::round(mc.x)), static_cast<int>(std::round(mc.y)));
-            if (trangThai == TrangThai::MENU_CHINH) menuChinh.update(mousePos);
+            if (trangThai == TrangThai::TITLE_SCREEN) capNhatHoverTitleScreen(mousePos);
+            else if (trangThai == TrangThai::MENU_CHINH) menuChinh.update(mousePos);
             else if (trangThai == TrangThai::PLAY_SUBMENU) menuPlaySub.update(mousePos);
             else if (trangThai == TrangThai::PVP_SETUP || trangThai == TrangThai::PVAI_SETUP) {
                 for (auto& btn : playSetupButtons) btn->update(mousePos);
@@ -1622,7 +1624,10 @@ void GameManager::xuLyTextEntered(sf::Uint32 unicode) {
 
 
 void GameManager::xuLyClickChuot(const sf::Vector2i& viTri) {
-    if (trangThai == TrangThai::MENU_CHINH) {
+    if (trangThai == TrangThai::TITLE_SCREEN) {
+        xuLyClickTitleScreen(viTri);
+    }
+    else if (trangThai == TrangThai::MENU_CHINH) {
         menuChinh.handleClick(viTri);
     }
     else if (trangThai == TrangThai::PLAY_SUBMENU) {
@@ -1771,6 +1776,42 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
         return;
     }
 
+    if (trangThai == TrangThai::TITLE_SCREEN) {
+        if (key == sf::Keyboard::Return || key == sf::Keyboard::Space) {
+            soundManager.play(SoundType::CLICK);
+            trangThai = TrangThai::MENU_CHINH;
+            menuChinh.triggerOpenAnimation(MenuSection::PLAY);
+            return;
+        }
+        if (key == sf::Keyboard::S) {
+            soundManager.play(SoundType::CLICK);
+            trangThai = TrangThai::MENU_CHINH;
+            menuChinh.triggerOpenAnimation(MenuSection::SETTINGS);
+            return;
+        }
+        if (key == sf::Keyboard::M) {
+            soundManager.setAmThanhBat(!soundManager.getAmThanhBat());
+            soundManager.play(SoundType::CLICK);
+            bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
+            hienToast(soundManager.getAmThanhBat() ? (vi ? "Âm thanh: BẬT" : "Audio: ON") 
+                                                  : (vi ? "Âm thanh: TẮT" : "Audio: MUTE"));
+            return;
+        }
+        if (key == sf::Keyboard::I) {
+            soundManager.play(SoundType::CLICK);
+            trangThai = TrangThai::MENU_CHINH;
+            menuChinh.triggerOpenAnimation(MenuSection::INFO);
+            return;
+        }
+        if (key == sf::Keyboard::Escape) {
+            soundManager.play(SoundType::CLICK);
+            luuCaiDat();
+            window.close();
+            return;
+        }
+        return;
+    }
+
     if (trangThai == TrangThai::MENU_CHINH) {
         if (key == sf::Keyboard::W || key == sf::Keyboard::Up) {
             menuChinh.navigateUp();
@@ -1807,6 +1848,9 @@ void GameManager::xuLyBanPhim(sf::Keyboard::Key key, bool ctrl) {
                     return;
                 }
                 menuChinh.closeBook();
+                soundManager.play(SoundType::CLICK);
+            } else {
+                trangThai = TrangThai::TITLE_SCREEN;
                 soundManager.play(SoundType::CLICK);
             }
             return;
@@ -2415,6 +2459,18 @@ void GameManager::ve() {
                 bgSprite.setScale(coverScale, coverScale);
                 window.draw(bgSprite);
             }
+        } else if (trangThai == TrangThai::TITLE_SCREEN) {
+            const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
+            if (titleBg.getSize().x > 0) {
+                sf::Sprite bgSprite(titleBg);
+                float tw = static_cast<float>(titleBg.getSize().x);
+                float th = static_cast<float>(titleBg.getSize().y);
+                float coverScale = std::max(winW / tw, winH / th);
+                bgSprite.setOrigin(tw / 2.0f, th / 2.0f);
+                bgSprite.setPosition(winW / 2.0f, winH / 2.0f);
+                bgSprite.setScale(coverScale, coverScale);
+                window.draw(bgSprite);
+            }
         } else {
             if (mAssets.cleanBg.getSize().x > 0) {
                 veNenMenuGiaoDien(window);
@@ -2432,10 +2488,31 @@ void GameManager::ve() {
     }
 
     capNhatViewManHinh();
+    if (trangThai == TrangThai::TITLE_SCREEN) {
+        const sf::Texture& titleBg = AssetManager::get().texture(TextureId::TITLE_BACKGROUND);
+        if (titleBg.getSize().x > 0) {
+            sf::Sprite bgSprite(titleBg);
+            float tw = static_cast<float>(titleBg.getSize().x);
+            float th = static_cast<float>(titleBg.getSize().y);
+            float scale = std::max(1200.0f / tw, 800.0f / th);
+            bgSprite.setOrigin(tw / 2.0f, th / 2.0f);
+            bgSprite.setPosition(600.0f, 400.0f);
+            bgSprite.setScale(scale, scale);
+            window.draw(bgSprite);
+        }
+    }
     atmosphere.draw(window);
 
-    if (trangThai == TrangThai::MENU_CHINH) {
-        veMenuChinh();
+    if (trangThai == TrangThai::TITLE_SCREEN) {
+        veTitleScreen();
+    }
+    else if (trangThai == TrangThai::MENU_CHINH) {
+        if (menuChinh.isClosed() && !matchMenuTuDangChoi) {
+            trangThai = TrangThai::TITLE_SCREEN;
+            veTitleScreen();
+        } else {
+            veMenuChinh();
+        }
     }
     else if (trangThai == TrangThai::PLAY_SUBMENU) {
         vePlaySubmenu();
@@ -6412,4 +6489,255 @@ void GameManager::veVictoryParticles() {
         window.draw(shape);
     }
 }
+
+void GameManager::capNhatHoverTitleScreen(const sf::Vector2i& viTri) {
+    float mx = static_cast<float>(viTri.x);
+    float my = static_cast<float>(viTri.y);
+    titleBtnStartHovered    = titleStartRect.contains(mx, my);
+    titleBtnSettingsHovered = titleSettingsRect.contains(mx, my);
+    titleBtnSoundHovered    = titleSoundRect.contains(mx, my);
+    titleBtnInfoHovered     = titleInfoRect.contains(mx, my);
+}
+
+void GameManager::xuLyClickTitleScreen(const sf::Vector2i& viTri) {
+    float x = static_cast<float>(viTri.x);
+    float y = static_cast<float>(viTri.y);
+
+    if (titleStartRect.contains(x, y)) {
+        soundManager.play(SoundType::CLICK);
+        trangThai = TrangThai::MENU_CHINH;
+        menuChinh.triggerOpenAnimation(MenuSection::PLAY);
+        return;
+    }
+
+    if (titleSettingsRect.contains(x, y)) {
+        soundManager.play(SoundType::CLICK);
+        trangThai = TrangThai::MENU_CHINH;
+        menuChinh.triggerOpenAnimation(MenuSection::SETTINGS);
+        return;
+    }
+
+    if (titleSoundRect.contains(x, y)) {
+        soundManager.setAmThanhBat(!soundManager.getAmThanhBat());
+        soundManager.play(SoundType::CLICK);
+        bool vi = (Loc::getLanguage() == Language::TIENG_VIET);
+        hienToast(soundManager.getAmThanhBat() ? (vi ? "Âm thanh: BẬT" : "Audio: ON") 
+                                              : (vi ? "Âm thanh: TẮT" : "Audio: MUTE"));
+        return;
+    }
+
+    if (titleInfoRect.contains(x, y)) {
+        soundManager.play(SoundType::CLICK);
+        trangThai = TrangThai::MENU_CHINH;
+        menuChinh.triggerOpenAnimation(MenuSection::INFO);
+        return;
+    }
+}
+
+void GameManager::veTitleScreen() {
+    auto& am = AssetManager::get();
+    bool isVi = (Loc::getLanguage() == Language::TIENG_VIET);
+
+    // 1. Royal Scroll Banner (Cuộn Thư Hoàng Gia) at top center
+    const sf::Texture& bannerTex = am.texture(TextureId::TITLE_SCROLL_BANNER);
+    if (bannerTex.getSize().x > 0) {
+        sf::Sprite bannerSprite(bannerTex);
+        float bw = static_cast<float>(bannerTex.getSize().x);
+        float bh = static_cast<float>(bannerTex.getSize().y);
+        bannerSprite.setOrigin(bw / 2.0f, bh / 2.0f);
+
+        // Gentle breathing animation
+        float t = bannerPulseClock.getElapsedTime().asSeconds();
+        float pulse = 1.0f + 0.007f * std::sin(t * 2.2f);
+        float baseScale = 1.18f;
+        bannerSprite.setScale(baseScale * pulse, baseScale * pulse);
+
+        float bannerCenterY = 125.0f;
+        bannerSprite.setPosition(600.0f, bannerCenterY);
+        window.draw(bannerSprite);
+
+        // Title text inside banner
+        const sf::Texture& textTex = am.texture(isVi ? TextureId::TITLE_TEXT_VN : TextureId::TITLE_TEXT_EN);
+        if (textTex.getSize().x > 0) {
+            sf::Sprite textSprite(textTex);
+            float tw = static_cast<float>(textTex.getSize().x);
+            float th = static_cast<float>(textTex.getSize().y);
+            textSprite.setOrigin(tw / 2.0f, th / 2.0f);
+
+            float textScale = (isVi ? 1.05f : 0.98f) * pulse;
+            textSprite.setScale(textScale, textScale);
+            textSprite.setPosition(600.0f, bannerCenterY - 2.0f);
+            window.draw(textSprite);
+        }
+    }
+
+    // 2. Lacquer Red Start Button ("Bắt Đầu" / "Start")
+    const sf::Texture& btnTex = am.texture(TextureId::TITLE_BTN_FRAME);
+    if (btnTex.getSize().x > 0) {
+        sf::Sprite btnSprite(btnTex);
+        float bw = static_cast<float>(btnTex.getSize().x);
+        float bh = static_cast<float>(btnTex.getSize().y);
+        btnSprite.setOrigin(bw / 2.0f, bh / 2.0f);
+
+        float btnCenterY = 338.0f;
+        float baseScale = 1.22f;
+        float curScale = titleBtnStartHovered ? (baseScale * 1.06f) : baseScale;
+        btnSprite.setScale(curScale, curScale);
+        btnSprite.setPosition(600.0f, btnCenterY);
+
+        float rw = bw * curScale;
+        float rh = bh * curScale;
+        titleStartRect = sf::FloatRect(600.0f - rw / 2.0f, btnCenterY - rh / 2.0f, rw, rh);
+
+        // Golden glow when hovered
+        if (titleBtnStartHovered) {
+            sf::RectangleShape glow(sf::Vector2f(rw + 14.0f, rh + 10.0f));
+            glow.setOrigin((rw + 14.0f) / 2.0f, (rh + 10.0f) / 2.0f);
+            glow.setPosition(600.0f, btnCenterY);
+            glow.setFillColor(sf::Color(255, 215, 80, 50));
+            glow.setOutlineThickness(2.0f);
+            glow.setOutlineColor(sf::Color(255, 230, 120, 180));
+            window.draw(glow);
+
+            btnSprite.setColor(sf::Color(255, 245, 220));
+        } else {
+            btnSprite.setColor(sf::Color(255, 255, 255));
+        }
+
+        window.draw(btnSprite);
+
+        // Text inside button
+        const sf::Texture& btnTextTex = am.texture(isVi ? TextureId::TITLE_BTN_TEXT_VN : TextureId::TITLE_BTN_TEXT_EN);
+        if (btnTextTex.getSize().x > 0) {
+            sf::Sprite btnTextSprite(btnTextTex);
+            float tw = static_cast<float>(btnTextTex.getSize().x);
+            float th = static_cast<float>(btnTextTex.getSize().y);
+            btnTextSprite.setOrigin(tw / 2.0f, th / 2.0f);
+
+            float textScale = 1.15f * (curScale / baseScale);
+            btnTextSprite.setScale(textScale, textScale);
+            btnTextSprite.setPosition(600.0f, btnCenterY);
+
+            if (titleBtnStartHovered) {
+                btnTextSprite.setColor(sf::Color(255, 245, 180));
+            } else {
+                btnTextSprite.setColor(sf::Color(255, 230, 160));
+            }
+            window.draw(btnTextSprite);
+        }
+    }
+
+    // 3. Corner Action Buttons (Settings, Sound, Info)
+    auto drawCircularButton = [this](sf::Vector2f center, float radius, bool hovered, sf::FloatRect& outRect) {
+        outRect = sf::FloatRect(center.x - radius, center.y - radius, radius * 2.0f, radius * 2.0f);
+        float r = hovered ? (radius * 1.08f) : radius;
+
+        if (hovered) {
+            sf::CircleShape glow(r + 3.0f);
+            glow.setOrigin(r + 3.0f, r + 3.0f);
+            glow.setPosition(center);
+            glow.setFillColor(sf::Color(255, 215, 80, 45));
+            window.draw(glow);
+        }
+
+        sf::CircleShape circle(r);
+        circle.setOrigin(r, r);
+        circle.setPosition(center);
+        circle.setFillColor(hovered ? sf::Color(45, 34, 25, 245) : sf::Color(22, 18, 14, 220));
+        circle.setOutlineThickness(hovered ? 2.5f : 2.0f);
+        circle.setOutlineColor(hovered ? sf::Color(255, 225, 110, 255) : sf::Color(195, 155, 70, 230));
+        window.draw(circle);
+    };
+
+    // Button 1: Settings (Bottom-Left: 52, 735)
+    drawCircularButton(sf::Vector2f(52.0f, 735.0f), 24.0f, titleBtnSettingsHovered, titleSettingsRect);
+    auto& mAssets = getMenuAssets();
+    if (mAssets.iconSettings.getSize().x > 0) {
+        sf::Sprite gearSp(mAssets.iconSettings);
+        float gw = static_cast<float>(mAssets.iconSettings.getSize().x);
+        float gh = static_cast<float>(mAssets.iconSettings.getSize().y);
+        gearSp.setOrigin(gw / 2.0f, gh / 2.0f);
+        gearSp.setPosition(52.0f, 735.0f);
+        float gScale = (titleBtnSettingsHovered ? 1.9f : 1.75f);
+        gearSp.setScale(gScale, gScale);
+        gearSp.setColor(titleBtnSettingsHovered ? sf::Color(255, 235, 140) : sf::Color(245, 235, 215));
+        window.draw(gearSp);
+    }
+
+    // Button 2: Sound (Bottom-Left: 116, 735)
+    drawCircularButton(sf::Vector2f(116.0f, 735.0f), 24.0f, titleBtnSoundHovered, titleSoundRect);
+    bool soundOn = soundManager.getAmThanhBat();
+    {
+        sf::Color iconCol = titleBtnSoundHovered ? sf::Color(255, 235, 140) : sf::Color(245, 235, 215);
+        if (!soundOn) iconCol = sf::Color(180, 160, 150, 180);
+
+        // Speaker box (body)
+        sf::RectangleShape spkBox(sf::Vector2f(6.0f, 10.0f));
+        spkBox.setPosition(108.0f, 730.0f);
+        spkBox.setFillColor(iconCol);
+        window.draw(spkBox);
+
+        // Speaker cone
+        sf::ConvexShape spkCone;
+        spkCone.setPointCount(4);
+        spkCone.setPoint(0, sf::Vector2f(114.0f, 730.0f));
+        spkCone.setPoint(1, sf::Vector2f(121.0f, 725.0f));
+        spkCone.setPoint(2, sf::Vector2f(121.0f, 745.0f));
+        spkCone.setPoint(3, sf::Vector2f(114.0f, 740.0f));
+        spkCone.setFillColor(iconCol);
+        window.draw(spkCone);
+
+        if (soundOn) {
+            // Sound wave 1
+            sf::RectangleShape w1a(sf::Vector2f(2.0f, 6.0f));
+            w1a.setPosition(125.0f, 729.0f);
+            w1a.setRotation(25.0f);
+            w1a.setFillColor(iconCol);
+            window.draw(w1a);
+
+            sf::RectangleShape w1b(sf::Vector2f(2.0f, 6.0f));
+            w1b.setPosition(125.0f, 736.0f);
+            w1b.setRotation(-25.0f);
+            w1b.setFillColor(iconCol);
+            window.draw(w1b);
+
+            // Sound wave 2
+            sf::RectangleShape w2a(sf::Vector2f(2.0f, 8.0f));
+            w2a.setPosition(129.0f, 727.0f);
+            w2a.setRotation(25.0f);
+            w2a.setFillColor(iconCol);
+            window.draw(w2a);
+
+            sf::RectangleShape w2b(sf::Vector2f(2.0f, 8.0f));
+            w2b.setPosition(129.0f, 737.0f);
+            w2b.setRotation(-25.0f);
+            w2b.setFillColor(iconCol);
+            window.draw(w2b);
+        } else {
+            // Mute red diagonal slash
+            sf::RectangleShape slash(sf::Vector2f(28.0f, 2.5f));
+            slash.setOrigin(14.0f, 1.25f);
+            slash.setPosition(116.0f, 735.0f);
+            slash.setRotation(-40.0f);
+            slash.setFillColor(sf::Color(220, 50, 40));
+            window.draw(slash);
+        }
+    }
+
+    // Button 3: Info (Bottom-Right: 1148, 735)
+    drawCircularButton(sf::Vector2f(1148.0f, 735.0f), 24.0f, titleBtnInfoHovered, titleInfoRect);
+    {
+        sf::Text infoText;
+        infoText.setFont(fontBold);
+        infoText.setString("i");
+        infoText.setCharacterSize(titleBtnInfoHovered ? 26 : 24);
+        infoText.setStyle(sf::Text::Bold | sf::Text::Italic);
+        infoText.setFillColor(titleBtnInfoHovered ? sf::Color(255, 235, 140) : sf::Color(245, 235, 215));
+        sf::FloatRect ib = infoText.getLocalBounds();
+        infoText.setOrigin(std::round(ib.left + ib.width / 2.0f), std::round(ib.top + ib.height / 2.0f));
+        infoText.setPosition(1148.0f, 734.0f);
+        window.draw(infoText);
+    }
+}
+
 
